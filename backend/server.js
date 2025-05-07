@@ -1,3 +1,4 @@
+// server.js - Modified version
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -8,6 +9,13 @@ dotenv.config();
 
 // Connect to MongoDB
 connectDB();
+
+// Initialize Express app
+const app = express();
+
+// Apply middleware
+app.use(cors());
+app.use(express.json());
 
 // Import routes
 const userRoutes = require("./routes/userRoutes");
