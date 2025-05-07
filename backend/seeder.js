@@ -15,7 +15,9 @@ const Cart = require("./models/cartModel");
 
 // Connect to DB
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(
+    process.env.MONGO_URI || "mongodb://127.0.0.1:27017/gaming-gear-shop"
+  )
   .then(() => console.log("MongoDB connected for seeding"))
   .catch((err) => console.log(err));
 
