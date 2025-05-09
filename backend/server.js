@@ -1,4 +1,4 @@
-// server.js - Modified version
+// server.js
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");

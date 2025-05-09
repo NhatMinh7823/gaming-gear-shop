@@ -1,3 +1,5 @@
+// categoryController.js
+
 const Category = require("../models/categoryModel");
 
 // @desc    Get all categories

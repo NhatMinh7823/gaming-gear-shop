@@ -1,3 +1,5 @@
+// userController.js
+
 const User = require("../models/userModel");
 
 // @desc    Register a new user

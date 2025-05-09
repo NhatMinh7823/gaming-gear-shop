@@ -1,3 +1,5 @@
+// errorMiddleware.js
+
 // Not Found Error Handler
 const notFound = (req, res, next) => {
   const error = new Error(`Not Found - ${req.originalUrl}`);
