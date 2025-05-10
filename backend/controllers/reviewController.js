@@ -1,7 +1,6 @@
-// reviewController.js
-
 const Review = require("../models/reviewModel");
 const Order = require("../models/orderModel");
+const Product = require("../models/productModel");
 
 // @desc    Create new review
 // @route   POST /api/reviews
@@ -14,6 +13,15 @@ exports.createReview = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Please provide product ID, rating, and comment",
+      });
+    }
+
+    // Check if product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
       });
     }
 
@@ -121,7 +129,6 @@ exports.updateReview = async (req, res) => {
   try {
     const { rating, title, comment } = req.body;
 
-    // Find review
     const review = await Review.findById(req.params.id);
 
     if (!review) {
@@ -131,7 +138,6 @@ exports.updateReview = async (req, res) => {
       });
     }
 
-    // Check if user is authorized to update this review
     if (review.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
@@ -139,12 +145,10 @@ exports.updateReview = async (req, res) => {
       });
     }
 
-    // Update review
     if (rating) review.rating = rating;
     if (title) review.title = title;
     if (comment) review.comment = comment;
 
-    // Save review
     await review.save();
 
     res.status(200).json({
@@ -165,7 +169,6 @@ exports.updateReview = async (req, res) => {
 // @access  Private
 exports.deleteReview = async (req, res) => {
   try {
-    // Find review
     const review = await Review.findById(req.params.id);
 
     if (!review) {
@@ -175,7 +178,6 @@ exports.deleteReview = async (req, res) => {
       });
     }
 
-    // Check if user is authorized to delete this review
     if (
       review.user.toString() !== req.user._id.toString() &&
       req.user.role !== "admin"
@@ -186,7 +188,6 @@ exports.deleteReview = async (req, res) => {
       });
     }
 
-    // Delete review
     await review.deleteOne();
 
     res.status(200).json({

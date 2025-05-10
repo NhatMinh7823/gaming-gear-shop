@@ -12,6 +12,7 @@ const {
   getFeaturedProducts,
   getProductsByCategory,
   searchProducts,
+  getSearchSuggestions,
 } = require("../controllers/productController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -22,6 +23,7 @@ router.get("/new", getNewArrivals);
 router.get("/featured", getFeaturedProducts);
 router.get("/category/:categoryId", getProductsByCategory);
 router.get("/search", searchProducts);
+router.get("/suggestions", getSearchSuggestions);
 router.get("/:id", getProductById);
 
 // Admin routes

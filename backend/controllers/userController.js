@@ -1,5 +1,3 @@
-// userController.js
-
 const User = require("../models/userModel");
 
 // @desc    Register a new user
@@ -9,7 +7,6 @@ exports.registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({
@@ -18,14 +15,12 @@ exports.registerUser = async (req, res) => {
       });
     }
 
-    // Create new user
     const user = await User.create({
       name,
       email,
       password,
     });
 
-    // Generate token
     const token = user.getSignedJwtToken();
 
     res.status(201).json({
@@ -54,7 +49,6 @@ exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate email & password
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -62,7 +56,6 @@ exports.loginUser = async (req, res) => {
       });
     }
 
-    // Check for user
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res.status(401).json({
@@ -71,7 +64,6 @@ exports.loginUser = async (req, res) => {
       });
     }
 
-    // Check if password matches
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({
@@ -80,7 +72,6 @@ exports.loginUser = async (req, res) => {
       });
     }
 
-    // Generate token
     const token = user.getSignedJwtToken();
 
     res.status(200).json({
@@ -125,7 +116,7 @@ exports.getUserProfile = async (req, res) => {
         role: user.role,
         phone: user.phone,
         address: user.address,
-        wishlist: user.wishlist,
+        wishlist: user.wishlist || [], // Đảm bảo wishlist luôn tồn tại
         createdAt: user.createdAt,
       },
     });
@@ -143,7 +134,6 @@ exports.getUserProfile = async (req, res) => {
 // @access  Private
 exports.updateUserProfile = async (req, res) => {
   try {
-    // Prevent password update through this route
     if (req.body.password) {
       return res.status(400).json({
         success: false,
@@ -173,7 +163,7 @@ exports.updateUserProfile = async (req, res) => {
         role: user.role,
         phone: user.phone,
         address: user.address,
-        wishlist: user.wishlist,
+        wishlist: user.wishlist || [],
         createdAt: user.createdAt,
       },
     });
@@ -202,7 +192,6 @@ exports.updatePassword = async (req, res) => {
 
     const user = await User.findById(req.user.id).select("+password");
 
-    // Check current password
     const isMatch = await user.matchPassword(currentPassword);
     if (!isMatch) {
       return res.status(401).json({
@@ -211,7 +200,6 @@ exports.updatePassword = async (req, res) => {
       });
     }
 
-    // Update password
     user.password = newPassword;
     await user.save();
 
@@ -253,7 +241,7 @@ exports.addToWishlist = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      wishlist: user.wishlist,
+      wishlist: user.wishlist || [],
     });
   } catch (error) {
     res.status(500).json({
@@ -279,7 +267,7 @@ exports.removeFromWishlist = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      wishlist: user.wishlist,
+      wishlist: user.wishlist || [],
     });
   } catch (error) {
     res.status(500).json({

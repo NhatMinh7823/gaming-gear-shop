@@ -1,20 +1,42 @@
-
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const BASE_URL = process.env.REACT_APP_API_URL
+  ? API_URL.replace("/api", "")
+  : "http://localhost:3000";
 
 const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
 });
 
-// Add token to requests if available
 api.interceptors.request.use((config) => {
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   if (userInfo && userInfo.token) {
     config.headers.Authorization = `Bearer ${userInfo.token}`;
   }
   return config;
+});
+
+api.interceptors.response.use((response) => {
+  if (response.data) {
+    const transformImages = (obj) => {
+      if (Array.isArray(obj)) {
+        return obj.map(transformImages);
+      } else if (obj && typeof obj === "object") {
+        Object.keys(obj).forEach((key) => {
+          if (key === "url" && obj[key] && !obj[key].startsWith("http")) {
+            obj[key] = `${BASE_URL}${obj[key]}`;
+          } else if (typeof obj[key] === "object") {
+            transformImages(obj[key]);
+          }
+        });
+      }
+      return obj;
+    };
+    response.data = transformImages(response.data);
+  }
+  return response;
 });
 
 // User APIs
@@ -30,9 +52,11 @@ export const removeFromWishlist = (productId) =>
 // Product APIs
 export const getProducts = (params) => api.get("/products", { params });
 export const getProductById = (id) => api.get(`/products/${id}`);
-export const searchProducts = (keyword) =>
-  api.get(`/products/search?keyword=${keyword}`);
+export const searchProducts = (keyword, params) =>
+  api.get(`/products/search?keyword=${keyword}`, { params });
 export const getFeaturedProducts = () => api.get("/products/featured");
+export const getSearchSuggestions = (keyword) =>
+  api.get(`/products/suggestions?keyword=${keyword}`);
 
 // Category APIs
 export const getCategories = () => api.get("/categories");
@@ -55,5 +79,9 @@ export const getOrderById = (id) => api.get(`/orders/${id}`);
 export const createReview = (data) => api.post("/reviews", data);
 export const getProductReviews = (productId) =>
   api.get(`/reviews/product/${productId}`);
+export const getMyReviews = () => api.get("/reviews/myreviews");
+export const updateReview = (reviewId, data) =>
+  api.put(`/reviews/${reviewId}`, data);
+export const deleteReview = (reviewId) => api.delete(`/reviews/${reviewId}`);
 
 export default api;

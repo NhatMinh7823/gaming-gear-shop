@@ -8,8 +8,11 @@ import { setCart } from '../redux/slices/cartSlice';
 function ProductPage() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [rating, setRating] = useState(0);
+  const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
   const { userInfo } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -17,11 +20,17 @@ function ProductPage() {
 
   useEffect(() => {
     const fetchProduct = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const { data } = await getProductById(id);
         setProduct(data.product);
-      } catch (error) {
-        toast.error('Error fetching product');
+      } catch (err) {
+        const errorMessage = err.response?.data?.message || 'Error fetching product details.';
+        toast.error(errorMessage);
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
       }
     };
     fetchProduct();
@@ -47,19 +56,34 @@ function ProductPage() {
       navigate('/login');
       return;
     }
+    if (rating < 1 || rating > 5) {
+      toast.error('Please select a rating between 1 and 5');
+      return;
+    }
+    if (!title.trim()) {
+      toast.error('Please provide a review title');
+      return;
+    }
+    if (!comment.trim()) {
+      toast.error('Please provide a review comment');
+      return;
+    }
     try {
-      await createReview({ productId: id, rating, comment, title: `Review for ${product.name}` });
+      await createReview({ productId: id, rating, title, comment });
       toast.success('Review submitted');
       setRating(0);
+      setTitle('');
       setComment('');
       const { data } = await getProductById(id);
       setProduct(data.product);
     } catch (error) {
-      toast.error('Error submitting review');
+      toast.error(error.response?.data?.message || 'Error submitting review');
     }
   };
 
-  if (!product) return <div>Loading...</div>;
+  if (loading) return <div className="container mx-auto py-8 text-center">Loading...</div>;
+  if (error) return <div className="container mx-auto py-8 text-center text-red-500">Error: {error}</div>;
+  if (!product) return <div className="container mx-auto py-8 text-center">Product not found.</div>;
 
   return (
     <div className="container mx-auto py-8">
@@ -94,13 +118,23 @@ function ProductPage() {
       </div>
       <div className="mt-8">
         <h2 className="text-2xl font-bold">Reviews</h2>
-        {product.reviews.map((review) => (
-          <div key={review._id} className="border-t py-4">
-            <p className="font-semibold">{review.user.name}</p>
-            <p className="text-yellow-500">Rating: {review.rating}</p>
-            <p>{review.comment}</p>
-          </div>
-        ))}
+        {product.reviews && product.reviews.length > 0 ? (
+          product.reviews.map((review) => (
+            <div key={review._id} className="border-t py-4">
+              <div className="flex justify-between">
+                <p className="font-semibold">{review.user?.name}</p>
+                {review.isVerifiedPurchase && (
+                  <span className="text-green-600 text-sm">Verified Purchase</span>
+                )}
+              </div>
+              <p className="text-yellow-500">Rating: {review.rating}</p>
+              <p className="font-medium">{review.title}</p>
+              <p>{review.comment}</p>
+            </div>
+          ))
+        ) : (
+          <p>No reviews yet.</p>
+        )}
         {userInfo && (
           <form onSubmit={handleReviewSubmit} className="mt-4">
             <h3 className="text-lg font-semibold">Write a Review</h3>
@@ -118,12 +152,23 @@ function ProductPage() {
               </select>
             </div>
             <div className="mt-2">
+              <label>Title:</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="border p-2 w-full"
+                placeholder="Review title"
+              />
+            </div>
+            <div className="mt-2">
               <label>Comment:</label>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 className="border p-2 w-full"
                 rows="4"
+                placeholder="Write your review here"
               />
             </div>
             <button

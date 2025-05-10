@@ -14,11 +14,11 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 
 // Public routes
 router.get("/product/:productId", getProductReviews);
+router.get("/myreviews", protect, getMyReviews);
 router.get("/:id", getReviewById);
 
 // User routes
 router.post("/", protect, createReview);
-router.get("/myreviews", protect, getMyReviews);
 router.put("/:id", protect, updateReview);
 router.delete("/:id", protect, deleteReview);
 
