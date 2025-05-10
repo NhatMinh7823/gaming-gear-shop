@@ -25,16 +25,40 @@ exports.protect = async (req, res, next) => {
 
   try {
     // Verify token
+    console.log("Token received by backend:", token); // Log token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Decoded token:", decoded); // Log decoded payload
 
     // Get user from the token
-    req.user = await User.findById(decoded.id).select("-password");
+    const user = await User.findById(decoded.id).select("-password");
+    
+    if (!user) {
+      console.error(`Protect Middleware: User not found in DB for ID: ${decoded.id}`);
+      return res.status(401).json({
+        success: false,
+        message: "User associated with token not found. Not authorized.",
+      });
+    }
+    
+    req.user = user; // Assign user to request object
+    console.log("Protect Middleware: User found from token:", req.user.email);
 
     next();
   } catch (error) {
+    console.error("Error in protect middleware:", error.name, error.message, error.stack); // Log more details
+    
+    if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({ success: false, message: 'Invalid token. Please log in again.' });
+    }
+    if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ success: false, message: 'Token expired. Please log in again.' });
+    }
+    // Generic error for other cases during token processing
     return res.status(401).json({
       success: false,
-      message: "Not authorized to access this route",
+      message: "Not authorized to access this route (token processing issue).",
+      errorName: error.name, // Send error name for better client-side debugging if needed
+      // errorMessage: error.message // Optionally send error message in dev
     });
   }
 };

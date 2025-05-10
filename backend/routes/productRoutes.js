@@ -15,6 +15,7 @@ const {
   getSearchSuggestions,
 } = require("../controllers/productController");
 const { protect, authorize } = require("../middleware/authMiddleware");
+const { uploadProductImages } = require('../middleware/uploadMiddleware'); // Import upload middleware
 
 // Public routes
 router.get("/", getProducts);
@@ -27,8 +28,8 @@ router.get("/suggestions", getSearchSuggestions);
 router.get("/:id", getProductById);
 
 // Admin routes
-router.post("/", protect, authorize("admin"), createProduct);
-router.put("/:id", protect, authorize("admin"), updateProduct);
+router.post("/", protect, authorize("admin"), uploadProductImages, createProduct);
+router.put("/:id", protect, authorize("admin"), uploadProductImages, updateProduct);
 router.delete("/:id", protect, authorize("admin"), deleteProduct);
 
 module.exports = router;

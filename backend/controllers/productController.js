@@ -161,7 +161,8 @@ exports.createProduct = async (req, res) => {
 
     const productData = {
       ...req.body,
-      images: images.length > 0 ? images : req.body.images || [],
+      // If files were uploaded, use them. Otherwise, default to an empty array for images.
+      images: images.length > 0 ? images : [],
     };
 
     const product = await Product.create(productData);

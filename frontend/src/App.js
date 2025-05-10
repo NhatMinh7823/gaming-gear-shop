@@ -14,6 +14,17 @@ import ProfilePage from "./pages/ProfilePage";
 import OrderPage from "./pages/OrderPage";
 import OrdersPage from "./pages/OrdersPage";
 
+// Admin components
+import AdminLayout from "./admin/components/AdminLayout";
+import DashboardPage from "./admin/pages/DashboardPage";
+import AdminProductsPage from "./admin/pages/AdminProductsPage";
+import AdminOrdersPage from "./admin/pages/AdminOrdersPage";
+import AdminUsersPage from "./admin/pages/AdminUsersPage";
+import ProductFormPage from "./admin/pages/ProductFormPage";
+import UserEditPage from "./admin/pages/UserEditPage";
+import AdminOrderDetailPage from "./admin/pages/AdminOrderDetailPage"; // Import AdminOrderDetailPage
+import AdminRoute from "./components/AdminRoute";
+
 function App() {
   return (
     <Provider store={store}>
@@ -30,6 +41,22 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/order/:id" element={<OrderPage />} />
             <Route path="/orders" element={<OrdersPage />} />
+
+            {/* Admin Routes - Protected by AdminRoute */}
+            <Route path="/admin" element={<AdminRoute />}>
+              {/* AdminLayout is now a child of AdminRoute's Outlet */}
+              <Route element={<AdminLayout />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="dashboard" element={<DashboardPage />} />
+                <Route path="products" element={<AdminProductsPage />} />
+                <Route path="products/new" element={<ProductFormPage />} />
+                <Route path="products/edit/:id" element={<ProductFormPage />} />
+                <Route path="orders" element={<AdminOrdersPage />} />
+                <Route path="orders/:id" element={<AdminOrderDetailPage />} /> {/* Route for order details */}
+                <Route path="users" element={<AdminUsersPage />} />
+                <Route path="users/edit/:id" element={<UserEditPage />} />
+              </Route>
+            </Route>
           </Routes>
           <ToastContainer />
         </div>

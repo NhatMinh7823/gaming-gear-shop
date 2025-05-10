@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
+const path = require('path'); // Import path module
 
 // Load environment variables
 dotenv.config();
@@ -17,6 +18,9 @@ const app = express();
 // app.use(cors());
 app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
+
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 // Import routes
 const userRoutes = require("./routes/userRoutes");

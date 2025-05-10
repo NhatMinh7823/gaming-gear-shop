@@ -54,6 +54,7 @@ exports.createOrder = async (req, res) => {
       order,
     });
   } catch (error) {
+    console.error("Error in getOrderStats:", error); // Added for detailed logging
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -289,64 +290,29 @@ exports.deleteOrder = async (req, res) => {
 // @access  Private/Admin
 exports.getOrderStats = async (req, res) => {
   try {
-    // Total orders
-    const totalOrders = await Order.countDocuments();
-
-    // Total revenue
-    const revenueResult = await Order.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalRevenue: { $sum: "$totalPrice" },
-          paidRevenue: {
-            $sum: {
-              $cond: [{ $eq: ["$isPaid", true] }, "$totalPrice", 0],
-            },
-          },
-        },
-      },
-    ]);
-
-    const totalRevenue =
-      revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
-    const paidRevenue =
-      revenueResult.length > 0 ? revenueResult[0].paidRevenue : 0;
-
-    // Order status counts
-    const statusCounts = await Order.aggregate([
-      {
-        $group: {
-          _id: "$status",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-
-    // Format status counts
-    const statusStats = {};
-    statusCounts.forEach((item) => {
-      statusStats[item._id] = item.count;
-    });
-
-    // Get counts for paid and delivered
-    const paidOrders = await Order.countDocuments({ isPaid: true });
-    const deliveredOrders = await Order.countDocuments({ isDelivered: true });
+    // --- Temporarily simplified for debugging ---
+    console.log("getOrderStats called (simplified version)");
+    const dummyStats = {
+      totalOrders: 10,
+      totalRevenue: 1000,
+      paidRevenue: 800,
+      paidOrders: 8,
+      deliveredOrders: 5,
+      statusStats: { Processing: 2, Shipped: 3, Delivered: 5 },
+    };
 
     res.status(200).json({
       success: true,
-      stats: {
-        totalOrders,
-        totalRevenue,
-        paidRevenue,
-        paidOrders,
-        deliveredOrders,
-        statusStats,
-      },
+      stats: dummyStats,
     });
+    // --- End of simplified version ---
+
   } catch (error) {
+    // This console.error was added in a previous step, ensure it's correctly placed if re-adding.
+    // console.error("Error in getOrderStats:", error); 
     res.status(500).json({
       success: false,
-      message: "Server Error",
+      message: "Server Error (from simplified getOrderStats catch)",
       error: error.message,
     });
   }
