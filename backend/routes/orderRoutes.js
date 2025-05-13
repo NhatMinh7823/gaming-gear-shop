@@ -10,6 +10,7 @@ const {
   updateOrderStatus,
   deleteOrder,
   getOrderStats,
+  getSalesData,
 } = require("../controllers/orderController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -17,6 +18,7 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 router.post("/", protect, createOrder);
 router.get("/myorders", protect, getMyOrders);
 router.get("/stats", protect, authorize("admin"), getOrderStats); // Moved this line
+router.get("/salesdata", protect, authorize("admin"), getSalesData);
 router.get("/:id", protect, getOrderById);
 router.put("/:id/pay", protect, updateOrderToPaid);
 

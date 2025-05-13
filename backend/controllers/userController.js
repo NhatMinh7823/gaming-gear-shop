@@ -278,6 +278,31 @@ exports.removeFromWishlist = async (req, res) => {
   }
 };
 
+// @desc    Get recent users (admin only)
+// @route   GET /api/users/recent
+// @access  Private/Admin
+exports.getRecentUsers = async (req, res) => {
+  try {
+    const recentUsers = await User.find()
+      .select("-password")
+      .sort("-createdAt")
+      .limit(10); // Get the last 10 registered users
+
+    res.status(200).json({
+      success: true,
+      count: recentUsers.length,
+      users: recentUsers,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
+
 // @desc    Get all users (admin only)
 // @route   GET /api/users
 // @access  Private/Admin

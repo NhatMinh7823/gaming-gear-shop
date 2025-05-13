@@ -285,6 +285,50 @@ exports.deleteOrder = async (req, res) => {
   }
 };
 
+// @desc    Get sales data aggregated by month
+// @route   GET /api/orders/salesdata
+// @access  Private/Admin
+exports.getSalesData = async (req, res) => {
+  try {
+    const salesData = await Order.aggregate([
+      {
+        $match: {
+          isPaid: true, // Only include paid orders
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$paidAt" },
+            month: { $month: "$paidAt" },
+          },
+          totalSales: { $sum: "$totalPrice" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      salesData,
+    });
+  } catch (error) {
+    console.error("Error in getSalesData:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
+
 // @desc    Get order statistics
 // @route   GET /api/orders/stats
 // @access  Private/Admin

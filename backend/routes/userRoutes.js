@@ -13,6 +13,7 @@ const {
   getUserById,
   updateUser,
   deleteUser,
+  getRecentUsers,
 } = require("../controllers/userController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -29,6 +30,7 @@ router.delete("/wishlist/:productId", protect, removeFromWishlist);
 
 // Admin routes
 router.get("/", protect, authorize("admin"), getAllUsers);
+router.get("/recent", protect, authorize("admin"), getRecentUsers);
 router.get("/:id", protect, authorize("admin"), getUserById);
 router.put("/:id", protect, authorize("admin"), updateUser);
 router.delete("/:id", protect, authorize("admin"), deleteUser);
