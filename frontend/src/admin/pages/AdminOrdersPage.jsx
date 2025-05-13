@@ -12,8 +12,9 @@ const AdminOrdersPage = () => {
       try {
         setLoading(true);
         const response = await api.get('/orders'); // Admin get all orders
-        // response is already response.data, assuming it contains { success: true, orders: [] }
-        setOrders(response.orders || []);
+        // response is NOT already response.data with the current api.js interceptor.
+        // The actual data is in response.data.orders
+        setOrders(response.data.orders || []); // Corrected to access response.data.orders
         setError(null);
       } catch (err) {
         setError(err.response?.data?.message || err.message || 'Failed to fetch orders');

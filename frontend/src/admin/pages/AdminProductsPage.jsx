@@ -14,11 +14,10 @@ const AdminProductsPage = () => {
         // Assuming getProducts from api.js returns { data: { products: [] } } or similar
         // Adjust based on the actual structure of the response from your getProducts function
         const response = await getProducts(); // Or api.get('/products');
-        // The response from api.js is already response.data due to interceptor
-        // And it seems product list is directly in response (e.g. response.products or just response if it's an array)
-        // Let's assume the API returns an object like { products: [], page, pages }
-        // Or if getProducts directly returns the array:
-        setProducts(response.products || response); // Adjust based on actual API response structure
+        // The response from api.js is already response.data due to interceptor - THIS IS INCORRECT for the current api.js
+        // The actual data is in response.data.products
+        // Assuming the API returns an object like { products: [], page, pages } in response.data
+        setProducts(response.data.products || []); // Corrected to access response.data.products
         setError(null);
       } catch (err) {
         setError(err.response?.data?.message || err.message || 'Failed to fetch products');

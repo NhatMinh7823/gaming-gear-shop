@@ -12,9 +12,9 @@ const AdminUsersPage = () => {
       try {
         setLoading(true);
         const response = await api.get('/users'); // Endpoint for admin to get all users
-        // Assuming response.data contains { success: true, users: [] }
-        // The api interceptor already gives response.data
-        setUsers(response.users || []); 
+        // The api interceptor does NOT already give response.data with the current api.js
+        // The actual data is in response.data.users
+        setUsers(response.data.users || []); // Corrected to access response.data.users
         setError(null);
       } catch (err) {
         setError(err.response?.data?.message || err.message || 'Failed to fetch users');
