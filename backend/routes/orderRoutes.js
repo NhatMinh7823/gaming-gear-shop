@@ -16,6 +16,7 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 // User routes
 router.post("/", protect, createOrder);
 router.get("/myorders", protect, getMyOrders);
+router.get("/stats", protect, authorize("admin"), getOrderStats); // Moved this line
 router.get("/:id", protect, getOrderById);
 router.put("/:id/pay", protect, updateOrderToPaid);
 
@@ -23,6 +24,6 @@ router.put("/:id/pay", protect, updateOrderToPaid);
 router.get("/", protect, authorize("admin"), getAllOrders);
 router.put("/:id/status", protect, authorize("admin"), updateOrderStatus);
 router.delete("/:id", protect, authorize("admin"), deleteOrder);
-router.get("/stats", protect, authorize("admin"), getOrderStats);
+
 
 module.exports = router;

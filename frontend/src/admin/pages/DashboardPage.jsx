@@ -42,27 +42,26 @@ const DashboardPage = () => {
       setLoadingStats(true);
       setErrorStats(null);
       try {
-        // Fetch order stats
-        const orderStatsResponse = await api.get('/orders/stats');
-        // Fetch user count (assuming GET /api/users returns a count or we count on client)
-        // const usersPromise = api.get('/users'); 
-
-        // const [orderStatsResponse, usersResponse] = await Promise.all([orderStatsPromise, usersPromise]);
+        // Fetch order stats and user count in parallel
+        const [orderStatsResponse, usersResponse] = await Promise.all([
+          api.get('/orders/stats'),
+          api.get('/users') // Fetches all users, we need the count
+        ]);
         
         // Process order stats
-        const orderData = orderStatsResponse.stats; // Assuming response.data.stats from controller
+        const orderData = orderStatsResponse.data.stats; // Access .data.stats
         
         // Process user count
-        // Assuming usersResponse.data contains { count: number } or { users: [...] }
-        // const userCount = usersResponse.count || usersResponse.users?.length || 0;
-        const userCount = 0; // Placeholder for now
+        const userCount = usersResponse.data.count || 0; // Access .data.count
 
         setDashboardStats({
-          totalUsers: userCount, // Will be 0 for this test
+          totalUsers: userCount,
           totalOrders: orderData.totalOrders || 0,
           totalRevenue: orderData.totalRevenue || 0,
-          // You can add more from orderData.stats if needed
-          // e.g., paidRevenue: orderData.paidRevenue
+          paidOrders: orderData.paidOrders || 0,
+          paidRevenue: orderData.paidRevenue || 0,
+          deliveredOrders: orderData.deliveredOrders || 0,
+          statusStats: orderData.statusStats || {},
         });
 
       } catch (err) {
@@ -81,7 +80,7 @@ const DashboardPage = () => {
     {
       title: "Total Users",
       value: dashboardStats.totalUsers.toLocaleString(),
-      change: "", // Placeholder for change, can be calculated if historical data is available
+      change: "", 
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -94,7 +93,7 @@ const DashboardPage = () => {
     {
       title: "Total Orders",
       value: dashboardStats.totalOrders.toLocaleString(),
-      change: "",
+      change: "", // Placeholder for change
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -106,8 +105,8 @@ const DashboardPage = () => {
     },
     {
       title: "Total Revenue",
-      value: `$${dashboardStats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      change: "",
+      value: `$${(dashboardStats.totalRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      change: "", // Placeholder for change
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -115,6 +114,47 @@ const DashboardPage = () => {
       ),
       iconBgColor: "bg-purple-100",
       valueColor: "text-purple-600",
+      loading: loadingStats,
+    },
+    {
+      title: "Paid Revenue",
+      value: `$${(dashboardStats.paidRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      change: "", // Placeholder for change
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      ),
+      iconBgColor: "bg-teal-100",
+      valueColor: "text-teal-600",
+      loading: loadingStats,
+    },
+    {
+      title: "Paid Orders",
+      value: (dashboardStats.paidOrders || 0).toLocaleString(),
+      change: "", // Placeholder for change
+      icon: (
+         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      iconBgColor: "bg-cyan-100",
+      valueColor: "text-cyan-600",
+      loading: loadingStats,
+    },
+    {
+      title: "Delivered Orders",
+      value: (dashboardStats.deliveredOrders || 0).toLocaleString(),
+      change: "", // Placeholder for change
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-lime-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path d="M9 17a2 2 0 01-2-2V5a2 2 0 012-2h6a2 2 0 012 2v10a2 2 0 01-2 2H9z" />
+          <path d="M9 17a2 2 0 00-2 2h10a2 2 0 00-2-2H9z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 13L12 9" />
+        </svg>
+      ),
+      iconBgColor: "bg-lime-100",
+      valueColor: "text-lime-600",
       loading: loadingStats,
     },
   ];

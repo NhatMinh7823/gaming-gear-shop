@@ -290,29 +290,61 @@ exports.deleteOrder = async (req, res) => {
 // @access  Private/Admin
 exports.getOrderStats = async (req, res) => {
   try {
-    // --- Temporarily simplified for debugging ---
-    console.log("getOrderStats called (simplified version)");
-    const dummyStats = {
-      totalOrders: 10,
-      totalRevenue: 1000,
-      paidRevenue: 800,
-      paidOrders: 8,
-      deliveredOrders: 5,
-      statusStats: { Processing: 2, Shipped: 3, Delivered: 5 },
-    };
+    const totalOrders = await Order.countDocuments();
+    const paidOrders = await Order.countDocuments({ isPaid: true });
+    const deliveredOrders = await Order.countDocuments({ isDelivered: true });
+
+    const revenueAggregation = await Order.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$totalPrice" },
+        },
+      },
+    ]);
+    const totalRevenue = revenueAggregation.length > 0 ? revenueAggregation[0].totalRevenue : 0;
+
+    const paidRevenueAggregation = await Order.aggregate([
+      { $match: { isPaid: true } },
+      {
+        $group: {
+          _id: null,
+          paidRevenue: { $sum: "$totalPrice" },
+        },
+      },
+    ]);
+    const paidRevenue = paidRevenueAggregation.length > 0 ? paidRevenueAggregation[0].paidRevenue : 0;
+
+    const statusCounts = await Order.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const statusStats = statusCounts.reduce((acc, curr) => {
+      acc[curr._id] = curr.count;
+      return acc;
+    }, {});
 
     res.status(200).json({
       success: true,
-      stats: dummyStats,
+      stats: {
+        totalOrders,
+        totalRevenue,
+        paidOrders,
+        paidRevenue,
+        deliveredOrders,
+        statusStats,
+      },
     });
-    // --- End of simplified version ---
-
   } catch (error) {
-    // This console.error was added in a previous step, ensure it's correctly placed if re-adding.
-    // console.error("Error in getOrderStats:", error); 
+    console.error("Error in getOrderStats:", error);
     res.status(500).json({
       success: false,
-      message: "Server Error (from simplified getOrderStats catch)",
+      message: "Server Error",
       error: error.message,
     });
   }
