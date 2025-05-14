@@ -29,27 +29,27 @@ const ProductFormPage = () => {
       setFormLoading(true);
       try {
         const categoriesData = await getCategories();
-        // Assuming getCategories returns an array of category objects like [{ _id: '1', name: 'Electronics' }, ...]
-        // Adjust if the structure is different (e.g., categoriesData.categories)
-        setCategories(categoriesData.categories || categoriesData || []);
+        const categoryList = Array.isArray(categoriesData.data.categories)
+          ? categoriesData.data.categories
+          : categoriesData.data.categories || [];
+        setCategories(categoryList);
 
         if (isEditing && productId) {
-          const productDetails = await getProductById(productId);
+          const { data: { product } } = await getProductById(productId);
           setProductData({
-            name: productDetails.name || '',
-            price: productDetails.price || '',
-            brand: productDetails.brand || '',
-            category: productDetails.category?._id || productDetails.category || '',
-            stock: productDetails.stock || '',
-            description: productDetails.description || '',
-            images: productDetails.images || [],
+            name: product.name || '',
+            price: product.price || '',
+            brand: product.brand || '',
+            category: product.category?._id || product.category || '',
+            stock: product.stock || '',
+            description: product.description || '',
+            images: product.images || [],
           });
         }
         setError(null);
       } catch (err) {
-        const errMsg = err.response?.data?.message || err.message || 'Failed to load form data';
-        setError(errMsg);
-        console.error("Error loading form data:", err);
+        console.error('Error fetching categories:', err);
+        setError('Không thể tải danh mục');
       } finally {
         setFormLoading(false);
       }
@@ -65,26 +65,17 @@ const ProductFormPage = () => {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    // For now, just store file names or create object URLs for preview
-    // Actual upload logic will be more complex
-    const imagePreviews = files.map(file => ({
-      // For backend, you'd likely send the file itself or upload and get a URL/ID
-      // For this placeholder, we'll use object URLs for preview
-      // and potentially just send file names or a placeholder to productData.images
+    const newImagePreviews = files.map(file => ({
       preview: URL.createObjectURL(file),
-      name: file.name, // Store name for now, actual implementation might differ
+      name: file.name,
+      isNew: true,
+      file: file,
     }));
 
-    // Append new images to existing ones if any, or replace
-    // This example replaces, adjust if you want to append
     setProductData(prev => ({
       ...prev,
-      // Store something that can be sent to backend, e.g., array of names or empty if files handled separately
-      // For now, let's assume images field in productData will hold these preview objects for UI
-      // but for submission, we might need to transform this.
-      images: imagePreviews, // This is for UI preview. Submission needs adjustment.
-      // If you have actual file objects to upload, store them separately or handle in handleSubmit
-      _imageFiles: files, // Temporary store actual files if needed for FormData
+      images: [...(prev.images.filter(img => !img.isNew) || []), ...newImagePreviews],
+      _imageFiles: files,
     }));
   };
 
@@ -94,11 +85,10 @@ const ProductFormPage = () => {
     setError(null);
     setSuccessMessage('');
 
-    // Basic validation
     if (!productData.name || !productData.price || !productData.category || !productData.brand || !productData.stock) {
-        setError("Please fill in all required fields: Name, Price, Category, Brand, Stock.");
-        setLoading(false);
-        return;
+      setError("Vui lòng điền đầy đủ các trường: Tên, Giá, Danh mục, Thương hiệu, Số lượng.");
+      setLoading(false);
+      return;
     }
 
     try {
@@ -110,53 +100,34 @@ const ProductFormPage = () => {
       formData.append('stock', parseInt(productData.stock, 10));
       formData.append('description', productData.description);
 
-      // Append image files if they exist (i.e., new images were selected)
       if (productData._imageFiles && productData._imageFiles.length > 0) {
         productData._imageFiles.forEach(file => {
-          formData.append('images', file); // Key 'images' must match multer setup
+          formData.append('images', file);
         });
-      } else if (isEditing && productData.images && productData.images.length > 0) {
-        // If editing and no new files, but existing images are there,
-        // we might need to send them if backend expects all images always.
-        // However, typical PUT operations might only update fields sent.
-        // For simplicity, if no new files, backend will keep existing images unless explicitly told to remove.
-        // If your backend replaces all images on update, you'd need to send existing image data here.
-        // The current backend controller logic for updateProduct handles this:
-        // `images: images.length > 0 ? images : product.images`
-        // So, if `req.files` is empty, it keeps `product.images`.
-        // Thus, we don't need to explicitly send existing images if no new ones are uploaded.
       }
-
 
       let response;
       if (isEditing) {
-        // When using FormData with PUT, some servers/libraries might have issues.
-        // Axios should handle it, but ensure backend PUT route with multer also works as expected.
         response = await api.put(`/products/${productId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
-        setSuccessMessage('Product updated successfully!');
+        setSuccessMessage('Cập nhật sản phẩm thành công!');
       } else {
         response = await api.post('/products', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
-        setSuccessMessage('Product created successfully!');
+        setSuccessMessage('Tạo sản phẩm thành công!');
       }
-      
-      console.log('Server response:', response); // api.js interceptor already gives response.data
 
-
-      // Navigate back to product list after a short delay to show success message
       setTimeout(() => {
         navigate('/admin/products');
       }, 1500);
-
     } catch (err) {
-      setError(err.response?.data?.message || err.message || (isEditing ? 'Failed to update product' : 'Failed to create product'));
+      setError(err.response?.data?.message || err.message || (isEditing ? 'Cập nhật sản phẩm thất bại' : 'Tạo sản phẩm thất bại'));
       console.error("Error submitting product:", err);
     } finally {
       setLoading(false);
@@ -164,13 +135,13 @@ const ProductFormPage = () => {
   };
 
   if (formLoading) {
-    return <div className="flex justify-center items-center h-64"><p className="text-xl">Loading form...</p></div>;
+    return <div className="flex justify-center items-center h-64"><p className="text-xl">Đang tải biểu mẫu...</p></div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-semibold text-gray-800 mb-6">
-        {isEditing ? 'Edit Product' : 'Add New Product'}
+        {isEditing ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
       </h1>
 
       {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
@@ -178,7 +149,7 @@ const ProductFormPage = () => {
 
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-xl space-y-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
           <input
             type="text"
             name="name"
@@ -191,7 +162,7 @@ const ProductFormPage = () => {
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
           <textarea
             name="description"
             id="description"
@@ -204,7 +175,7 @@ const ProductFormPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Giá ($)</label>
             <input
               type="number"
               name="price"
@@ -217,7 +188,7 @@ const ProductFormPage = () => {
             />
           </div>
           <div>
-            <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
+            <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">Số lượng tồn kho</label>
             <input
               type="number"
               name="stock"
@@ -232,7 +203,7 @@ const ProductFormPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
             <select
               name="category"
               id="category"
@@ -241,16 +212,20 @@ const ProductFormPage = () => {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
             >
-              <option value="">Select a Category</option>
-              {categories.map(cat => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </option>
-              ))}
+              <option value="">Chọn danh mục</option>
+              {categories.length === 0 ? (
+                <option value="" disabled>Không có danh mục</option>
+              ) : (
+                categories.map(cat => (
+                  <option key={cat._id || cat.id} value={cat._id || cat.id}>
+                    {cat.name || 'Tên không xác định'}
+                  </option>
+                ))
+              )}
             </select>
           </div>
           <div>
-            <label htmlFor="brand" className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+            <label htmlFor="brand" className="block text-sm font-medium text-gray-700 mb-1">Thương hiệu</label>
             <input
               type="text"
               name="brand"
@@ -262,9 +237,9 @@ const ProductFormPage = () => {
             />
           </div>
         </div>
-        
+
         <div>
-          <label htmlFor="images" className="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
+          <label htmlFor="images" className="block text-sm font-medium text-gray-700 mb-1">Hình ảnh sản phẩm</label>
           <input
             type="file"
             name="images"
@@ -277,7 +252,6 @@ const ProductFormPage = () => {
             {productData.images && productData.images.map((img, index) => (
               <div key={index} className="relative">
                 <img
-                  // If img.url exists, it's from existing product data. If img.preview, it's a new file.
                   src={img.url || img.preview}
                   alt={`preview ${index + 1}`}
                   className="h-20 w-20 object-cover rounded-md shadow"
@@ -293,14 +267,14 @@ const ProductFormPage = () => {
             onClick={() => navigate('/admin/products')}
             className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Cancel
+            Hủy
           </button>
           <button
             type="submit"
             disabled={loading}
             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Product')}
+            {loading ? (isEditing ? 'Đang cập nhật...' : 'Đang tạo...') : (isEditing ? 'Lưu thay đổi' : 'Tạo sản phẩm')}
           </button>
         </div>
       </form>
