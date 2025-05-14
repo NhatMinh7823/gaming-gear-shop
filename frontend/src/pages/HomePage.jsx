@@ -14,7 +14,6 @@ function HomePage() {
         const { data } = await getFeaturedProducts();
         dispatch({ type: 'product/setProducts', payload: { products: data.products, totalPages: 1, currentPage: 1 } });
         const catRes = await getFeaturedCategories();
-        console.log('Featured Categories:', catRes.data.categories); // Placeholder for category display
       } catch (error) {
         toast.error('Error fetching featured products');
       }

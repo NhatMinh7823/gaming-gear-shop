@@ -6,85 +6,50 @@ const { uploadFile, deleteFile } = require("../utils/fileUtils");
 // @access  Public
 exports.getProducts = async (req, res) => {
   try {
-    const { page: pageParam = 1, limit: limitParam = 10, sort, fields, category, minPrice, maxPrice, brand, ...otherFilters } = req.query;
+    const {
+      page: pageParam = 1,
+      limit: limitParam = 10,
+      sort,
+      fields,
+      category,
+      minPrice,
+      maxPrice,
+      brand,
+      ...otherFilters
+    } = req.query;
 
     const queryConditions = {};
-
-    // Handle category
-    if (category && category !== "") {
-      queryConditions.category = category;
-    }
-
-    // Handle brand
-    if (brand && brand !== "") {
-      // Using regex for partial matching, case-insensitive. Adjust if exact match is needed.
+    if (category && category !== "") queryConditions.category = category;
+    if (brand && brand !== "")
       queryConditions.brand = { $regex: brand, $options: "i" };
-    }
-
-    // Handle price range
-    // Consider using a validation library (e.g., Joi, express-validator) here for more comprehensive checks.
     const priceCondition = {};
-    if (minPrice !== undefined && minPrice !== '') {
+    if (minPrice !== undefined && minPrice !== "") {
       const parsedMinPrice = parseFloat(minPrice);
-      if (!isNaN(parsedMinPrice)) {
-        priceCondition.$gte = parsedMinPrice;
-      } else {
-        // Optionally, return a 400 Bad Request if invalid price format is critical
-        // return res.status(400).json({ success: false, message: "Invalid minPrice format." });
-        console.warn(`Invalid minPrice format received: ${minPrice}`); // Or log for debugging
-      }
+      if (!isNaN(parsedMinPrice)) priceCondition.$gte = parsedMinPrice;
     }
-    if (maxPrice !== undefined && maxPrice !== '') {
+    if (maxPrice !== undefined && maxPrice !== "") {
       const parsedMaxPrice = parseFloat(maxPrice);
-      if (!isNaN(parsedMaxPrice)) {
-        priceCondition.$lte = parsedMaxPrice;
-      } else {
-        // Optionally, return a 400 Bad Request
-        // return res.status(400).json({ success: false, message: "Invalid maxPrice format." });
-        console.warn(`Invalid maxPrice format received: ${maxPrice}`);
-      }
+      if (!isNaN(parsedMaxPrice)) priceCondition.$lte = parsedMaxPrice;
     }
-    if (Object.keys(priceCondition).length > 0) {
+    if (Object.keys(priceCondition).length > 0)
       queryConditions.price = priceCondition;
-    }
-    
-    // Handle other dynamic filters from req.query (e.g., isFeatured=true)
-    // This is a simplified approach; more robust validation/typing is recommended.
-    // A validation library would be ideal here to define allowed filters and their types.
-    Object.keys(otherFilters).forEach(key => {
+    Object.keys(otherFilters).forEach((key) => {
       const value = otherFilters[key];
-      if (value !== '' && value !== undefined) {
-        // Basic conversion for boolean-like strings
-        if (value === 'true') {
-          queryConditions[key] = true;
-        } else if (value === 'false') {
-          queryConditions[key] = false;
-        } else if (!isNaN(Number(value))) { // Attempt to convert to number if it looks like one
-          queryConditions[key] = Number(value);
-        }
-        else {
-          // For other string types, assign as is.
-          // Consider if specific fields need regex for partial matches.
-          queryConditions[key] = value;
-        }
+      if (value !== "" && value !== undefined) {
+        if (value === "true") queryConditions[key] = true;
+        else if (value === "false") queryConditions[key] = false;
+        else if (!isNaN(Number(value))) queryConditions[key] = Number(value);
+        else queryConditions[key] = value;
       }
     });
-    
+
     let query = Product.find(queryConditions).populate("category", "name slug");
 
-    if (sort) {
-      const sortBy = sort.split(",").join(" ");
-      query = query.sort(sortBy);
-    } else {
-      query = query.sort("-createdAt");
-    }
+    if (sort) query = query.sort(sort.split(",").join(" "));
+    else query = query.sort("-createdAt");
 
-    if (fields) {
-      const selectFields = fields.split(",").join(" ");
-      query = query.select(selectFields);
-    } else {
-      query = query.select("-__v");
-    }
+    if (fields) query = query.select(fields.split(",").join(" "));
+    else query = query.select("-__v");
 
     const page = parseInt(pageParam, 10);
     const limit = parseInt(limitParam, 10);
@@ -93,14 +58,28 @@ exports.getProducts = async (req, res) => {
     query = query.skip(startIndex).limit(limit);
 
     const products = await query;
-    const totalProducts = await Product.countDocuments(queryConditions); // Use the same queryConditions
+    const totalProducts = await Product.countDocuments(queryConditions);
+
+    // Filter out invalid images
+    const sanitizedProducts = products.map((product) => {
+      const validImages = (product.images || []).filter(
+        (img) => img && img.url && img.public_id
+      );
+      if (validImages.length !== (product.images || []).length) {
+        console.warn(
+          `Product ${product._id} has invalid images:`,
+          product.images
+        );
+      }
+      return { ...product.toObject(), images: validImages };
+    });
 
     res.status(200).json({
       success: true,
-      count: products.length,
+      count: sanitizedProducts.length,
       totalPages: Math.ceil(totalProducts / limit),
       currentPage: page,
-      products,
+      products: sanitizedProducts,
     });
   } catch (error) {
     res.status(500).json({
@@ -193,23 +172,64 @@ exports.updateProduct = async (req, res) => {
       });
     }
 
-    const images = [];
-    if (req.files && req.files.length > 0) {
-      if (product.images && product.images.length > 0) {
-        for (const image of product.images) {
-          await deleteFile(image.public_id);
+    // Parse existingImages from req.body
+    let existingImagesToKeep = [];
+    if (req.body.existingImages) {
+      try {
+        existingImagesToKeep = JSON.parse(req.body.existingImages);
+        if (!Array.isArray(existingImagesToKeep)) {
+          existingImagesToKeep = [];
         }
-      }
-      for (const file of req.files) {
-        const uploadedImage = await uploadFile(file);
-        images.push(uploadedImage);
+      } catch (error) {
+        console.error("Error parsing existingImages:", error);
+        existingImagesToKeep = [];
       }
     }
 
+    // Get existing images from the product in the database
+    const existingImagesInDB = product.images || [];
+
+    // Identify images to delete
+    const imagesToDelete = existingImagesInDB.filter(
+      (image) =>
+        !existingImagesToKeep.some(
+          (keptImage) => keptImage.public_id === image.public_id
+        )
+    );
+
+    // Delete images that are no longer needed
+    for (const image of imagesToDelete) {
+      await deleteFile(image.public_id);
+    }
+
+    // Upload new files with error handling
+    const newImages = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        try {
+          const uploadedImage = await uploadFile(file);
+          newImages.push(uploadedImage);
+        } catch (uploadError) {
+          console.error("Error uploading file:", uploadError);
+          return res.status(500).json({
+            success: false,
+            message: "Failed to upload new images",
+            error: uploadError.message,
+          });
+        }
+      }
+    }
+
+    // Combine existing images to keep and new images
+    const finalImages = [...existingImagesToKeep, ...newImages];
+
     const updatedData = {
       ...req.body,
-      images: images.length > 0 ? images : product.images,
+      images: finalImages,
     };
+
+    // Remove existingImages from req.body before updating the product
+    delete updatedData.existingImages;
 
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
@@ -222,6 +242,7 @@ exports.updateProduct = async (req, res) => {
       product: updatedProduct,
     });
   } catch (error) {
+    console.error("Error updating product:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",

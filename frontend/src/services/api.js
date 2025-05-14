@@ -25,7 +25,12 @@ api.interceptors.response.use((response) => {
         return obj.map(transformImages);
       } else if (obj && typeof obj === "object") {
         Object.keys(obj).forEach((key) => {
-          if (key === "url" && obj[key] && !obj[key].startsWith("http")) {
+          if (
+            key === "url" &&
+            obj[key] &&
+            typeof obj[key] === "string" &&
+            !obj[key].startsWith("http")
+          ) {
             obj[key] = `${BASE_URL}${obj[key]}`;
           } else if (typeof obj[key] === "object") {
             transformImages(obj[key]);

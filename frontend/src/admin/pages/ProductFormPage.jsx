@@ -100,6 +100,12 @@ const ProductFormPage = () => {
       formData.append('stock', parseInt(productData.stock, 10));
       formData.append('description', productData.description);
 
+      // Filter out new image files to get existing images to keep
+      const existingImagesToKeep = productData.images.filter(img => !img.isNew);
+
+      // Append existing images data to FormData
+      formData.append('existingImages', JSON.stringify(existingImagesToKeep));
+
       if (productData._imageFiles && productData._imageFiles.length > 0) {
         productData._imageFiles.forEach(file => {
           formData.append('images', file);

@@ -1,19 +1,32 @@
-// This utility file would normally contain functions for handling file uploads
-// For example, using multer for local storage or a cloud service like AWS S3 or Cloudinary
+const fs = require('fs');
+const path = require('path');
 
-// Placeholder for future implementation
 const uploadFile = (file) => {
-  // Implement file upload functionality here
+  const uploadDir = path.join(__dirname, '..', 'uploads', 'images', 'products');
+  const fileName = `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`;
+  const filePath = path.join(uploadDir, fileName);
+
+  // Move the file from the temporary upload location to the target directory
+  fs.renameSync(file.path, filePath);
+
+  // Return the relative path that can be served statically
   return {
-    public_id: "temp_id",
-    url: "https://example.com/images/placeholder.jpg",
+    public_id: fileName, // Using filename as a simple public_id for now
+    url: `/uploads/images/products/${fileName}`,
   };
 };
 
-// Placeholder for future implementation
 const deleteFile = (public_id) => {
-  // Implement file deletion functionality here
-  return true;
+  if (!public_id || typeof public_id !== "string") return false;
+  const uploadDir = path.join(__dirname, "..", "uploads", "images", "products");
+  const filePath = path.join(uploadDir, public_id);
+
+  // Check if the file exists before attempting to delete
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+    return true;
+  }
+  return false; // File did not exist
 };
 
 module.exports = { uploadFile, deleteFile };
