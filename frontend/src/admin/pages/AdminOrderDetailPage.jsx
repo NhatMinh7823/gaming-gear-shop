@@ -22,9 +22,9 @@ const AdminOrderDetailPage = () => {
       try {
         setLoading(true);
         const response = await api.get(`/orders/${orderId}`); // Get order by ID
-        setOrder(response.order);
-        setNewStatus(response.order.status); // Initialize with current status
-        setTrackingNumber(response.order.trackingNumber || '');
+        setOrder(response.data.order);
+        setNewStatus(response.data.order.status); // Initialize with current status
+        setTrackingNumber(response.data.order.trackingNumber || '');
         setError(null);
       } catch (err) {
         setError(err.response?.data?.message || err.message || 'Failed to fetch order details');

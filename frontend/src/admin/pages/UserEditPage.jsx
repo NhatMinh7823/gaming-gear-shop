@@ -18,8 +18,8 @@ const UserEditPage = () => {
         setLoading(true);
         const response = await api.get(`/users/${userId}`); // Admin get user by ID
         // response is already response.data
-        setUser(response.user);
-        setRole(response.user.role);
+        setUser(response.data.user);
+        setRole(response.data.user.role);
         setError(null);
       } catch (err) {
         setError(err.response?.data?.message || err.message || 'Failed to fetch user details');
