@@ -1,9 +1,10 @@
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
-const BASE_URL = process.env.REACT_APP_API_URL
-  ? API_URL.replace("/api", "")
-  : "http://localhost:3000";
+const BASE_URL = API_URL.replace("/api", "");
+
+console.log("API_URL:", API_URL);
+console.log("BASE_URL:", BASE_URL);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -26,7 +27,7 @@ api.interceptors.response.use((response) => {
       } else if (obj && typeof obj === "object") {
         Object.keys(obj).forEach((key) => {
           if (
-            key === "url" &&
+            (key === "url" || key === "image") &&
             obj[key] &&
             typeof obj[key] === "string" &&
             !obj[key].startsWith("http")

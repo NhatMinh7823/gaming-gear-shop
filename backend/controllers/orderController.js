@@ -91,6 +91,18 @@ exports.getOrderById = async (req, res) => {
       });
     }
 
+    // Transform image URLs in order items
+    const backendBaseUrl = `${req.protocol}://${req.get('host')}`;
+    order.orderItems = order.orderItems.map(item => {
+      if (item.image && typeof item.image === 'string' && !item.image.startsWith('http')) {
+        return {
+          ...item.toObject(), // Convert Mongoose document to plain object
+          image: `${backendBaseUrl}${item.image}`
+        };
+      }
+      return item.toObject(); // Convert Mongoose document to plain object
+    });
+
     res.status(200).json({
       success: true,
       order,
