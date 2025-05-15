@@ -29,7 +29,7 @@ function App() {
   return (
     <Provider store={store}>
       <Router>
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-100 pt-[80px]">
           <Navbar />
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -52,7 +52,11 @@ function App() {
                 <Route path="products/new" element={<ProductFormPage />} />
                 <Route path="products/edit/:id" element={<ProductFormPage />} />
                 <Route path="orders" element={<AdminOrdersPage />} />
-                <Route path="orders/:id" element={<AdminOrderDetailPage />} /> {/* Route for order details */}
+                <Route
+                  path="orders/:id"
+                  element={<AdminOrderDetailPage />}
+                />{" "}
+                {/* Route for order details */}
                 <Route path="users" element={<AdminUsersPage />} />
                 <Route path="users/edit/:id" element={<UserEditPage />} />
               </Route>
