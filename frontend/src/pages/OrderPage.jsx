@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { getOrderById } from '../services/api';
+import { getOrderById, createVNPayUrl, checkVNPayPayment } from '../services/api';
 
 function OrderPage() {
   const { id } = useParams();
@@ -20,6 +20,41 @@ function OrderPage() {
     };
     fetchOrder();
   }, [id]);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Check VNPay payment result from URL params
+    if (location.search) {
+      const checkPayment = async () => {
+        try {
+          const { data } = await checkVNPayPayment(location.search);
+          if (data.success) {
+            toast.success('Payment successful!');
+            // Remove query params from URL
+            navigate(location.pathname, { replace: true });
+          } else {
+            toast.error(data.message || 'Payment failed');
+          }
+        } catch (error) {
+          toast.error('Error checking payment status');
+        }
+      };
+      checkPayment();
+    }
+  }, [location, navigate]);
+
+  const handleVNPayPayment = async () => {
+    try {
+      const { data } = await createVNPayUrl(id);
+      if (data.paymentUrl) {
+        window.location.href = data.paymentUrl;
+      }
+    } catch (error) {
+      toast.error('Error creating payment URL');
+    }
+  };
 
   if (!userInfo || !order) return <div>Loading...</div>;
 
@@ -50,6 +85,16 @@ function OrderPage() {
           <p>Paid: {order.isPaid ? `Yes, on ${new Date(order.paidAt).toLocaleDateString()}` : 'No'}</p>
           <p>Delivered: {order.isDelivered ? `Yes, on ${new Date(order.deliveredAt).toLocaleDateString()}` : 'No'}</p>
           <p>Total: ${order.totalPrice}</p>
+          
+          {/* VNPay Payment Button */}
+          {!order.isPaid && order.paymentMethod === 'VNPay' && (
+            <button
+              onClick={handleVNPayPayment}
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+            >
+              Pay with VNPay
+            </button>
+          )}
           <h3 className="mt-4 font-semibold">Shipping Address</h3>
           <p>{order.shippingAddress.street}, {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}, {order.shippingAddress.country}</p>
         </div>

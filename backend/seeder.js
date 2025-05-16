@@ -75,8 +75,8 @@ const categories = [
       "Gaming keyboards with mechanical switches for faster response times",
     featured: true,
     image: {
-      public_id: "keyboard-category",
-      url: "https://example.com/images/categories/keyboards.jpg",
+      public_id: "keyboards.jpg",
+      url: "/uploads/images/categories/keyboards.jpg",
     },
   },
   {
@@ -85,8 +85,8 @@ const categories = [
     description: "Gaming mice with high DPI sensors for precise movements",
     featured: true,
     image: {
-      public_id: "mice-category",
-      url: "https://example.com/images/categories/mice.jpg",
+      public_id: "mice.jpg",
+      url: "/uploads/images/categories/mice.jpg",
     },
   },
   {
@@ -96,8 +96,8 @@ const categories = [
       "Gaming headsets with surround sound for immersive gaming experience",
     featured: true,
     image: {
-      public_id: "headset-category",
-      url: "https://example.com/images/categories/headsets.jpg",
+      public_id: "headsets.jpg",
+      url: "/uploads/images/categories/headsets.jpg",
     },
   },
   {
@@ -106,8 +106,8 @@ const categories = [
     description: "Gaming monitors with high refresh rates for smooth gameplay",
     featured: true,
     image: {
-      public_id: "monitor-category",
-      url: "https://example.com/images/categories/monitors.jpg",
+      public_id: "monitors.jpg",
+      url: "/uploads/images/categories/monitors.jpg",
     },
   },
   {
@@ -116,8 +116,8 @@ const categories = [
     description: "High-performance laptops designed for gaming",
     featured: true,
     image: {
-      public_id: "laptop-category",
-      url: "https://example.com/images/categories/gaming-laptops.jpg",
+      public_id: "gaming-laptops.jpg",
+      url: "/uploads/images/categories/gaming-laptops.jpg",
     },
   },
   {
@@ -127,8 +127,8 @@ const categories = [
       "Pre-built gaming computers for high-performance gaming experience",
     featured: true,
     image: {
-      public_id: "pc-category",
-      url: "https://example.com/images/categories/gaming-pcs.jpg",
+      public_id: "gaming-pcs.jpg",
+      url: "/uploads/images/categories/gaming-pcs.jpg",
     },
   },
 ];

@@ -9,10 +9,12 @@ const {
   createCategory,
   updateCategory,
   deleteCategory,
+  deleteCategories,
   getFeaturedCategories,
   getCategoryBySlug,
 } = require("../controllers/categoryController");
 const { protect, authorize } = require("../middleware/authMiddleware");
+const { uploadCategoryImage } = require("../middleware/uploadMiddleware");
 
 // Public routes
 router.get("/", getCategories);
@@ -23,8 +25,11 @@ router.get("/:id", getCategoryById);
 router.get("/:id/subcategories", getSubcategories);
 
 // Admin routes
-router.post("/", protect, authorize("admin"), createCategory);
-router.put("/:id", protect, authorize("admin"), updateCategory);
-router.delete("/:id", protect, authorize("admin"), deleteCategory);
+const adminAuth = [protect, authorize("admin")];
+
+router.post("/", adminAuth, uploadCategoryImage, createCategory);
+router.put("/:id", adminAuth, uploadCategoryImage, updateCategory);
+router.delete("/:id", adminAuth, deleteCategory);
+router.delete("/", adminAuth, deleteCategories);
 
 module.exports = router;

@@ -13,6 +13,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import OrderPage from "./pages/OrderPage";
 import OrdersPage from "./pages/OrdersPage";
+import VNPayResult from "./pages/VNPayResult";
 
 // Admin components
 import AdminLayout from "./admin/components/AdminLayout";
@@ -24,6 +25,8 @@ import ProductFormPage from "./admin/pages/ProductFormPage";
 import UserEditPage from "./admin/pages/UserEditPage";
 import AdminOrderDetailPage from "./admin/pages/AdminOrderDetailPage"; // Import AdminOrderDetailPage
 import AdminRoute from "./components/AdminRoute";
+import AdminCategoriesPage from "./admin/pages/AdminCategoriesPage"; // Import AdminOrderDetailPage
+import CategoryFormPage from "./admin/pages/CategoryFormPage";
 
 function App() {
   return (
@@ -41,6 +44,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/order/:id" element={<OrderPage />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/payment/vnpay_return" element={<VNPayResult />} />
 
             {/* Admin Routes - Protected by AdminRoute */}
             <Route path="/admin" element={<AdminRoute />}>
@@ -59,6 +63,9 @@ function App() {
                 {/* Route for order details */}
                 <Route path="users" element={<AdminUsersPage />} />
                 <Route path="users/edit/:id" element={<UserEditPage />} />
+                <Route path="categories" element={<AdminCategoriesPage />} />
+                <Route path="categories/new" element={<CategoryFormPage />} />
+                <Route path="categories/edit/:id" element={<CategoryFormPage />} />
               </Route>
             </Route>
           </Routes>

@@ -131,17 +131,21 @@ exports.getProductById = async (req, res) => {
 exports.createProduct = async (req, res) => {
   try {
     const images = [];
-    if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const uploadedImage = await uploadFile(file);
-        images.push(uploadedImage);
+    if (req.files && req.files.images) {
+      for (const file of req.files.images) {
+        const uploadType = 'products';
+        const relativePath = `/uploads/images/${uploadType}/${file.filename}`;
+        images.push({
+          url: relativePath,
+          filename: file.filename,
+          public_id: file.filename
+        });
       }
     }
 
     const productData = {
       ...req.body,
-      // If files were uploaded, use them. Otherwise, default to an empty array for images.
-      images: images.length > 0 ? images : [],
+      images: images
     };
 
     const product = await Product.create(productData);
@@ -204,11 +208,16 @@ exports.updateProduct = async (req, res) => {
 
     // Upload new files with error handling
     const newImages = [];
-    if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
+    if (req.files && req.files.images) {
+      for (const file of req.files.images) {
         try {
-          const uploadedImage = await uploadFile(file);
-          newImages.push(uploadedImage);
+          const uploadType = 'products';
+          const relativePath = `/uploads/images/${uploadType}/${file.filename}`;
+          newImages.push({
+            url: relativePath,
+            filename: file.filename,
+            public_id: file.filename
+          });
         } catch (uploadError) {
           console.error("Error uploading file:", uploadError);
           return res.status(500).json({

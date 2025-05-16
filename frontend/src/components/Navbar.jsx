@@ -44,9 +44,9 @@ function Navbar() {
           <li className="navbar-item">
             <Link
               to="/products"
-              className="flex flex-col items-center justify-center w-14 h-14 text-blue-800 hover:bg-blue-500 hover:rounded-[1.75rem] transition-all duration-250 relative group"
+              className="flex flex-col items-center justify-center w-14 h-14 text-blue-800 hover:bg-blue-500 hover:rounded-[1.75rem] hover:text-white transition-all duration-250 relative group"
             >
-              <i data-feather="shopping-bag" className="w-6 h-6 text-blue-800"></i>
+              <i data-feather="shopping-bag" className="w-6 h-6"></i>
               <span className="absolute top-full mt-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-[-1rem] bg-white text-[#1e40af] p-2 rounded-[1.75rem] shadow-md pointer-events-none transition-all duration-250">
                 Products
               </span>
@@ -55,9 +55,9 @@ function Navbar() {
           <li className="navbar-item">
             <Link
               to="/cart"
-              className="flex flex-col items-center justify-center w-14 h-14 text-green-800 hover:bg-blue-500 hover:rounded-[1.75rem] transition-all duration-250 relative group"
+              className="flex flex-col items-center justify-center w-14 h-14 text-green-800 hover:bg-blue-500 hover:rounded-[1.75rem] hover:text-white transition-all duration-250 relative group"
             >
-              <i data-feather="shopping-cart" className="w-6 h-6 text-green-800"></i>
+              <i data-feather="shopping-cart" className="w-6 h-6"></i>
               <span className="absolute top-full mt-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-[-1rem] bg-white text-[#1e40af] p-2 rounded-[1.75rem] shadow-md pointer-events-none transition-all duration-250">
                 Cart
               </span>
@@ -68,9 +68,9 @@ function Navbar() {
               <li className="navbar-item">
                 <Link
                   to="/profile"
-                  className="flex flex-col items-center justify-center w-14 h-14 text-purple-800 hover:bg-blue-500 hover:rounded-[1.75rem] transition-all duration-250 relative group"
+                  className="flex flex-col items-center justify-center w-14 h-14 text-purple-800 hover:bg-blue-500 hover:rounded-[1.75rem] hover:text-white transition-all duration-250 relative group"
                 >
-                  <i data-feather="user" className="w-6 h-6 text-purple-800"></i>
+                  <i data-feather="user" className="w-6 h-6"></i>
                   <span className="absolute top-full mt-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-[-1rem] bg-white text-[#1e40af] p-2 rounded-[1.75rem] shadow-md pointer-events-none transition-all duration-250">
                     {userInfo.user?.name || userInfo.name}
                   </span>
@@ -79,9 +79,9 @@ function Navbar() {
               <li className="navbar-item">
                 <Link
                   to="/orders"
-                  className="flex flex-col items-center justify-center w-14 h-14 text-red-800 hover:bg-blue-500 hover:rounded-[1.75rem] transition-all duration-250 relative group"
+                  className="flex flex-col items-center justify-center w-14 h-14 text-red-800 hover:bg-blue-500 hover:rounded-[1.75rem] hover:text-white transition-all duration-250 relative group"
                 >
-                  <i data-feather="package" className="w-6 h-6 text-red-800"></i>
+                  <i data-feather="package" className="w-6 h-6"></i>
                   <span className="absolute top-full mt-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-[-1rem] bg-white text-[#1e40af] p-2 rounded-[1.75rem] shadow-md pointer-events-none transition-all duration-250">
                     Orders
                   </span>
@@ -91,9 +91,9 @@ function Navbar() {
                 <li className="navbar-item">
                   <Link
                     to="/admin"
-                    className="flex flex-col items-center justify-center w-14 h-14 text-orange-800 hover:bg-blue-500 hover:rounded-[1.75rem] transition-all duration-250 relative group"
+                    className="flex flex-col items-center justify-center w-14 h-14 text-orange-800 hover:bg-blue-500 hover:rounded-[1.75rem] hover:text-white transition-all duration-250 relative group"
                   >
-                    <i data-feather="shield" className="w-6 h-6 text-orange-800"></i>
+                    <i data-feather="shield" className="w-6 h-6"></i>
                     <span className="absolute top-full mt-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-[-1rem] bg-white text-[#1e40af] p-2 rounded-[1.75rem] shadow-md pointer-events-none transition-all duration-250">
                       Admin
                     </span>
@@ -103,9 +103,9 @@ function Navbar() {
               <li className="navbar-item">
                 <button
                   onClick={handleLogout}
-                  className="flex flex-col items-center justify-center w-14 h-14 text-red-900 hover:bg-blue-500 hover:rounded-[1.75rem] transition-all duration-250 relative group"
+                  className="flex flex-col items-center justify-center w-14 h-14 text-red-900 hover:bg-blue-500 hover:rounded-[1.75rem] hover:text-white transition-all duration-250 relative group"
                 >
-                  <i data-feather="log-out" className="w-6 h-6 text-red-900"></i>
+                  <i data-feather="log-out" className="w-6 h-6"></i>
                   <span className="absolute top-full mt-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-[-1rem] bg-white text-[#1e40af] p-2 rounded-[1.75rem] shadow-md pointer-events-none transition-all duration-250">
                     Logout
                   </span>
@@ -117,9 +117,9 @@ function Navbar() {
               <li className="navbar-item">
                 <Link
                   to="/login"
-                  className="flex flex-col items-center justify-center w-14 h-14 text-teal-800 hover:bg-blue-500 hover:rounded-[1.75rem] transition-all duration-250 relative group"
+                  className="flex flex-col items-center justify-center w-14 h-14 text-teal-800 hover:bg-blue-500 hover:rounded-[1.75rem] hover:text-white transition-all duration-250 relative group"
                 >
-                  <i data-feather="log-in" className="w-6 h-6 text-teal-800"></i>
+                  <i data-feather="log-in" className="w-6 h-6"></i>
                   <span className="absolute top-full mt-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-[-1rem] bg-white text-[#1e40af] p-2 rounded-[1.75rem] shadow-md pointer-events-none transition-all duration-250">
                     Login
                   </span>
@@ -128,9 +128,9 @@ function Navbar() {
               <li className="navbar-item">
                 <Link
                   to="/register"
-                  className="flex flex-col items-center justify-center w-14 h-14 text-gray-800 hover:bg-blue-500 hover:rounded-[1.75rem] transition-all duration-250 relative group"
+                  className="flex flex-col items-center justify-center w-14 h-14 text-gray-800 hover:bg-blue-500 hover:rounded-[1.75rem] hover:text-white transition-all duration-250 relative group"
                 >
-                  <i data-feather="user-plus" className="w-6 h-6 text-gray-800"></i>
+                  <i data-feather="user-plus" className="w-6 h-6"></i>
                   <span className="absolute top-full mt-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-[-1rem] bg-white text-[#1e40af] p-2 rounded-[1.75rem] shadow-md pointer-events-none transition-all duration-250">
                     Register
                   </span>

@@ -45,6 +45,14 @@ const AdminLayout = () => {
                 Manage Users
               </Link>
             </li>
+            <li className="mb-4">
+              <Link
+                to="/admin/categories"
+                className="block py-2 px-4 rounded hover:bg-gray-700"
+              >
+                Manage Categories
+              </Link>
+            </li>
             {/* Add more admin links here as needed */}
           </ul>
         </nav>

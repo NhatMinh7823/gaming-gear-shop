@@ -25,8 +25,14 @@ const categorySchema = new mongoose.Schema(
       default: null,
     },
     image: {
-      public_id: String,
-      url: String,
+      public_id: {
+        type: String,
+        default: ''
+      },
+      url: {
+        type: String,
+        default: ''
+      }
     },
     featured: {
       type: Boolean,

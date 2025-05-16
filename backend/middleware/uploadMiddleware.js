@@ -2,20 +2,40 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure the upload directory exists
-const uploadDir = path.join(__dirname, '..', 'uploads', 'images', 'products');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Create upload directories for different types of images
+const createUploadDirs = () => {
+  const dirs = {
+    products: path.join(__dirname, '..', 'uploads', 'images', 'products'),
+    categories: path.join(__dirname, '..', 'uploads', 'images', 'categories')
+  };
+
+  // Create directories if they don't exist
+  Object.values(dirs).forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+
+  return dirs;
+};
+
+const uploadDirs = createUploadDirs();
 
 // Set up storage engine
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadDir);
+    // Determine destination based on upload type
+    const uploadType = file.fieldname === 'image' ? 'categories' : 'products';
+    cb(null, uploadDirs[uploadType]);
   },
   filename: function (req, file, cb) {
-    // Create a unique filename: fieldname-timestamp.extension
-    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+    // Determine destination based on upload type
+    const uploadType = file.fieldname === 'image' ? 'categories' : 'products';
+    // Generate relative path for storage
+    const relativePath = `/uploads/images/${uploadType}/${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`;
+    // Extract just the filename from the relative path
+    const filename = path.basename(relativePath);
+    cb(null, filename);
   }
 });
 
@@ -35,16 +55,42 @@ function checkFileType(file, cb) {
   }
 }
 
-// Initialize upload variable
+// Initialize upload middleware with file size and type validation
 const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
   fileFilter: function (req, file, cb) {
     checkFileType(file, cb);
   }
-});
+}).fields([
+  { name: 'image', maxCount: 1 },    // For single category image
+  { name: 'images', maxCount: 10 }   // For multiple product images
+]);
 
-// Middleware to upload multiple images (e.g., up to 10 images for a field named 'images')
-const uploadProductImages = upload.array('images', 10); // 'images' should match the field name in FormData
+// Middleware wrapper to handle errors
+const handleUpload = (req, res, next) => {
+  upload(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({
+        success: false,
+        message: `Upload error: ${err.message}`
+      });
+    } else if (err) {
+      return res.status(400).json({
+        success: false,
+        message: err
+      });
+    }
+    next();
+  });
+};
 
-module.exports = { uploadProductImages };
+// Export specific middleware for different upload types
+const uploadCategoryImage = (req, res, next) => handleUpload(req, res, next);
+const uploadProductImages = (req, res, next) => handleUpload(req, res, next);
+
+module.exports = { 
+  uploadProductImages, 
+  uploadCategoryImage,
+  uploadDirs // Export dirs for use in controllers
+};

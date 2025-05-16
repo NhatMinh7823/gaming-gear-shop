@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { setProducts } from "../redux/slices/productSlice";
 import api from "../services/api";
 
 const HomePage = () => {
+  const navigate = useNavigate();
+  const featuredCategoriesRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -16,11 +19,13 @@ const HomePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
+      setLoadingCategories(true);
       try {
         const [productsResponse, categoriesResponse] = await Promise.all([
           api.get("/products/featured"),
           api.get("/categories/featured"),
         ]);
+        
         dispatch(
           setProducts({
             products: productsResponse.data.products,
@@ -49,8 +54,10 @@ const HomePage = () => {
         setReviews(topReviews);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setErrorCategories(error.message || "Failed to fetch categories");
       } finally {
         setIsLoading(false);
+        setLoadingCategories(false);
       }
     };
 
@@ -97,10 +104,16 @@ const HomePage = () => {
               kế tinh tế và tính năng vượt trội.
             </p>
             <div className="flex space-x-4">
-              <button className="bg-white text-indigo-900 px-6 py-3 rounded-button font-medium hover:bg-opacity-90 transition-all duration-300 cursor-pointer whitespace-nowrap">
+              <button 
+                onClick={() => navigate('/products')}
+                className="bg-white text-indigo-900 px-6 py-3 rounded-button font-medium hover:bg-opacity-90 transition-all duration-300 cursor-pointer whitespace-nowrap"
+              >
                 Mua Ngay
               </button>
-              <button className="border-2 border-white text-white px-6 py-3 rounded-button font-medium hover:bg-white hover:bg-opacity-10 transition-all duration-300 cursor-pointer whitespace-nowrap">
+              <button 
+                onClick={() => featuredCategoriesRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                className="border-2 border-white text-white px-6 py-3 rounded-button font-medium hover:bg-white hover:bg-opacity-10 transition-all duration-300 cursor-pointer whitespace-nowrap"
+              >
                 Tìm Hiểu Thêm
               </button>
             </div>
@@ -108,7 +121,7 @@ const HomePage = () => {
         </div>
       </div>
       {/* Featured Categories */}
-      <div className="container mx-auto px-4 py-16">
+      <div ref={featuredCategoriesRef} className="container mx-auto px-4 py-16">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-gray-800">Danh Mục Nổi Bật</h2>
           <button className="text-indigo-600 hover:text-indigo-800 font-medium flex items-center cursor-pointer whitespace-nowrap">
@@ -130,7 +143,12 @@ const HomePage = () => {
               <div key={category._id} className="relative overflow-hidden rounded-lg shadow-md group cursor-pointer">
                 <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/80 to-indigo-900/20 z-10 opacity-80 group-hover:opacity-90 transition-opacity duration-300"></div>
                 <img
-                  src={category.image || "https://readdy.ai/api/search-image?query=default%20category%20image&width=300&height=200&seq=cat1&orientation=portrait"}
+                  src={category.image?.url 
+                    ? (category.image.url.startsWith('http') 
+                        ? category.image.url 
+                        : `${process.env.REACT_APP_API_URL}${category.image.url}`)
+                    : "https://readdy.ai/api/search-image?query=default%20category%20image&width=300&height=200&seq=cat1&orientation=portrait"
+                  }
                   alt={category.name}
                   className="w-full h-40 object-cover transform group-hover:scale-105 transition-transform duration-500"
                 />
@@ -169,9 +187,11 @@ const HomePage = () => {
                 >
                   <div className="relative h-64 overflow-hidden">
                     <img
-                      src={
-                        product.images?.[0]?.url ||
-                        "https://readdy.ai/api/search-image?query=modern%20smartphone%20with%20sleek%20design%20on%20gradient%20background  background%2C%20professional%20product%20photography%2C%20ultra%20high%20resolution%2C%20clean%20background%2C%20premium%20quality&width=400&height=300&seq=prod1&orientation=portrait"
+                      src={product.images?.[0]?.url 
+                        ? (product.images[0].url.startsWith('http')
+                            ? product.images[0].url
+                            : `${process.env.REACT_APP_API_URL}${product.images[0].url}`)
+                        : "https://readdy.ai/api/search-image?query=modern%20smartphone%20with%20sleek%20design%20on%20gradient%20background  background%2C%20professional%20product%20photography%2C%20ultra%20high%20resolution%2C%20clean%20background%2C%20premium%20quality&width=400&height=300&seq=prod1&orientation=portrait"
                       }
                       alt={product.name}
                       className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"

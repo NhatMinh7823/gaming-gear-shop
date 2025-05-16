@@ -30,13 +30,18 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: {
     type: String,
     required: [true, "Payment method is required"],
-    enum: ["PayPal", "Stripe", "CreditCard", "BankTransfer", "CashOnDelivery"],
+    enum: ["PayPal", "Stripe", "CreditCard", "BankTransfer", "CashOnDelivery", "VNPay"],
   },
   paymentResult: {
     id: { type: String },
     status: { type: String },
     update_time: { type: String },
     email_address: { type: String },
+    // VNPay specific fields
+    vnp_TransactionNo: { type: String },
+    vnp_PayDate: { type: String },
+    vnp_OrderInfo: { type: String },
+    vnp_ResponseCode: { type: String },
   },
   taxPrice: {
     type: Number,

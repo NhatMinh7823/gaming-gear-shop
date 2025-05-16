@@ -25,6 +25,14 @@ api.interceptors.response.use((response) => {
       if (Array.isArray(obj)) {
         return obj.map(transformImages);
       } else if (obj && typeof obj === "object") {
+        // Handle images array specifically
+        if (Array.isArray(obj.images)) {
+          obj.images = obj.images.map(img => ({
+            ...img,
+            url: img.url && !img.url.startsWith('http') ? `${BASE_URL}${img.url}` : img.url
+          }));
+        }
+        // Handle other image fields
         Object.keys(obj).forEach((key) => {
           if (
             (key === "url" || key === "image") &&
@@ -33,7 +41,7 @@ api.interceptors.response.use((response) => {
             !obj[key].startsWith("http")
           ) {
             obj[key] = `${BASE_URL}${obj[key]}`;
-          } else if (typeof obj[key] === "object") {
+          } else if (typeof obj[key] === "object" && key !== 'images') {
             transformImages(obj[key]);
           }
         });
@@ -67,6 +75,19 @@ export const getSearchSuggestions = (keyword) =>
 // Category APIs
 export const getCategories = () => api.get("/categories");
 export const getFeaturedCategories = () => api.get("/categories/featured");
+export const getCategoryById = (id) => api.get(`/categories/${id}`); // Ensure this is here or add if missing
+export const createCategory = (data) => api.post("/categories", data, {
+  headers: {
+    'Content-Type': 'multipart/form-data'
+  }
+});
+export const updateCategory = (id, data) => api.put(`/categories/${id}`, data, {
+  headers: {
+    'Content-Type': 'multipart/form-data'
+  }
+});
+export const deleteCategory = (id) => api.delete(`/categories/${id}`);
+
 
 // Cart APIs
 export const getCart = () => api.get("/cart");
@@ -80,6 +101,12 @@ export const clearCart = () => api.delete("/cart");
 export const createOrder = (data) => api.post("/orders", data);
 export const getMyOrders = () => api.get("/orders/myorders");
 export const getOrderById = (id) => api.get(`/orders/${id}`);
+
+// Payment APIs
+export const createVNPayUrl = (orderId) => api.post(`/payment/${orderId}/create_payment_url`);
+export const checkVNPayPayment = (params) => api.get('/payment/vnpay_return', { params });
+export const queryVNPayTransaction = (orderId) => api.post(`/payment/${orderId}/query`);
+export const refundVNPayTransaction = (orderId, data) => api.post(`/payment/${orderId}/refund`, data);
 
 // Review APIs
 export const createReview = (data) => api.post("/reviews", data);
