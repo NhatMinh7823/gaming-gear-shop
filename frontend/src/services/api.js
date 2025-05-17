@@ -64,7 +64,20 @@ export const removeFromWishlist = (productId) =>
   api.delete(`/users/wishlist/${productId}`);
 
 // Product APIs
-export const getProducts = (params) => api.get("/products", { params });
+export const getProducts = (params = {}) => {
+  // Transform sort parameter from { field, direction } to backend format
+  if (params.sort && params.direction) {
+    params.sort = `${params.direction === 'desc' ? '-' : ''}${params.sort}`;
+    delete params.direction;
+  }
+  
+  // Remove empty string values from params
+  Object.keys(params).forEach(key => 
+    (params[key] === '' || params[key] === undefined) && delete params[key]
+  );
+  
+  return api.get("/products", { params });
+};
 export const getProductById = (id) => api.get(`/products/${id}`);
 export const searchProducts = (keyword, params) =>
   api.get(`/products/search?keyword=${keyword}`, { params });

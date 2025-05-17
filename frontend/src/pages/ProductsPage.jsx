@@ -5,6 +5,8 @@ import { setProducts as setProductAction } from '../redux/slices/productSlice';
 import { toast } from 'react-toastify';
 import { getProducts, searchProducts, getCategories, getSearchSuggestions } from '../services/api';
 import ProductCard from '../components/ProductCard';
+import { FaSearch, FaFilter, FaSlidersH, FaTimes, FaSort, FaBox, FaTags, 
+         FaDollarSign, FaShoppingBag, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 function ProductsPage() {
   const dispatch = useDispatch();
@@ -217,80 +219,110 @@ function ProductsPage() {
     searchParams.has('keyword')
   ].filter(Boolean).length;
 
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(price);
+  };
+
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Gaming Products</h1>
-        <p className="text-gray-600">
-          {isSearching ? `Showing search results for "${searchParams.get('keyword')}"` : 'Browse our collection of high-quality gaming gear'}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl p-8 mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold mb-4">Gaming Products</h1>
+        <p className="text-blue-100 text-lg">
+          {isSearching 
+            ? `Showing search results for "${searchParams.get('keyword')}"`
+            : 'Browse our collection of high-quality gaming gear'}
         </p>
       </div>
 
       {/* Mobile Filter Toggle */}
-      <div className="md:hidden mb-4">
+      <div className="md:hidden mb-6">
         <button
           onClick={() => setExpandFilters(!expandFilters)}
-          className="w-full flex items-center justify-between bg-white shadow-md p-4 rounded-lg"
+          className="w-full flex items-center justify-between bg-white shadow-lg p-4 rounded-xl"
         >
-          <span className="font-medium flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
-            </svg>
-            Filters {filterCount > 0 && <span className="bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full">{filterCount}</span>}
-          </span>
-          <svg className={`w-4 h-4 transition-transform ${expandFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-          </svg>
+          <div className="flex items-center gap-3">
+            <FaFilter className={`w-5 h-5 transition-colors ${filterCount > 0 ? 'text-blue-600' : 'text-gray-600'}`} />
+            <span className="font-medium">Filters & Search</span>
+            {filterCount > 0 && (
+              <span className="bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                {filterCount}
+              </span>
+            )}
+          </div>
+          <FaSlidersH className={`w-5 h-5 transition-transform ${expandFilters ? 'rotate-180' : ''}`} />
         </button>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
         {/* Sidebar for Filters - Hidden on mobile unless expanded */}
         <div className={`md:w-1/4 md:block ${expandFilters ? 'block' : 'hidden'}`}>
-          <div className="bg-white p-4 md:p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
+          <div className="bg-white p-6 rounded-2xl shadow-lg sticky top-4">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <FaFilter className="text-blue-600" />
+                <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
+                {filterCount > 0 && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full">
+                    {filterCount}
+                  </span>
+                )}
+              </div>
               {filterCount > 0 && (
                 <button 
                   onClick={clearFilters}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
                 >
-                  Clear All
+                  <FaTimes className="w-3 h-3" />
+                  Clear
                 </button>
               )}
             </div>
             
             {/* Search Box */}
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+            <div className="mb-6">
+              <div className="flex items-center gap-2 text-gray-800 mb-3">
+                <FaSearch className="text-blue-600" />
+                <label className="font-medium">Search Products</label>
+              </div>
               <form onSubmit={handleSearch} className="relative">
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search products..."
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Search by name, brand..."
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 pl-11 focus:ring-2 
+                           focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   ref={searchRef}
                 />
+                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <button 
-                  type="submit" 
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600"
+                  type="submit"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white 
+                           p-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                  </svg>
+                  <FaSearch className="w-4 h-4" />
                 </button>
+                
                 {/* Search Suggestions */}
                 {showSuggestions && suggestions.length > 0 && (
-                  <ul className="absolute z-10 bg-white w-full mt-1 border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <ul className="absolute z-20 bg-white w-full mt-2 border border-gray-200 rounded-xl 
+                               shadow-lg max-h-60 overflow-y-auto divide-y divide-gray-100">
                     {suggestions.map((suggestion, index) => (
                       <li
                         key={index}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 flex justify-between items-center"
+                        className="p-3 hover:bg-blue-50 cursor-pointer transition-colors"
                       >
-                        <span className="font-medium">{suggestion.name}</span>
-                        <span className="text-xs text-gray-500">{suggestion.brand}</span>
+                        <div className="flex items-center gap-3">
+                          <FaBox className="text-gray-400" />
+                          <div>
+                            <div className="font-medium text-gray-800">{suggestion.name}</div>
+                            <div className="text-sm text-gray-500">{suggestion.brand}</div>
+                          </div>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -299,80 +331,106 @@ function ProductsPage() {
             </div>
             
             {/* Category Filter */}
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-              <select
-                value={category}
-                onChange={handleCategoryChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>{cat.name}</option>
-                ))}
-              </select>
+            <div className="mb-6">
+              <div className="flex items-center gap-2 text-gray-800 mb-3">
+                <FaTags className="text-blue-600" />
+                <label className="font-medium">Category</label>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-2">
+                <select
+                  value={category}
+                  onChange={handleCategoryChange}
+                  className="w-full bg-transparent border-2 border-gray-200 rounded-lg px-3 py-2.5 
+                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             
             {/* Price Range */}
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
-              <div className="flex items-center space-x-2">
-                <div className="relative flex-1">
-                  <span className="absolute inset-y-0 left-3 flex items-center text-gray-500">$</span>
+            <div className="mb-6">
+              <div className="flex items-center gap-2 text-gray-800 mb-3">
+                <FaDollarSign className="text-blue-600" />
+                <label className="font-medium">Price Range</label>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
                   <input
                     type="number"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
-                    placeholder="Min"
-                    className="pl-8 w-full border border-gray-300 rounded-lg py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 
+                             focus:ring-blue-500 focus:border-blue-500 text-right"
                   />
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">từ</span>
                 </div>
-                <span className="text-gray-500">-</span>
-                <div className="relative flex-1">
-                  <span className="absolute inset-y-0 left-3 flex items-center text-gray-500">$</span>
+                <div className="relative">
                   <input
                     type="number"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
                     placeholder="Max"
-                    className="pl-8 w-full border border-gray-300 rounded-lg py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 
+                             focus:ring-blue-500 focus:border-blue-500 text-right"
                   />
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">đến</span>
                 </div>
               </div>
             </div>
             
             {/* Brand Filter */}
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
-              <input
-                type="text"
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                placeholder="Enter brand name"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+            <div className="mb-6">
+              <div className="flex items-center gap-2 text-gray-800 mb-3">
+                <FaShoppingBag className="text-blue-600" />
+                <label className="font-medium">Brand</label>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value)}
+                  placeholder="Enter brand name"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 
+                           focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
             </div>
             
             {/* Sort Order */}
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-              <select
-                value={sort}
-                onChange={handleSortChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="-createdAt">Newest First</option>
-                <option value="price">Price: Low to High</option>
-                <option value="-price">Price: High to Low</option>
-                <option value="-averageRating">Highest Rated</option>
-              </select>
+            <div className="mb-6">
+              <div className="flex items-center gap-2 text-gray-800 mb-3">
+                <FaSort className="text-blue-600" />
+                <label className="font-medium">Sort By</label>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-2">
+                <select
+                  value={sort}
+                  onChange={handleSortChange}
+                  className="w-full bg-transparent border-2 border-gray-200 rounded-lg px-3 py-2.5
+                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                >
+                  <option value="-createdAt">Newest First</option>
+                  <option value="price">Price: Low to High</option>
+                  <option value="-price">Price: High to Low</option>
+                  <option value="-averageRating">Highest Rated</option>
+                </select>
+              </div>
             </div>
             
             <button
               onClick={handleFilterChange}
-              className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition duration-300 font-medium shadow-md hover:shadow-lg"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 
+                       rounded-xl hover:from-blue-700 hover:to-blue-800 transition duration-300 
+                       font-medium shadow-blue-200 shadow-lg hover:shadow-xl
+                       flex items-center justify-center gap-2"
             >
-              Apply Filters
+              <FaFilter />
+              <span>Apply Filters</span>
             </button>
           </div>
         </div>

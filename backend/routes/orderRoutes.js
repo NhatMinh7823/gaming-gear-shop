@@ -11,14 +11,16 @@ const {
   deleteOrder,
   getOrderStats,
   getSalesData,
+  getOrderHistory,
 } = require("../controllers/orderController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
 // User routes
 router.post("/", protect, createOrder);
 router.get("/myorders", protect, getMyOrders);
-router.get("/stats", protect, authorize("admin"), getOrderStats); // Moved this line
+router.get("/stats", protect, authorize("admin"), getOrderStats); 
 router.get("/salesdata", protect, authorize("admin"), getSalesData);
+router.get("/history", protect, authorize("admin"), getOrderHistory);
 router.get("/:id", protect, getOrderById);
 router.put("/:id/pay", protect, updateOrderToPaid);
 

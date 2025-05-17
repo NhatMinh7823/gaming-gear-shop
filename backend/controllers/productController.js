@@ -19,7 +19,29 @@ exports.getProducts = async (req, res) => {
     } = req.query;
 
     const queryConditions = {};
-    if (category && category !== "") queryConditions.category = category;
+    // Handle category filter - lookup by name or use ID directly
+    if (category && category !== "") {
+      try {
+        // If category is a valid MongoDB ObjectId, use it directly
+        if (category.match(/^[0-9a-fA-F]{24}$/)) {
+          queryConditions.category = category;
+        } else {
+          // Otherwise, try to find category by name
+          const Category = require("../models/categoryModel");
+          const categoryDoc = await Category.findOne({
+            $or: [
+              { name: { $regex: new RegExp(category, 'i') }},
+              { slug: category.toLowerCase().replace(/[^a-zA-Z0-9]/g, "-") }
+            ]
+          });
+          if (categoryDoc) {
+            queryConditions.category = categoryDoc._id;
+          }
+        }
+      } catch (err) {
+        console.error("Error processing category filter:", err);
+      }
+    }
     if (brand && brand !== "")
       queryConditions.brand = { $regex: brand, $options: "i" };
     const priceCondition = {};

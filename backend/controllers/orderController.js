@@ -341,6 +341,67 @@ exports.getSalesData = async (req, res) => {
 };
 
 
+exports.getOrderHistory = async (req, res) => {
+  try {
+    const today = new Date();
+    const lastWeek = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
+
+    // Get daily stats for the last 7 days
+    const dailyStats = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: lastWeek }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: "$totalPrice" },
+          paidOrders: { 
+            $sum: { 
+              $cond: [{ $eq: ["$isPaid", true] }, 1, 0]
+            }
+          },
+          paidRevenue: {
+            $sum: {
+              $cond: [{ $eq: ["$isPaid", true] }, "$totalPrice", 0]
+            }
+          },
+          deliveredOrders: {
+            $sum: {
+              $cond: [{ $eq: ["$isDelivered", true] }, 1, 0]
+            }
+          }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Transform data into arrays
+    const historyData = {
+      usersHistory: [], // Users will be handled separately
+      ordersHistory: dailyStats.map(day => day.totalOrders),
+      revenueHistory: dailyStats.map(day => day.totalRevenue),
+      paidOrdersHistory: dailyStats.map(day => day.paidOrders),
+      paidRevenueHistory: dailyStats.map(day => day.paidRevenue),
+      deliveredOrdersHistory: dailyStats.map(day => day.deliveredOrders),
+    };
+
+    res.status(200).json({
+      success: true,
+      ...historyData
+    });
+  } catch (error) {
+    console.error("Error in getOrderHistory:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message
+    });
+  }
+};
+
 // @desc    Get order statistics
 // @route   GET /api/orders/stats
 // @access  Private/Admin

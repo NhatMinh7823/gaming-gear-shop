@@ -90,7 +90,7 @@ const HomePage = () => {
       <div className="relative h-[500px] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 to-transparent z-10"></div>
         <img
-          src="https://readdy.ai/api/search-image?query=luxury%20modern%20electronics%20store%20with%20high-end%20smartphones%2C%20laptops%20and%20gadgets%20displayed%20on%20elegant%20minimalist%20stands%2C%20soft%20ambient%20lighting%2C%20clean%20modern%20interior%20design%2C%20professional%20product%20photography%20style%2C%20ultra%20high%20resolution&width=1440&height=500&seq=hero1&orientation=landscape"
+          src={`${process.env.REACT_APP_API_URL.replace('/api', '')}/uploads/hero-banner.jpg`}
           alt="Banner sản phẩm công nghệ"
           className="absolute inset-0 w-full h-full object-cover object-top"
         />
@@ -147,7 +147,7 @@ const HomePage = () => {
                     ? (category.image.url.startsWith('http') 
                         ? category.image.url 
                         : `${process.env.REACT_APP_API_URL}${category.image.url}`)
-                    : "https://readdy.ai/api/search-image?query=default%20category%20image&width=300&height=200&seq=cat1&orientation=portrait"
+                    : `${process.env.REACT_APP_API_URL.replace('/api', '')}/uploads/default-category.jpg`
                   }
                   alt={category.name}
                   className="w-full h-40 object-cover transform group-hover:scale-105 transition-transform duration-500"
@@ -191,7 +191,7 @@ const HomePage = () => {
                         ? (product.images[0].url.startsWith('http')
                             ? product.images[0].url
                             : `${process.env.REACT_APP_API_URL}${product.images[0].url}`)
-                        : "https://readdy.ai/api/search-image?query=modern%20smartphone%20with%20sleek%20design%20on%20gradient%20background  background%2C%20professional%20product%20photography%2C%20ultra%20high%20resolution%2C%20clean%20background%2C%20premium%20quality&width=400&height=300&seq=prod1&orientation=portrait"
+                        : `${process.env.REACT_APP_API_URL.replace('/api', '')}/uploads/default-product.jpg`
                       }
                       alt={product.name}
                       className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
@@ -283,7 +283,7 @@ const HomePage = () => {
             </div>
             <div className="w-full md:w-1/2 relative">
               <img
-                src="https://readdy.ai/api/search-image?query=premium%20smartphone%20and%20wireless%20earbuds%20on%20elegant%20display%20with%20soft%20lighting%20and%20gradient%20background%2C%20professional%20product%20photography%2C%20ultra%20high%20resolution%2C%20clean%20background%2C%20premium%20quality&width=600&height=400&seq=offer1&orientation=landscape"
+                src={`${process.env.REACT_APP_API_URL.replace('/api', '')}/uploads/special-offer.jpg`}
                 alt="Ưu đãi đặc biệt"
                 className="w-full h-full object-cover"
               />
