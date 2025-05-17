@@ -24,13 +24,17 @@ function Navbar() {
   }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white rounded-b-xl p-4 shadow-[0_0_40px_rgba(0,0,0,0.1)] w-full font-['Open_Sans',sans-serif] z-50">
+    <nav className="fixed top-0 left-0 right-0 bg-white rounded-b-xl py-0 px-10 shadow-[0_0_40px_rgba(0,0,0,0.1)] w-full font-['Open_Sans',sans-serif] z-50">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <Link
           to="/"
-          className="text-2xl font-extrabold text-[#1e40af] hover:text-[#3b82f6] transition-colors duration-250"
+          className="flex items-center h-[90px]"
         >
-          Gaming Gear
+          <img 
+            src="/gamingGearLogo.png" 
+            alt="Gaming Gear Logo" 
+            className="h-[90px] w-auto"
+          />
         </Link>
         <button
           className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
