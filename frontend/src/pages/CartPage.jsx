@@ -268,32 +268,62 @@ function CartPage() {
               <p className="text-sm text-gray-800 font-medium">{item.name}</p>
               <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
             </div>
-            <span className="text-sm text-gray-800 font-medium">${(item.price * item.quantity).toFixed(2)}</span>
+            <span className="text-sm text-gray-800 font-medium">
+              {new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+              }).format(item.price * item.quantity)}
+            </span>
           </div>
         ))}
         <div className="border-t pt-4 space-y-2">
           <div className="flex justify-between text-sm text-gray-600">
             <span>Subtotal</span>
-            <span>${totalPrice.toFixed(2)}</span>
+            <span>
+              {new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+              }).format(totalPrice)}
+            </span>
           </div>
           <div className="flex justify-between text-sm text-gray-600">
             <span>Shipping</span>
-            <span>$5.00</span>
+            <span>
+              {new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+              }).format(5)}
+            </span>
           </div>
           <div className="flex justify-between text-sm text-gray-600">
             <span>Tax</span>
-            <span>$10.00</span>
+            <span>
+              {new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+              }).format(10)}
+            </span>
           </div>
           {discountAmount > 0 && (
             <div className="flex justify-between text-sm text-green-600">
               <span>Discount</span>
-              <span>-${discountAmount.toFixed(2)}</span>
+              <span>
+                -{new Intl.NumberFormat('vi-VN', {
+                  style: 'currency',
+                  currency: 'VND'
+                }).format(discountAmount)}
+              </span>
             </div>
           )}
           <div className="pt-2 border-t">
             <div className="flex justify-between font-semibold text-gray-800">
               <span>Total</span>
-              <span>${finalTotal.toFixed(2)}</span>
+              <span>
+                {new Intl.NumberFormat('vi-VN', {
+                  style: 'currency',
+                  currency: 'VND'
+                }).format(finalTotal)}
+              </span>
             </div>
           </div>
         </div>
@@ -336,7 +366,12 @@ function CartPage() {
                             <div className="flex justify-between">
                               <div>
                                 <h3 className="text-sm font-medium text-gray-800">{item.name}</h3>
-                                <p className="mt-1 text-sm text-gray-500">${item.price}</p>
+                                <p className="mt-1 text-sm text-gray-500">
+                                  {new Intl.NumberFormat('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND'
+                                  }).format(item.price)}
+                                </p>
                               </div>
                               <button
                                 onClick={() => handleRemoveItem(item._id)}
@@ -393,7 +428,7 @@ function CartPage() {
                           <div className="flex items-center">
                             <FaCheck className="text-green-500 mr-2" />
                             <span className="text-sm text-green-800">
-                              Coupon {appliedCoupon.code} applied - {appliedCoupon.type === 'percentage' ? `${appliedCoupon.discount}% off` : `$${appliedCoupon.discount} off`}
+                              Coupon {appliedCoupon.code} applied - {appliedCoupon.type === 'percentage' ? `${appliedCoupon.discount}% off` : `${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appliedCoupon.discount)} off`}
                             </span>
                           </div>
                           <button
@@ -584,16 +619,16 @@ function CartPage() {
 
                       <div 
                         className={`flex items-center p-4 border rounded-lg ${
-                          paymentMethod === 'COD' ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-white'
+                          paymentMethod === 'CashOnDelivery' ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-white'
                         } cursor-pointer transition-colors duration-200`}
-                        onClick={() => setPaymentMethod('COD')}
+                        onClick={() => setPaymentMethod('CashOnDelivery')}
                       >
                         <input
                           type="radio"
                           id="cod"
                           name="paymentMethod"
-                          checked={paymentMethod === 'COD'}
-                          onChange={() => setPaymentMethod('COD')}
+                          checked={paymentMethod === 'CashOnDelivery'}
+                          onChange={() => setPaymentMethod('CashOnDelivery')}
                           className="h-5 w-5 text-blue-600"
                         />
                         <label htmlFor="cod" className="ml-3 flex items-center cursor-pointer">

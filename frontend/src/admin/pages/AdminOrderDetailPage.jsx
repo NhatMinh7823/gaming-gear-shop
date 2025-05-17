@@ -148,9 +148,20 @@ const AdminOrderDetailPage = () => {
             <p><strong>User:</strong> {order.user?.name} ({order.user?.email})</p>
             <p><strong>Date Placed:</strong> {new Date(order.createdAt).toLocaleString()}</p>
             <p><strong>Payment Method:</strong> {order.paymentMethod}</p>
-            <p><strong>Total Amount:</strong> <span className="font-semibold text-lg">${order.totalPrice.toFixed(2)}</span></p>
-            <p><strong>Shipping Price:</strong> ${order.shippingPrice.toFixed(2)}</p>
-            <p><strong>Tax Price:</strong> ${order.taxPrice.toFixed(2)}</p>
+            <p><strong>Total Amount:</strong> <span className="font-semibold text-lg">
+              {new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+              }).format(order.totalPrice)}
+            </span></p>
+            <p><strong>Shipping Price:</strong> {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND'
+            }).format(order.shippingPrice)}</p>
+            <p><strong>Tax Price:</strong> {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND'
+            }).format(order.taxPrice)}</p>
 
             <div className="mt-4">
               <h3 className="text-md font-semibold text-gray-700 mb-1">Shipping Address:</h3>
@@ -239,13 +250,19 @@ const AdminOrderDetailPage = () => {
                       <p className="font-medium text-gray-900 truncate">{item.name}</p>
                       <div className="mt-1 flex items-center text-sm text-gray-500">
                         <span className="bg-gray-200 px-2 py-0.5 rounded">
-                          {item.quantity} × ${item.price.toLocaleString()}
+                          {item.quantity} × {new Intl.NumberFormat('vi-VN', {
+                            style: 'currency',
+                            currency: 'VND'
+                          }).format(item.price)}
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold text-gray-900">
-                        ${(item.quantity * item.price).toLocaleString()}
+                        {new Intl.NumberFormat('vi-VN', {
+                          style: 'currency',
+                          currency: 'VND'
+                        }).format(item.quantity * item.price)}
                       </p>
                     </div>
                   </div>

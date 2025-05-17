@@ -282,7 +282,10 @@ const DashboardPage = () => {
     },
     {
       title: "Total Revenue",
-      value: `$${(dashboardStats.totalRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+      }).format(dashboardStats.totalRevenue || 0),
       change: calculateChange(dashboardStats.totalRevenue, statsHistory.totalRevenue),
       trend: {
         data: statsHistory.totalRevenue,
@@ -299,7 +302,10 @@ const DashboardPage = () => {
     },
     {
       title: "Paid Revenue",
-      value: `$${(dashboardStats.paidRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+      }).format(dashboardStats.paidRevenue || 0),
       change: calculateChange(dashboardStats.paidRevenue, statsHistory.paidRevenue),
       trend: {
         data: statsHistory.paidRevenue,
@@ -448,7 +454,7 @@ const DashboardPage = () => {
               if (context.dataset.label === 'Revenue') {
                 label += new Intl.NumberFormat('en-US', {
                   style: 'currency',
-                  currency: 'USD'
+                  currency: 'VND'
                 }).format(context.parsed.y);
               } else {
                 label += context.parsed.y;
@@ -470,7 +476,7 @@ const DashboardPage = () => {
           },
           title: {
             display: true,
-            text: 'Revenue ($)',
+            text: 'Revenue (VNĐ)',
             color: 'rgb(75, 192, 192)',
             font: {
               size: 12,
@@ -483,7 +489,10 @@ const DashboardPage = () => {
           ticks: {
             color: 'rgb(75, 192, 192)',
             callback: function(value) {
-              return '$' + value.toLocaleString();
+              return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+              }).format(value);
             },
             maxTicksLimit: 8
           }

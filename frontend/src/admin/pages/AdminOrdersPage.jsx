@@ -211,7 +211,10 @@ const AdminOrdersPage = () => {
                       })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ${order.totalPrice.toLocaleString()}
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND'
+                      }).format(order.totalPrice)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {order.isPaid ? (
