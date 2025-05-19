@@ -1,13 +1,13 @@
 const vnpayConfig = {
   // Merchant config
-  tmnCode: "WC1RRQDL",
-  hashSecret: "SHX0GT67H0D0IXUK0PVW8RY3E6WXO2XZ",
+  tmnCode: process.env.VNPAY_TMN_CODE,
+  hashSecret: process.env.VNPAY_HASH_SECRET,
 
   // API endpoints
-  vnpUrl: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
-  returnUrl: "http://localhost:3000/payment/vnpay_return",
-  ipnUrl: "http://localhost:5000/api/payment/vnpay_ipn",
-  apiUrl: "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction",
+  vnpUrl: process.env.VNPAY_URL,
+  returnUrl: process.env.VNPAY_RETURN_URL,
+  ipnUrl: process.env.VNPAY_IPN_URL,
+  apiUrl: process.env.VNPAY_API_URL,
 
   // Payment config
   orderType: "billpayment",
@@ -17,13 +17,13 @@ const vnpayConfig = {
 
   // Response codes
   successCode: "00",
-  
+
   // URL encoding
   urlEncode: true,
   encodeCharset: "utf-8",
-  
+
   // API version
-  apiVersion: "2.1.0"
+  apiVersion: "2.1.0",
 };
 
 module.exports = vnpayConfig;

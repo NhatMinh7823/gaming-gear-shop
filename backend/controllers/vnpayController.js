@@ -95,7 +95,7 @@ exports.createPaymentUrl = async (req, res) => {
       "127.0.0.1";
 
     // Create payment data with cleaned order info
-    const amount = Math.round(order.totalPrice * 100 * 23000);
+    const amount = Math.round(order.totalPrice * 100);
     const orderInfo = normalizeOrderInfo(`Thanh toan don hang ${order._id}`);
 
     console.log("Payment parameters:", {
