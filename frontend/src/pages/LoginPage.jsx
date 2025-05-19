@@ -1,59 +1,159 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { login } from '../services/api';
 import { setCredentials } from '../redux/slices/userSlice';
+import { FaLock, FaEnvelope, FaSignInAlt } from 'react-icons/fa';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const { data } = await login({ email, password });
       dispatch(setCredentials({ ...data.user, token: data.token }));
       navigate('/');
-      toast.success('Logged in successfully');
+      toast.success('Login successful! Welcome back, gamer!');
     } catch (error) {
-      toast.error('Invalid credentials');
+      toast.error('Login failed! Check your credentials and try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="container mx-auto py-8 max-w-md">
-      <h1 className="text-3xl font-bold mb-6">Login</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="border p-2 w-full rounded"
-            required
-          />
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+      {/* Background design elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-80 h-80 bg-blue-600 opacity-10 rounded-full blur-3xl"></div>
+        <div className="absolute top-2/3 -right-20 w-96 h-96 bg-purple-600 opacity-10 rounded-full blur-3xl"></div>
+      </div>
+      
+      <div className="max-w-md w-full space-y-8 relative">
+        <div className="text-center">
+          <h2 className="mt-6 text-4xl font-extrabold text-gray-100 tracking-wider">
+            <span className="bg-gradient-to-r from-blue-400 to-purple-600 text-transparent bg-clip-text">
+              GAMER SIGN-IN
+            </span>
+          </h2>
+          <p className="mt-2 text-sm text-gray-400">
+            Access your gaming gear account
+          </p>
         </div>
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="border p-2 w-full rounded"
-            required
-          />
+        
+        <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl p-8 backdrop-blur-sm bg-opacity-80">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Email
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaEnvelope className="h-5 w-5 text-gray-500" />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg 
+                           bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 
+                           focus:border-transparent shadow-sm"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaLock className="h-5 w-5 text-gray-500" />
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg 
+                           bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 
+                           focus:border-transparent shadow-sm"
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 bg-gray-700 border-gray-600 rounded accent-blue-500 focus:ring-blue-500"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-400">
+                  Remember me
+                </label>
+              </div>
+              
+              <div className="text-sm">
+                <Link to="/forgot-password" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
+                  Forgot your password?
+                </Link>
+              </div>
+            </div>
+            
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent 
+                         rounded-lg text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 
+                         hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
+                         font-medium shadow-sm transform transition-all duration-200 hover:-translate-y-1 
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                  <FaSignInAlt className="h-5 w-5 text-blue-300" />
+                </span>
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : 'Sign in to your account'}
+              </button>
+            </div>
+          </form>
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-400">
+              Don't have an account?{' '}
+              <Link to="/register" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
+                Sign up now
+              </Link>
+            </p>
+          </div>
         </div>
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Login
-        </button>
-      </form>
+        
+        <div className="text-center mt-4">
+          <p className="text-xs text-gray-500">
+            &copy; {new Date().getFullYear()} Gaming Gear Shop. All rights reserved.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
