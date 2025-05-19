@@ -210,40 +210,40 @@ function CartPage() {
     <div className="flex items-center justify-center mb-10">
       <div className="w-full max-w-3xl flex justify-between">
         <div className="flex flex-col items-center">
-          <div className={`flex items-center justify-center w-12 h-12 rounded-full ${activeStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'} mb-2 transition-all duration-300`}>
+          <div className={`flex items-center justify-center w-12 h-12 rounded-full ${activeStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'} mb-2 transition-all duration-300`}>
             <FaShoppingCart className="w-5 h-5" />
           </div>
-          <span className={`text-xs font-medium ${activeStep >= 1 ? 'text-blue-600' : 'text-gray-500'}`}>Cart</span>
+          <span className={`text-xs font-medium ${activeStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>Cart</span>
         </div>
         
         <div className={`w-full h-1 max-w-[80px] self-center ${activeStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'} transition-all duration-300`} />
         
         <div className="flex flex-col items-center">
-          <div className={`flex items-center justify-center w-12 h-12 rounded-full ${activeStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'} mb-2 transition-all duration-300`}>
+          <div className={`flex items-center justify-center w-12 h-12 rounded-full ${activeStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'} mb-2 transition-all duration-300`}>
             <FaTruck className="w-5 h-5" />
           </div>
-          <span className={`text-xs font-medium ${activeStep >= 2 ? 'text-blue-600' : 'text-gray-500'}`}>Shipping</span>
+          <span className={`text-xs font-medium ${activeStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>Shipping</span>
         </div>
         
         <div className={`w-full h-1 max-w-[80px] self-center ${activeStep >= 3 ? 'bg-blue-600' : 'bg-gray-200'} transition-all duration-300`} />
         
         <div className="flex flex-col items-center">
-          <div className={`flex items-center justify-center w-12 h-12 rounded-full ${activeStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'} mb-2 transition-all duration-300`}>
+          <div className={`flex items-center justify-center w-12 h-12 rounded-full ${activeStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'} mb-2 transition-all duration-300`}>
             <FaCreditCard className="w-5 h-5" />
           </div>
-          <span className={`text-xs font-medium ${activeStep >= 3 ? 'text-blue-600' : 'text-gray-500'}`}>Payment</span>
+          <span className={`text-xs font-medium ${activeStep >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>Payment</span>
         </div>
       </div>
     </div>
   );
 
   const EmptyCartState = () => (
-    <div className="text-center py-16 bg-white rounded-xl shadow-md">
+    <div className="text-center py-16 bg-gray-800 rounded-xl shadow-md">
       <svg className="h-24 w-24 text-blue-100 mx-auto mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
       </svg>
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Cart is Empty</h2>
-      <p className="text-gray-600 mb-8 max-w-md mx-auto">Looks like you haven't added any products to your cart yet. Find amazing gaming gear in our store!</p>
+      <h2 className="text-2xl font-bold text-gray-100 mb-4">Your Cart is Empty</h2>
+      <p className="text-gray-400 mb-8 max-w-md mx-auto">Looks like you haven't added any products to your cart yet. Find amazing gaming gear in our store!</p>
       <Link
         to="/products"
         className="bg-blue-600 text-white py-3 px-8 rounded-lg font-medium shadow-md hover:bg-blue-700 transition duration-300 inline-block"
@@ -254,8 +254,8 @@ function CartPage() {
   );
 
   const OrderSummary = () => (
-    <div className="bg-white p-6 rounded-xl shadow-sm sticky top-24">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100">Order Summary</h2>
+    <div className="bg-gray-800 p-6 rounded-xl shadow-sm sticky top-24">
+      <h2 className="text-xl font-semibold text-gray-100 mb-4 pb-3 border-b border-gray-700">Order Summary</h2>
       <div className="space-y-4">
         {cartItems.map((item) => (
           <div key={item._id} className="flex items-center py-2">
@@ -265,10 +265,10 @@ function CartPage() {
               className="h-12 w-12 rounded-md object-cover mr-3"
             />
             <div className="flex-1">
-              <p className="text-sm text-gray-800 font-medium">{item.name}</p>
-              <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+              <p className="text-sm text-gray-100 font-medium">{item.name}</p>
+              <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
             </div>
-            <span className="text-sm text-gray-800 font-medium">
+            <span className="text-sm text-gray-100 font-medium">
               {new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
                 currency: 'VND'
@@ -277,7 +277,7 @@ function CartPage() {
           </div>
         ))}
         <div className="border-t pt-4 space-y-2">
-          <div className="flex justify-between text-sm text-gray-600">
+          <div className="flex justify-between text-sm text-gray-400">
             <span>Subtotal</span>
             <span>
               {new Intl.NumberFormat('vi-VN', {
@@ -286,7 +286,7 @@ function CartPage() {
               }).format(totalPrice)}
             </span>
           </div>
-          <div className="flex justify-between text-sm text-gray-600">
+          <div className="flex justify-between text-sm text-gray-400">
             <span>Shipping</span>
             <span>
               {new Intl.NumberFormat('vi-VN', {
@@ -295,7 +295,7 @@ function CartPage() {
               }).format(5)}
             </span>
           </div>
-          <div className="flex justify-between text-sm text-gray-600">
+          <div className="flex justify-between text-sm text-gray-400">
             <span>Tax</span>
             <span>
               {new Intl.NumberFormat('vi-VN', {
@@ -316,7 +316,7 @@ function CartPage() {
             </div>
           )}
           <div className="pt-2 border-t">
-            <div className="flex justify-between font-semibold text-gray-800">
+            <div className="flex justify-between font-semibold text-gray-100">
               <span>Total</span>
               <span>
                 {new Intl.NumberFormat('vi-VN', {
@@ -332,7 +332,7 @@ function CartPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <StepIndicator />
         
@@ -343,9 +343,9 @@ function CartPage() {
             {activeStep === 1 && (
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="lg:w-2/3">
-                  <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+                  <div className="bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
                     <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-xl font-semibold text-gray-800">Shopping Cart ({cartItems.length} items)</h2>
+                      <h2 className="text-xl font-semibold text-gray-100">Shopping Cart ({cartItems.length} items)</h2>
                       <button
                         onClick={handleEmptyCart}
                         className="text-red-600 hover:text-red-700 text-sm font-medium"
@@ -365,8 +365,8 @@ function CartPage() {
                           <div className="ml-4 flex-1">
                             <div className="flex justify-between">
                               <div>
-                                <h3 className="text-sm font-medium text-gray-800">{item.name}</h3>
-                                <p className="mt-1 text-sm text-gray-500">
+                                <h3 className="text-sm font-medium text-gray-100">{item.name}</h3>
+                                <p className="mt-1 text-sm text-gray-400">
                                   {new Intl.NumberFormat('vi-VN', {
                                     style: 'currency',
                                     currency: 'VND'
@@ -385,16 +385,16 @@ function CartPage() {
                             <div className="mt-4 flex items-center">
                               <button
                                 onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
-                                className="text-gray-500 hover:text-gray-700 p-1"
+                                className="text-gray-400 hover:text-gray-700 p-1"
                               >
                                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
                                 </svg>
                               </button>
-                              <span className="mx-2 text-gray-800">{item.quantity}</span>
+                              <span className="mx-2 text-gray-100">{item.quantity}</span>
                               <button
                                 onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
-                                className="text-gray-500 hover:text-gray-700 p-1"
+                                className="text-gray-400 hover:text-gray-700 p-1"
                               >
                                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -413,27 +413,27 @@ function CartPage() {
                           value={couponCode}
                           onChange={(e) => setCouponCode(e.target.value)}
                           placeholder="Enter coupon code"
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-gray-200"
                         />
                         <button
                           onClick={handleApplyCoupon}
-                          className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition duration-300"
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
                         >
                           Apply
                         </button>
                       </div>
                       
                       {appliedCoupon && (
-                        <div className="mt-4 flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <div className="mt-4 flex items-center justify-between p-3 bg-green-900 rounded-lg">
                           <div className="flex items-center">
                             <FaCheck className="text-green-500 mr-2" />
-                            <span className="text-sm text-green-800">
+                            <span className="text-sm text-green-400">
                               Coupon {appliedCoupon.code} applied - {appliedCoupon.type === 'percentage' ? `${appliedCoupon.discount}% off` : `${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appliedCoupon.discount)} off`}
                             </span>
                           </div>
                           <button
                             onClick={removeCoupon}
-                            className="text-sm text-gray-500 hover:text-gray-700"
+                            className="text-sm text-gray-400 hover:text-gray-700"
                           >
                             Remove
                           </button>
@@ -445,7 +445,7 @@ function CartPage() {
                   <div className="flex space-x-4">
                     <Link
                       to="/products"
-                      className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition duration-300 flex items-center justify-center"
+                      className="flex-1 py-3 px-4 border border-gray-300 text-gray-200 hover:bg-gray-700 font-medium rounded-lg transition duration-300 flex items-center justify-center"
                     >
                       <FaArrowLeft className="mr-2" />
                       Continue Shopping
@@ -468,13 +468,13 @@ function CartPage() {
             {activeStep === 2 && (
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="lg:w-2/3 space-y-6">
-                  <div className="bg-white p-6 rounded-xl shadow-sm">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-4 border-b border-gray-100">
+                  <div className="bg-gray-800 p-6 rounded-xl shadow-sm">
+                    <h2 className="text-xl font-semibold text-gray-100 mb-6 pb-4 border-b border-gray-700">
                       Shipping Information
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="street" className="block text-sm font-medium text-gray-200 mb-2">
                           Street Address
                         </label>
                         <input
@@ -483,16 +483,16 @@ function CartPage() {
                           name="street"
                           value={shippingAddress.street}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-2 border rounded-lg ${
+                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${
                             errors.street ? 'border-red-500' : 'border-gray-300'
                           }`}
                           placeholder="123 Main St"
                         />
-                        {errors.street && <p className="mt-1 text-sm text-red-500">{errors.street}</p>}
+                        {errors.street && <p className="mt-1 text-sm text-red-300">{errors.street}</p>}
                       </div>
                       
                       <div>
-                        <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="city" className="block text-sm font-medium text-gray-200 mb-2">
                           City
                         </label>
                         <input
@@ -501,16 +501,16 @@ function CartPage() {
                           name="city"
                           value={shippingAddress.city}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-2 border rounded-lg ${
+                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${
                             errors.city ? 'border-red-500' : 'border-gray-300'
                           }`}
                           placeholder="Your City"
                         />
-                        {errors.city && <p className="mt-1 text-sm text-red-500">{errors.city}</p>}
+                        {errors.city && <p className="mt-1 text-sm text-red-300">{errors.city}</p>}
                       </div>
                       
                       <div>
-                        <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="state" className="block text-sm font-medium text-gray-200 mb-2">
                           State/Province
                         </label>
                         <input
@@ -519,16 +519,16 @@ function CartPage() {
                           name="state"
                           value={shippingAddress.state}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-2 border rounded-lg ${
+                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${
                             errors.state ? 'border-red-500' : 'border-gray-300'
                           }`}
                           placeholder="Your State"
                         />
-                        {errors.state && <p className="mt-1 text-sm text-red-500">{errors.state}</p>}
+                        {errors.state && <p className="mt-1 text-sm text-red-300">{errors.state}</p>}
                       </div>
                       
                       <div>
-                        <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="postalCode" className="block text-sm font-medium text-gray-200 mb-2">
                           Postal Code
                         </label>
                         <input
@@ -537,16 +537,16 @@ function CartPage() {
                           name="postalCode"
                           value={shippingAddress.postalCode}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-2 border rounded-lg ${
+                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${
                             errors.postalCode ? 'border-red-500' : 'border-gray-300'
                           }`}
                           placeholder="12345"
                         />
-                        {errors.postalCode && <p className="mt-1 text-sm text-red-500">{errors.postalCode}</p>}
+                        {errors.postalCode && <p className="mt-1 text-sm text-red-300">{errors.postalCode}</p>}
                       </div>
                       
                       <div>
-                        <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="country" className="block text-sm font-medium text-gray-200 mb-2">
                           Country
                         </label>
                         <input
@@ -555,7 +555,7 @@ function CartPage() {
                           name="country"
                           value={shippingAddress.country}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-500 text-gray-200"
                           disabled
                         />
                       </div>
@@ -565,7 +565,7 @@ function CartPage() {
                   <div className="flex space-x-4">
                     <button
                       onClick={handlePreviousStep}
-                      className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition duration-300 flex items-center justify-center"
+                      className="flex-1 py-3 px-4 border border-gray-300 text-gray-200 hover:bg-gray-700 font-medium rounded-lg transition duration-300 flex items-center justify-center"
                     >
                       <FaArrowLeft className="mr-2" />
                       Back to Cart
@@ -588,14 +588,16 @@ function CartPage() {
             {activeStep === 3 && (
               <div className="flex flex-col lg:flex-row gap-6">
                 <div className="lg:w-2/3 space-y-6">
-                  <div className="bg-white p-6 rounded-xl shadow-sm">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-4 border-b border-gray-100">
+                  <div className="bg-gray-800 p-6 rounded-xl shadow-sm">
+                    <h2 className="text-xl font-semibold text-gray-100 mb-6 pb-4 border-b border-gray-700">
                       Payment Method
                     </h2>
                     <div className="space-y-4">
                       <div 
                         className={`flex items-center p-4 border rounded-lg ${
-                          paymentMethod === 'VNPay' ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-white'
+                          paymentMethod === 'VNPay' 
+                            ? 'border-blue-600 bg-gray-700' 
+                            : 'border-gray-600 bg-gray-800'
                         } cursor-pointer transition-colors duration-200`}
                         onClick={() => setPaymentMethod('VNPay')}
                       >
@@ -610,16 +612,18 @@ function CartPage() {
                         <label htmlFor="vnpay" className="ml-3 flex items-center cursor-pointer">
                           <FaRegCreditCard className="h-6 w-6 text-blue-500 mr-2" />
                           <div>
-                            <span className="font-medium text-gray-800 block">VNPay</span>
-                            <span className="text-xs text-gray-500">Pay securely with VNPay</span>
+                            <span className="font-medium text-gray-100 block">VNPay</span>
+                            <span className="text-xs text-gray-400">Pay securely with VNPay</span>
                           </div>
-                          <div className="bg-blue-500 text-white py-1 px-3 rounded-full text-xs ml-auto">Recommended</div>
+                          <div className="bg-blue-600 text-white py-1 px-3 rounded-full text-xs ml-auto">Recommended</div>
                         </label>
                       </div>
 
                       <div 
                         className={`flex items-center p-4 border rounded-lg ${
-                          paymentMethod === 'CashOnDelivery' ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-white'
+                          paymentMethod === 'CashOnDelivery' 
+                            ? 'border-blue-600 bg-gray-700' 
+                            : 'border-gray-600 bg-gray-800'
                         } cursor-pointer transition-colors duration-200`}
                         onClick={() => setPaymentMethod('CashOnDelivery')}
                       >
@@ -634,21 +638,21 @@ function CartPage() {
                         <label htmlFor="cod" className="ml-3 flex items-center cursor-pointer">
                           <FaMoneyBillWave className="h-6 w-6 text-green-500 mr-2" />
                           <div>
-                            <span className="font-medium text-gray-800 block">Cash on Delivery</span>
-                            <span className="text-xs text-gray-500">Pay when you receive</span>
+                            <span className="font-medium text-gray-100 block">Cash on Delivery</span>
+                            <span className="text-xs text-gray-400">Pay when you receive</span>
                           </div>
                         </label>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-white p-6 rounded-xl shadow-sm">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100">Review Order</h2>
+                  <div className="bg-gray-800 p-6 rounded-xl shadow-sm">
+                    <h2 className="text-xl font-semibold text-gray-100 mb-4 pb-3 border-b border-gray-700">Review Order</h2>
                     <div className="mb-6 space-y-4">
                       <div>
-                        <h3 className="font-medium text-gray-800 mb-2 text-sm uppercase tracking-wider">Shipping Information</h3>
-                        <div className="bg-gray-50 p-3 rounded-lg">
-                          <p className="text-gray-700">
+                        <h3 className="font-medium text-gray-100 mb-2 text-sm uppercase tracking-wider">Shipping Information</h3>
+                        <div className="bg-green-800 p-3 rounded-lg">
+                          <p className="text-gray-200">
                             {shippingAddress.street}, {shippingAddress.city}, {shippingAddress.state}, {shippingAddress.postalCode}, {shippingAddress.country}
                           </p>
                         </div>
@@ -659,7 +663,7 @@ function CartPage() {
                   <div className="flex space-x-4">
                     <button
                       onClick={handlePreviousStep}
-                      className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition duration-300 flex items-center justify-center"
+                      className="flex-1 py-3 px-4 border border-gray-300 text-gray-200 hover:bg-gray-700 font-medium rounded-lg transition duration-300 flex items-center justify-center"
                     >
                       <FaArrowLeft className="mr-2" />
                       Back to Shipping

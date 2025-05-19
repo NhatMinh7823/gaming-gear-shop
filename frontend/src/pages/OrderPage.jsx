@@ -119,125 +119,127 @@ function OrderPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <button 
-        onClick={() => navigate('/orders')}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6 transition-colors"
-      >
-        <FaArrowLeft />
-        <span>Back to Orders</span>
-      </button>
+    <div className="min-h-screen bg-gray-900 py-8">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <button 
+          onClick={() => navigate('/orders')}
+          className="flex items-center gap-2 text-gray-300 hover:text-gray-100 mb-6 transition-colors"
+        >
+          <FaArrowLeft />
+          <span>Back to Orders</span>
+        </button>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              {getStatusIcon(order.status)}
-              <h1 className="text-2xl font-bold text-gray-800">
-                Order #{order._id.slice(-8).toUpperCase()}
-              </h1>
-            </div>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-              {order.status}
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
-          <div className="lg:col-span-2">
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <div className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
-                <FaShoppingBag className="text-blue-600" />
-                <h2>Order Items</h2>
+        <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 overflow-hidden">
+          <div className="p-6 border-b border-gray-700">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {getStatusIcon(order.status)}
+                <h1 className="text-2xl font-bold text-gray-100">
+                  Order #{order._id.slice(-8).toUpperCase()}
+                </h1>
               </div>
-              <div className="space-y-4">
-                {order.orderItems.map((item) => (
-                  <div key={item._id} className="bg-white rounded-lg p-4 flex gap-4 items-center">
-                    <img
-                      src={item.image || 'https://via.placeholder.com/100'}
-                      alt={item.name}
-                      className="w-20 h-20 object-cover rounded-lg"
-                    />
-                    <div className="flex-grow">
-                      <h3 className="font-semibold text-gray-800">{item.name}</h3>
-                      <div className="text-sm text-gray-600 mt-1">
-                        <p>Số lượng: {item.quantity}</p>
-                        <p className="font-medium text-blue-600">{formatPrice(item.price)}</p>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
+                {order.status}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+            <div className="lg:col-span-2">
+              <div className="bg-gray-700 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-2 text-lg font-semibold text-gray-100 mb-4">
+                  <FaShoppingBag className="text-blue-400" />
+                  <h2>Order Items</h2>
+                </div>
+                <div className="space-y-4">
+                  {order.orderItems.map((item) => (
+                    <div key={item._id} className="bg-gray-800 rounded-lg p-4 flex gap-4 items-center">
+                      <img
+                        src={item.image || 'https://via.placeholder.com/100'}
+                        alt={item.name}
+                        className="w-20 h-20 object-cover rounded-lg"
+                      />
+                      <div className="flex-grow">
+                        <h3 className="font-semibold text-gray-100">{item.name}</h3>
+                        <div className="text-sm text-gray-300 mt-1">
+                          <p>Số lượng: {item.quantity}</p>
+                          <p className="font-medium text-blue-400">{formatPrice(item.price)}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-1">
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <div className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
-                <FaCreditCard className="text-blue-600" />
-                <h2>Payment Details</h2>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between text-gray-600">
-                  <span>Payment Status:</span>
-                  <span className={`font-medium ${order.isPaid ? 'text-green-600' : 'text-red-600'}`}>
-                    {order.isPaid ? 'Paid' : 'Unpaid'}
-                  </span>
+                  ))}
                 </div>
-                {order.isPaid && (
-                  <div className="flex justify-between text-gray-600">
-                    <span>Paid At:</span>
-                    <span>{formatDate(order.paidAt)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-gray-600">
-                  <span>Payment Method:</span>
-                  <span>{order.paymentMethod}</span>
-                </div>
-                <div className="flex justify-between font-semibold text-lg mt-4">
-                  <span>Total:</span>
-                  <span className="text-blue-600">{formatPrice(order.totalPrice)}</span>
-                </div>
-                
-                {!order.isPaid && order.paymentMethod === 'VNPay' && (
-                  <button
-                    onClick={handleVNPayPayment}
-                    className="w-full mt-4 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 
-                             transition-colors flex items-center justify-center gap-2"
-                  >
-                    <FaCreditCard />
-                    <span>Pay with VNPay</span>
-                  </button>
-                )}
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
-                <FaMapMarkerAlt className="text-blue-600" />
-                <h2>Shipping Details</h2>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between text-gray-600">
-                  <span>Delivery Status:</span>
-                  <span className={`font-medium ${order.isDelivered ? 'text-green-600' : 'text-yellow-600'}`}>
-                    {order.isDelivered ? 'Delivered' : 'Pending'}
-                  </span>
+            <div className="lg:col-span-1">
+              <div className="bg-gray-700 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-2 text-lg font-semibold text-gray-100 mb-4">
+                  <FaCreditCard className="text-blue-400" />
+                  <h2>Payment Details</h2>
                 </div>
-                {order.isDelivered && (
-                  <div className="flex justify-between text-gray-600">
-                    <span>Delivered At:</span>
-                    <span>{formatDate(order.deliveredAt)}</span>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-gray-300">
+                    <span>Payment Status:</span>
+                    <span className={`font-medium ${order.isPaid ? 'text-green-400' : 'text-red-400'}`}>
+                      {order.isPaid ? 'Paid' : 'Unpaid'}
+                    </span>
                   </div>
-                )}
-                <div className="mt-3 p-3 bg-white rounded border border-gray-200">
-                  <p className="text-gray-600 whitespace-pre-line">
-                    {order.shippingAddress.street},
-                    <br />
-                    {order.shippingAddress.city}, {order.shippingAddress.state}
-                    <br />
-                    {order.shippingAddress.postalCode}, {order.shippingAddress.country}
-                  </p>
+                  {order.isPaid && (
+                    <div className="flex justify-between text-gray-300">
+                      <span>Paid At:</span>
+                      <span>{formatDate(order.paidAt)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-gray-300">
+                    <span>Payment Method:</span>
+                    <span>{order.paymentMethod}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-lg mt-4 text-gray-200">
+                    <span>Total:</span>
+                    <span className="text-blue-400">{formatPrice(order.totalPrice)}</span>
+                  </div>
+                  
+                  {!order.isPaid && order.paymentMethod === 'VNPay' && (
+                    <button
+                      onClick={handleVNPayPayment}
+                      className="w-full mt-4 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 
+                               transition-colors flex items-center justify-center gap-2"
+                    >
+                      <FaCreditCard />
+                      <span>Pay with VNPay</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-gray-700 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-lg font-semibold text-gray-100 mb-4">
+                  <FaMapMarkerAlt className="text-blue-400" />
+                  <h2>Shipping Details</h2>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-gray-300">
+                    <span>Delivery Status:</span>
+                    <span className={`font-medium ${order.isDelivered ? 'text-green-400' : 'text-yellow-400'}`}>
+                      {order.isDelivered ? 'Delivered' : 'Pending'}
+                    </span>
+                  </div>
+                  {order.isDelivered && (
+                    <div className="flex justify-between text-gray-300">
+                      <span>Delivered At:</span>
+                      <span>{formatDate(order.deliveredAt)}</span>
+                    </div>
+                  )}
+                  <div className="mt-3 p-3 bg-gray-800 rounded border border-gray-600">
+                    <p className="text-gray-300 whitespace-pre-line">
+                      {order.shippingAddress.street},
+                      <br />
+                      {order.shippingAddress.city}, {order.shippingAddress.state}
+                      <br />
+                      {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

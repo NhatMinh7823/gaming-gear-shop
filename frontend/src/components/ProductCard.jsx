@@ -30,7 +30,7 @@ function ProductCard({ product }) {
   const discount = calculateDiscount(product.price, product.discountPrice);
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
+    <div className="bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group border border-gray-700">
       <div className="relative overflow-hidden">
         <img
           src={product.images[0]?.url || 'https://via.placeholder.com/150'}
@@ -46,12 +46,12 @@ function ProductCard({ product }) {
 
       <div className="p-4">
         <div className="mb-2">
-          <h2 className="text-lg font-semibold text-gray-800 line-clamp-2 min-h-[56px] mb-1">
+          <h2 className="text-lg font-semibold text-white line-clamp-2 min-h-[56px] mb-1">
             {product.name}
           </h2>
           <div className="flex items-center gap-1 mb-2">
             {renderStars(product.averageRating || 0)}
-            <span className="text-sm text-gray-500 ml-1">
+            <span className="text-sm text-gray-400 ml-1">
               ({product.numReviews || 0})
             </span>
           </div>
@@ -60,11 +60,11 @@ function ProductCard({ product }) {
         <div className="flex justify-between items-end">
           <div>
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold text-blue-600">
+              <span className="text-xl font-bold text-blue-500">
                 {formatPrice(product.discountPrice || product.price)}
               </span>
               {product.discountPrice && (
-                <span className="text-sm text-gray-400 line-through">
+                <span className="text-sm text-gray-500 line-through">
                   {formatPrice(product.price)}
                 </span>
               )}

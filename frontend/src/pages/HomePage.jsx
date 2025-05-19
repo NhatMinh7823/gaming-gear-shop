@@ -65,27 +65,27 @@ const HomePage = () => {
   }, [dispatch]);
 
   const ProductSkeleton = () => (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 animate-pulse">
-      <div className="h-64 bg-gray-200"></div>
+    <div className="bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform duration-300 animate-pulse">
+      <div className="h-64 bg-gray-600"></div>
       <div className="p-4">
-        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-        <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+        <div className="h-4 bg-gray-600 rounded w-3/4 mb-2"></div>
+        <div className="h-4 bg-gray-600 rounded w-1/2 mb-4"></div>
+        <div className="h-6 bg-gray-600 rounded w-1/4"></div>
       </div>
     </div>
   );
 
   const CategorySkeleton = () => (
     <div className="relative overflow-hidden rounded-lg shadow-md h-40 animate-pulse">
-      <div className="h-full w-full bg-gray-200"></div>
+      <div className="h-full w-full bg-gray-600"></div>
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-gray-800 to-transparent">
-        <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+        <div className="h-4 bg-gray-500 rounded w-1/2"></div>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       {/* Hero Section */}
       <div className="relative h-[500px] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 to-transparent z-10"></div>
@@ -123,8 +123,8 @@ const HomePage = () => {
       {/* Featured Categories */}
       <div ref={featuredCategoriesRef} className="container mx-auto px-4 py-16">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Danh Mục Nổi Bật</h2>
-          <button className="text-indigo-600 hover:text-indigo-800 font-medium flex items-center cursor-pointer whitespace-nowrap">
+          <h2 className="text-3xl font-bold text-gray-100">Danh Mục Nổi Bật</h2>
+          <button className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center cursor-pointer whitespace-nowrap">
             Xem tất cả
             <i className="fas fa-arrow-right ml-2 text-sm"></i>
           </button>
@@ -161,13 +161,13 @@ const HomePage = () => {
         )}
       </div>
       {/* Featured Products */}
-      <div className="bg-gray-100 py-16">
+      <div className="bg-gray-800 py-16">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">
+            <h2 className="text-3xl font-bold text-gray-100">
               Sản Phẩm Nổi Bật
             </h2>
-            <button className="text-indigo-600 hover:text-indigo-800 font-medium flex items-center cursor-pointer whitespace-nowrap">
+            <button className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center cursor-pointer whitespace-nowrap">
               Xem tất cả
               <i className="fas fa-arrow-right ml-2 text-sm"></i>
             </button>
@@ -183,7 +183,7 @@ const HomePage = () => {
               {products.map((product) => (
                 <div
                   key={product._id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden group hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  className="bg-gray-700 rounded-lg shadow-md overflow-hidden group hover:shadow-lg transition-all duration-300 cursor-pointer"
                 >
                   <div className="relative h-64 overflow-hidden">
                     <img
@@ -224,14 +224,14 @@ const HomePage = () => {
                         ({product.numReviews || 0})
                       </span>
                     </div>
-                    <h3 className="font-medium text-gray-800 mb-2">
+                    <h3 className="font-medium text-gray-100 mb-2">
                       {product.name}
                     </h3>
                     <div className="flex items-center justify-between">
                       <div>
                         {product.discountPrice ? (
                           <div className="flex items-center">
-                            <span className="text-lg font-bold text-indigo-600">
+                      <span className="text-lg font-bold text-indigo-400">
                               {product.discountPrice.toLocaleString("vi-VN")}₫
                             </span>
                             <span className="text-sm text-gray-500 line-through ml-2">
@@ -239,7 +239,7 @@ const HomePage = () => {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-lg font-bold text-indigo-600">
+                          <span className="text-lg font-bold text-indigo-400">
                             {product.price.toLocaleString("vi-VN")}₫
                           </span>
                         )}
@@ -292,13 +292,13 @@ const HomePage = () => {
         </div>
       </div>
       {/* Testimonials */}
-      <div className="bg-gray-50 py-16">
+      <div className="bg-gray-800 py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+            <h2 className="text-3xl font-bold text-gray-100 mb-4">
               Khách Hàng Nói Gì Về Chúng Tôi
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-300 max-w-2xl mx-auto">
               Những đánh giá chân thực từ khách hàng đã trải nghiệm sản phẩm và
               dịch vụ của chúng tôi.
             </p>
@@ -308,7 +308,7 @@ const HomePage = () => {
               reviews.map((review) => (
                 <div
                   key={review._id}
-                  className="bg-white p-6 rounded-lg shadow-md"
+                  className="bg-gray-700 p-6 rounded-lg shadow-md"
                 >
                   <div className="flex text-yellow-400 mb-4">
                     {[...Array(5)].map((_, i) => (
@@ -318,17 +318,17 @@ const HomePage = () => {
                       ></i>
                     ))}
                   </div>
-                  <p className="text-gray-600 mb-6">{review.comment}</p>
+                  <p className="text-gray-300 mb-6">{review.comment}</p>
                   <div className="flex items-center">
-                    <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
-                      <span className="text-indigo-600 font-bold">
+                    <div className="w-12 h-12 rounded-full bg-indigo-900 flex items-center justify-center mr-4">
+                      <span className="text-indigo-300 font-bold">
                         {review.user.name
                           ? review.user.name.charAt(0).toUpperCase()
                           : "N/A"}
                       </span>
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-800">
+                      <h4 className="font-medium text-gray-100">
                         {review.user.name || "Khách hàng"}
                       </h4>
                       <p className="text-gray-500 text-sm">Khách hàng</p>
@@ -347,10 +347,10 @@ const HomePage = () => {
       {/* Brands */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          <h2 className="text-3xl font-bold text-gray-100 mb-4">
             Thương Hiệu Đối Tác
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-gray-300 max-w-2xl mx-auto">
             Chúng tôi hợp tác với những thương hiệu hàng đầu để mang đến sản
             phẩm chất lượng cao nhất.
           </p>
@@ -362,7 +362,7 @@ const HomePage = () => {
               className="flex items-center justify-center p-4 grayscale hover:grayscale-0 transition-all duration-300"
             >
               <div className="text-center">
-                <p className="text-2xl text-gray-600 font-medium">{brand}</p>
+                <p className="text-2xl text-gray-300 font-medium">{brand}</p>
               </div>
             </div>
           ))}

@@ -80,63 +80,65 @@ function OrdersPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="flex items-center gap-3 mb-8">
-        <FaShoppingBag className="text-3xl text-blue-600" />
-        <h1 className="text-3xl font-bold text-gray-800">My Orders</h1>
-      </div>
-
-      {orders.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <FaBox className="mx-auto text-5xl text-gray-400 mb-4" />
-          <p className="text-xl text-gray-600">No orders found.</p>
+    <div className="min-h-screen bg-gray-900 py-8">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="flex items-center gap-3 mb-8">
+          <FaShoppingBag className="text-3xl text-blue-500" />
+          <h1 className="text-3xl font-bold text-gray-100">My Orders</h1>
         </div>
-      ) : (
-        <div className="grid gap-6">
-          {orders.map((order) => (
-            <div 
-              key={order._id} 
-              className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
-            >
-              <div className="p-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-                  <div className="flex items-center gap-3 mb-3 md:mb-0">
-                    {getStatusIcon(order.status)}
-                    <h2 className="text-lg font-semibold text-gray-800">
-                      Order #{order._id.slice(-8).toUpperCase()}
-                    </h2>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                    {order.status}
-                  </span>
-                </div>
 
-                <div className="grid md:grid-cols-2 gap-4 mb-4 text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <FaClock className="text-gray-400" />
-                    <span>{formatDate(order.createdAt)}</span>
+        {orders.length === 0 ? (
+          <div className="text-center py-12 bg-gray-800 rounded-lg">
+            <FaBox className="mx-auto text-5xl text-gray-400 mb-4" />
+            <p className="text-xl text-gray-300">No orders found.</p>
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {orders.map((order) => (
+              <div 
+                key={order._id} 
+                className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 hover:shadow-lg transition-shadow duration-200"
+              >
+                <div className="p-6">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                    <div className="flex items-center gap-3 mb-3 md:mb-0">
+                      {getStatusIcon(order.status)}
+                      <h2 className="text-lg font-semibold text-gray-100">
+                        Order #{order._id.slice(-8).toUpperCase()}
+                      </h2>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
+                      {order.status}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Total:</span>
-                    <span className="text-blue-600 font-semibold">{formatPrice(order.totalPrice)}</span>
-                  </div>
-                </div>
 
-                <button
-                  onClick={() => navigate(`/order/${order._id}`)}
-                  className="w-full md:w-auto mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 
-                           transition-colors duration-200 flex items-center justify-center gap-2"
-                >
-                  <span>View Details</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
+                  <div className="grid md:grid-cols-2 gap-4 mb-4 text-gray-300">
+                    <div className="flex items-center gap-2">
+                      <FaClock className="text-gray-400" />
+                      <span>{formatDate(order.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-300">Total:</span>
+                      <span className="text-blue-400 font-semibold">{formatPrice(order.totalPrice)}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => navigate(`/order/${order._id}`)}
+                    className="w-full md:w-auto mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 
+                             transition-colors duration-200 flex items-center justify-center gap-2"
+                  >
+                    <span>View Details</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

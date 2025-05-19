@@ -227,8 +227,8 @@ function ProductsPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl p-8 mb-8">
+    <div className="container mx-auto py-8 px-4 bg-gray-900">
+      <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white rounded-2xl p-8 mb-8">
         <h1 className="text-3xl md:text-4xl font-bold mb-4">Gaming Products</h1>
         <p className="text-blue-100 text-lg">
           {isSearching 
@@ -241,7 +241,7 @@ function ProductsPage() {
       <div className="md:hidden mb-6">
         <button
           onClick={() => setExpandFilters(!expandFilters)}
-          className="w-full flex items-center justify-between bg-white shadow-lg p-4 rounded-xl"
+          className="w-full flex items-center justify-between bg-gray-800 text-white shadow-lg p-4 rounded-xl"
         >
           <div className="flex items-center gap-3">
             <FaFilter className={`w-5 h-5 transition-colors ${filterCount > 0 ? 'text-blue-600' : 'text-gray-600'}`} />
@@ -259,11 +259,11 @@ function ProductsPage() {
       <div className="flex flex-col md:flex-row gap-6">
         {/* Sidebar for Filters - Hidden on mobile unless expanded */}
         <div className={`md:w-1/4 md:block ${expandFilters ? 'block' : 'hidden'}`}>
-          <div className="bg-white p-6 rounded-2xl shadow-lg sticky top-4">
+          <div className="bg-gray-800 p-6 rounded-2xl shadow-lg sticky top-4 text-white">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <FaFilter className="text-blue-600" />
-                <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
+                <h3 className="text-lg font-semibold text-white">Filters</h3>
                 {filterCount > 0 && (
                   <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full">
                     {filterCount}
@@ -293,8 +293,8 @@ function ProductsPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search by name, brand..."
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 pl-11 focus:ring-2 
-                           focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full border-2 border-gray-600 rounded-xl px-4 py-3 pl-11 focus:ring-2 
+                           focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-700 text-white placeholder-gray-400"
                   ref={searchRef}
                 />
                 <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -308,19 +308,19 @@ function ProductsPage() {
                 
                 {/* Search Suggestions */}
                 {showSuggestions && suggestions.length > 0 && (
-                  <ul className="absolute z-20 bg-white w-full mt-2 border border-gray-200 rounded-xl 
-                               shadow-lg max-h-60 overflow-y-auto divide-y divide-gray-100">
+                  <ul className="absolute z-20 bg-gray-700 w-full mt-2 border border-gray-600 rounded-xl 
+                               shadow-lg max-h-60 overflow-y-auto divide-y divide-gray-600">
                     {suggestions.map((suggestion, index) => (
                       <li
                         key={index}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="p-3 hover:bg-blue-50 cursor-pointer transition-colors"
+                        className="p-3 hover:bg-gray-600 cursor-pointer transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           <FaBox className="text-gray-400" />
                           <div>
-                            <div className="font-medium text-gray-800">{suggestion.name}</div>
-                            <div className="text-sm text-gray-500">{suggestion.brand}</div>
+                            <div className="font-medium text-white">{suggestion.name}</div>
+                            <div className="text-sm text-gray-300">{suggestion.brand}</div>
                           </div>
                         </div>
                       </li>
@@ -336,12 +336,12 @@ function ProductsPage() {
                 <FaTags className="text-blue-600" />
                 <label className="font-medium">Category</label>
               </div>
-              <div className="bg-gray-50 rounded-xl p-2">
+              <div className="bg-gray-700 rounded-xl p-2">
                 <select
                   value={category}
                   onChange={handleCategoryChange}
-                  className="w-full bg-transparent border-2 border-gray-200 rounded-lg px-3 py-2.5 
-                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                  className="w-full bg-transparent border-2 border-gray-600 rounded-lg px-3 py-2.5 
+                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none text-white"
                 >
                   <option value="">All Categories</option>
                   {categories.map((cat) => (
@@ -364,10 +364,10 @@ function ProductsPage() {
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
                     placeholder="0"
-                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 
-                             focus:ring-blue-500 focus:border-blue-500 text-right"
+                    className="w-full border-2 border-gray-600 rounded-xl px-4 py-2.5 focus:ring-2 
+                             focus:ring-blue-500 focus:border-blue-500 text-right bg-gray-700 text-white"
                   />
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">từ</span>
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">từ</span>
                 </div>
                 <div className="relative">
                   <input
@@ -375,10 +375,10 @@ function ProductsPage() {
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
                     placeholder="Max"
-                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 
-                             focus:ring-blue-500 focus:border-blue-500 text-right"
+                    className="w-full border-2 border-gray-600 rounded-xl px-4 py-2.5 focus:ring-2 
+                             focus:ring-blue-500 focus:border-blue-500 text-right bg-gray-700 text-white"
                   />
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">đến</span>
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">đến</span>
                 </div>
               </div>
             </div>
@@ -395,8 +395,8 @@ function ProductsPage() {
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
                   placeholder="Enter brand name"
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 
-                           focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full border-2 border-gray-600 rounded-xl px-4 py-2.5 focus:ring-2 
+                           focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white placeholder-gray-400"
                 />
               </div>
             </div>
@@ -407,12 +407,12 @@ function ProductsPage() {
                 <FaSort className="text-blue-600" />
                 <label className="font-medium">Sort By</label>
               </div>
-              <div className="bg-gray-50 rounded-xl p-2">
+              <div className="bg-gray-700 rounded-xl p-2">
                 <select
                   value={sort}
                   onChange={handleSortChange}
-                  className="w-full bg-transparent border-2 border-gray-200 rounded-lg px-3 py-2.5
-                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                  className="w-full bg-transparent border-2 border-gray-600 rounded-lg px-3 py-2.5
+                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none text-white"
                 >
                   <option value="-createdAt">Newest First</option>
                   <option value="price">Price: Low to High</option>
@@ -453,9 +453,9 @@ function ProductsPage() {
             </div>
           ) : products && products.length > 0 ? (
             <>
-              <div className="bg-white rounded-xl shadow-md p-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+              <div className="bg-gray-800 rounded-xl shadow-md p-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center text-white">
                 <div className="mb-3 sm:mb-0">
-                  <p className="text-gray-600">
+                  <p className="text-gray-300">
                     Showing <span className="font-semibold">{products.length}</span> results
                     {isSearching && <span> for "<span className="font-semibold">{searchParams.get('keyword')}</span>"</span>}
                   </p>
@@ -465,7 +465,7 @@ function ProductsPage() {
                   <select
                     value={sort}
                     onChange={handleSortChange}
-                    className="border border-gray-300 rounded-lg px-3 py-2 w-full sm:w-auto focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="border border-gray-600 rounded-lg px-3 py-2 w-full sm:w-auto focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-700 text-white"
                   >
                     <option value="-createdAt">Newest First</option>
                     <option value="price">Price: Low to High</option>
@@ -548,12 +548,12 @@ function ProductsPage() {
               )}
             </>
           ) : (
-            <div className="bg-white rounded-xl shadow-md p-8 text-center">
+            <div className="bg-gray-800 rounded-xl shadow-md p-8 text-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">No products found</h3>
-              <p className="text-gray-500 mb-4">
+              <h3 className="text-lg font-semibold text-white mb-2">No products found</h3>
+              <p className="text-gray-300 mb-4">
                 {isSearching 
                   ? `We couldn't find any products matching "${searchParams.get('keyword')}"`
                   : "There are no products matching your selected filters."}
