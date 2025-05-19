@@ -44,7 +44,8 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/order/:id" element={<OrderPage />} />
             <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/payment/vnpay_return" element={<VNPayResult />} />
+            <Route path="/vnpay-result" element={<VNPayResult />} />
+            {/* <Route path="/payment/vnpay_return" element={<VNPayResult />} /> */}
 
             {/* Admin Routes - Protected by AdminRoute */}
             <Route path="/admin" element={<AdminRoute />}>
@@ -65,7 +66,10 @@ function App() {
                 <Route path="users/edit/:id" element={<UserEditPage />} />
                 <Route path="categories" element={<AdminCategoriesPage />} />
                 <Route path="categories/new" element={<CategoryFormPage />} />
-                <Route path="categories/edit/:id" element={<CategoryFormPage />} />
+                <Route
+                  path="categories/edit/:id"
+                  element={<CategoryFormPage />}
+                />
               </Route>
             </Route>
           </Routes>

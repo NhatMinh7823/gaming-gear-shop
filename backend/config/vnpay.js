@@ -7,7 +7,7 @@ const vnpayConfig = {
   vnpUrl:
     process.env.VNPAY_URL ||
     "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
-  returnUrl: "http://localhost:3000/orders",
+  returnUrl: process.env.VNPAY_RETURN_URL,
   ipnUrl: process.env.VNPAY_IPN_URL,
 
   // Payment config
