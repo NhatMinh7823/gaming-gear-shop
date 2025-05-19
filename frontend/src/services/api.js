@@ -27,9 +27,12 @@ api.interceptors.response.use((response) => {
       } else if (obj && typeof obj === "object") {
         // Handle images array specifically
         if (Array.isArray(obj.images)) {
-          obj.images = obj.images.map(img => ({
+          obj.images = obj.images.map((img) => ({
             ...img,
-            url: img.url && !img.url.startsWith('http') ? `${BASE_URL}${img.url}` : img.url
+            url:
+              img.url && !img.url.startsWith("http")
+                ? `${BASE_URL}${img.url}`
+                : img.url,
           }));
         }
         // Handle other image fields
@@ -41,7 +44,7 @@ api.interceptors.response.use((response) => {
             !obj[key].startsWith("http")
           ) {
             obj[key] = `${BASE_URL}${obj[key]}`;
-          } else if (typeof obj[key] === "object" && key !== 'images') {
+          } else if (typeof obj[key] === "object" && key !== "images") {
             transformImages(obj[key]);
           }
         });
@@ -67,15 +70,16 @@ export const removeFromWishlist = (productId) =>
 export const getProducts = (params = {}) => {
   // Transform sort parameter from { field, direction } to backend format
   if (params.sort && params.direction) {
-    params.sort = `${params.direction === 'desc' ? '-' : ''}${params.sort}`;
+    params.sort = `${params.direction === "desc" ? "-" : ""}${params.sort}`;
     delete params.direction;
   }
-  
+
   // Remove empty string values from params
-  Object.keys(params).forEach(key => 
-    (params[key] === '' || params[key] === undefined) && delete params[key]
+  Object.keys(params).forEach(
+    (key) =>
+      (params[key] === "" || params[key] === undefined) && delete params[key]
   );
-  
+
   return api.get("/products", { params });
 };
 export const getProductById = (id) => api.get(`/products/${id}`);
@@ -89,18 +93,19 @@ export const getSearchSuggestions = (keyword) =>
 export const getCategories = () => api.get("/categories");
 export const getFeaturedCategories = () => api.get("/categories/featured");
 export const getCategoryById = (id) => api.get(`/categories/${id}`); // Ensure this is here or add if missing
-export const createCategory = (data) => api.post("/categories", data, {
-  headers: {
-    'Content-Type': 'multipart/form-data'
-  }
-});
-export const updateCategory = (id, data) => api.put(`/categories/${id}`, data, {
-  headers: {
-    'Content-Type': 'multipart/form-data'
-  }
-});
+export const createCategory = (data) =>
+  api.post("/categories", data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+export const updateCategory = (id, data) =>
+  api.put(`/categories/${id}`, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 export const deleteCategory = (id) => api.delete(`/categories/${id}`);
-
 
 // Cart APIs
 export const getCart = () => api.get("/cart");
@@ -116,10 +121,15 @@ export const getMyOrders = () => api.get("/orders/myorders");
 export const getOrderById = (id) => api.get(`/orders/${id}`);
 
 // Payment APIs
-export const createVNPayUrl = (orderId) => api.post(`/payment/${orderId}/create_payment_url`);
-export const checkVNPayPayment = (params) => api.get('/payment/vnpay_return', { params });
-export const queryVNPayTransaction = (orderId) => api.post(`/payment/${orderId}/query`);
-export const refundVNPayTransaction = (orderId, data) => api.post(`/payment/${orderId}/refund`, data);
+export const createVNPayUrl = (orderId) =>
+  api.post(`/payment/create-payment/${orderId}`);
+// Ensure this function passes the complete query string correctly
+export const checkVNPayPayment = (queryString) =>
+  api.get(`/payment/payment-return${queryString}`);
+export const queryVNPayTransaction = (orderId) =>
+  api.post(`/payment/${orderId}/query`);
+export const refundVNPayTransaction = (orderId, data) =>
+  api.post(`/payment/${orderId}/refund`, data);
 
 // Review APIs
 export const createReview = (data) => api.post("/reviews", data);

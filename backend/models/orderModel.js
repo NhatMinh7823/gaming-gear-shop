@@ -30,7 +30,14 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: {
     type: String,
     required: [true, "Payment method is required"],
-    enum: ["PayPal", "Stripe", "CreditCard", "BankTransfer", "CashOnDelivery", "VNPay"],
+    enum: [
+      "PayPal",
+      "Stripe",
+      "CreditCard",
+      "BankTransfer",
+      "CashOnDelivery",
+      "VNPay",
+    ],
   },
   paymentResult: {
     id: { type: String },
@@ -65,6 +72,22 @@ const orderSchema = new mongoose.Schema({
   },
   paidAt: {
     type: Date,
+  },
+  paymentDetails: {
+    provider: String, // 'vnpay', 'cod', etc.
+    txnRef: String, // Mã tham chiếu giao dịch
+    transactionNo: String, // Mã giao dịch tại VNPay
+    bankCode: String, // Mã ngân hàng
+    bankTranNo: String, // Mã giao dịch tại ngân hàng
+    cardType: String, // Loại thẻ: ATM, QRCODE, etc.
+    payDate: String, // Ngày thanh toán từ VNPay
+    responseCode: String, // Mã phản hồi từ VNPay
+    transactionStatus: String, // Trạng thái giao dịch từ VNPay
+    status: {
+      type: String,
+      enum: ["pending", "completed", "failed", "refunded"],
+      default: "pending",
+    },
   },
   status: {
     type: String,

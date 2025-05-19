@@ -1,21 +1,17 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
+const { protect } = require("../middleware/authMiddleware");
 const {
-    createPaymentUrl,
-    handleIpn,
-    handleReturn,
-    queryTransaction,
-    refundTransaction
-} = require('../controllers/vnpayController');
+  createPayment,
+  handleReturn,
+  handleIPN,
+  getPaymentStatus,
+} = require("../controllers/vnpayController");
 
-// Payment routes
-router.post('/:orderId/create_payment_url', protect, createPaymentUrl);
-router.get('/vnpay_ipn', handleIpn);
-router.get('/vnpay_return', handleReturn);
-
-// Transaction management routes
-router.post('/:orderId/query', protect, queryTransaction);
-router.post('/:orderId/refund', protect, refundTransaction);
+// Routes
+router.post("/create-payment/:id", protect, createPayment);
+router.get("/payment-return", handleReturn);
+router.get("/ipn", handleIPN);
+router.get("/payment-status/:id", protect, getPaymentStatus);
 
 module.exports = router;

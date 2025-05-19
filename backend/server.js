@@ -3,8 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
-const path = require('path');
-const fs = require('fs');
+const path = require("path");
+const fs = require("fs");
 
 // Load environment variables
 dotenv.config();
@@ -16,24 +16,26 @@ connectDB();
 const app = express();
 
 // Apply middleware
-app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 
 // Serve static files from the 'uploads' directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Ensure uploads directories exist
 const uploadDirs = [
-  path.join(__dirname, 'uploads', 'images', 'categories'),
-  path.join(__dirname, 'uploads', 'images', 'products')
+  path.join(__dirname, "uploads", "images", "categories"),
+  path.join(__dirname, "uploads", "images", "products"),
 ];
 
-uploadDirs.forEach(dir => {
+uploadDirs.forEach((dir) => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -47,6 +49,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const vnpayRoutes = require("./routes/vnpayRoutes");
+// const uploadRoutes = require("./routes/uploadRoutes");
 
 // Use routes
 app.use("/api/users", userRoutes);
@@ -56,6 +59,8 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/payment", vnpayRoutes);
+// app.use("/api/upload", uploadRoutes);
+app.use("/api/vnpay", vnpayRoutes);
 
 // Import error middleware
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");

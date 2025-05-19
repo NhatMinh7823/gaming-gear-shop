@@ -31,29 +31,45 @@ function OrderPage() {
     if (location.search) {
       const checkPayment = async () => {
         try {
+          console.log("Checking VNPay payment with query:", location.search);
+          // Phân tích query string để tìm mã đơn hàng gốc
+          const urlParams = new URLSearchParams(location.search);
+          const txnRef = urlParams.get('vnp_TxnRef');
+          
+          // Log để debug
+          console.log("Transaction reference:", txnRef);
+          
           const { data } = await checkVNPayPayment(location.search);
           if (data.success) {
             toast.success('Payment successful!');
+            // Refresh order data to get updated payment status
+            const { data: orderData } = await getOrderById(id);
+            setOrder(orderData.order);
             // Remove query params from URL
             navigate(location.pathname, { replace: true });
           } else {
-            toast.error(data.message || 'Payment failed');
+            toast.error(`Payment failed: ${data.message || 'Unknown error'}`);
+            console.error("Payment failure details:", data);
           }
         } catch (error) {
+          console.error("Error checking payment:", error);
           toast.error('Error checking payment status');
         }
       };
       checkPayment();
     }
-  }, [location, navigate]);
+  }, [location, navigate, id]);
 
   const handleVNPayPayment = async () => {
     try {
+      console.log("Attempting VNPay payment for order:", id);
       const { data } = await createVNPayUrl(id);
       if (data.paymentUrl) {
+        console.log("Payment URL generated:", data.paymentUrl);
         window.location.href = data.paymentUrl;
       }
     } catch (error) {
+      console.error("VNPay error details:", error.response?.data || error.message);
       toast.error('Error creating payment URL');
     }
   };
