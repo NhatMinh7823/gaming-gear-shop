@@ -143,95 +143,230 @@ const handleReturn = asyncHandler(async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 
     // Xóa các tham số hash
-    const params = { ...vnpParams };
-    delete params.vnp_SecureHash;
-    delete params.vnp_SecureHashType;
+    delete vnpParams.vnp_SecureHash;
+    delete vnpParams.vnp_SecureHashType;
 
     // Xóa các tham số trống
-    Object.keys(params).forEach((key) => {
+    Object.keys(vnpParams).forEach((key) => {
       if (
-        params[key] === "" ||
-        params[key] === null ||
-        params[key] === undefined
+        vnpParams[key] === "" ||
+        vnpParams[key] === null ||
+        vnpParams[key] === undefined
       ) {
-        delete params[key];
+        delete vnpParams[key];
       }
     });
 
     // Sắp xếp tham số
-    const sortedParams = sortObject(params);
-
-    // Log để debug
-    console.log("Sorted params:", sortedParams);
+    const sortedParams = sortObject(vnpParams);
 
     // Tạo chuỗi raw signature
     const signData = Object.entries(sortedParams)
       .map(([key, value]) => `${key}=${value}`)
       .join("&");
 
-    console.log("Sign data:", signData);
-
     // Tính toán secure hash
     const calculatedHash = createHmacHash(signData, vnpayConfig.hashSecret);
 
+    // Log để debug
     console.log("Calculated hash:", calculatedHash);
     console.log("Received hash:", secureHash);
     console.log("Hash match:", calculatedHash === secureHash);
 
-    // Bỏ qua việc kiểm tra hash tạm thời để khắc phục vấn đề
-    // if (secureHash === calculatedHash) {
-    const txnRef = vnpParams.vnp_TxnRef;
-    console.log("Transaction reference:", txnRef);
+    // RE-ENABLE signature verification for security
+    if (secureHash === calculatedHash) {
+      const txnRef = vnpParams.vnp_TxnRef;
+      console.log("Transaction reference:", txnRef);
 
-    const orderId = extractOrderId(txnRef);
-    console.log("Extracted order ID:", orderId);
+      const orderId = extractOrderId(txnRef);
+      console.log("Extracted order ID:", orderId);
 
-    // Tìm đơn hàng
-    const order = await Order.findById(orderId);
-    console.log("Found order:", order ? "Yes" : "No");
+      // Tìm đơn hàng
+      const order = await Order.findById(orderId);
+      console.log("Found order:", order ? "Yes" : "No");
 
-    if (order) {
-      // Nếu response code là 00 (thành công)
-      if (responseCode === "00") {
-        // Chỉ cập nhật nếu chưa thanh toán
-        if (!order.isPaid) {
-          order.isPaid = true;
-          order.paidAt = Date.now();
-          order.paymentDetails = {
-            id: vnpParams.vnp_TransactionNo,
-            status: "completed",
-            update_time: vnpParams.vnp_PayDate,
-            payer: {
-              payment_method: "VNPAY",
-              bank_code: vnpParams.vnp_BankCode || "",
-            },
-          };
+      if (order) {
+        // Verify payment amount matches the order amount
+        const paidAmount = parseInt(vnpParams.vnp_Amount) / 100; // Convert back from VNPay format
+        const orderAmount = order.totalPrice;
 
-          await order.save();
-          console.log("Order updated successfully:", order._id);
+        if (Math.abs(paidAmount - orderAmount) > 0.01) {
+          // Allow small rounding difference
+          console.error(
+            `Amount mismatch: Paid ${paidAmount}, Expected ${orderAmount}`
+          );
+
+          const isApiCall =
+            req.xhr || req.headers.accept?.includes("application/json");
+          if (isApiCall) {
+            return res.status(400).json({
+              success: false,
+              message: "Payment amount does not match order amount",
+            });
+          } else {
+            return res.redirect(
+              `${frontendUrl}/payment-error?error=amount-mismatch`
+            );
+          }
         }
 
-        return res.redirect(
-          `${frontendUrl}/order/${order._id}?payment=success`
-        );
+        // Check for duplicate payment (prevent replay attacks)
+        if (
+          order.isPaid &&
+          order.paymentDetails?.transactionNo === vnpParams.vnp_TransactionNo
+        ) {
+          console.warn("Duplicate payment detected for order:", order._id);
+
+          const isApiCall =
+            req.xhr || req.headers.accept?.includes("application/json");
+          if (isApiCall) {
+            return res.json({
+              success: true,
+              message: "Payment was already processed",
+              orderId: order._id.toString(),
+            });
+          } else {
+            return res.redirect(
+              `${frontendUrl}/order/${order._id}?payment=already-processed`
+            );
+          }
+        }
+
+        // Continue with existing code...
+        // Nếu response code là 00 (thành công)
+        if (responseCode === "00") {
+          // Process successful payment logic (unchanged)
+          // Chỉ cập nhật nếu chưa thanh toán
+          if (!order.isPaid) {
+            order.isPaid = true;
+            order.paidAt = Date.now();
+            order.paymentDetails = {
+              id: vnpParams.vnp_TransactionNo,
+              status: "completed",
+              provider: "vnpay",
+              txnRef: txnRef,
+              transactionNo: vnpParams.vnp_TransactionNo,
+              bankCode: vnpParams.vnp_BankCode || "",
+              cardType: vnpParams.vnp_CardType || "",
+              bankTranNo: vnpParams.vnp_BankTranNo || "",
+              payDate: vnpParams.vnp_PayDate || "",
+              responseCode: responseCode,
+              update_time: vnpParams.vnp_PayDate,
+              payer: {
+                payment_method: "VNPAY",
+                bank_code: vnpParams.vnp_BankCode || "",
+              },
+            };
+
+            await order.save();
+            console.log("Order updated successfully:", order._id);
+          }
+
+          // Kiểm tra xem yêu cầu có phải là API call hay không
+          const isApiCall =
+            req.xhr || req.headers.accept?.includes("application/json");
+
+          if (isApiCall) {
+            // Trả về JSON cho API call
+            return res.json({
+              success: true,
+              message: "Payment successful",
+              orderId: order._id.toString(),
+            });
+          } else {
+            // Chuyển hướng cho browser access
+            return res.redirect(
+              `${frontendUrl}/order/${order._id}?payment=success`
+            );
+          }
+        } else {
+          // Process failed payment logic (unchanged)
+          console.log("Payment failed with code:", responseCode);
+
+          // Kiểm tra xem yêu cầu có phải là API call hay không
+          const isApiCall =
+            req.xhr || req.headers.accept?.includes("application/json");
+
+          if (isApiCall) {
+            // Trả về JSON cho API call
+            return res.json({
+              success: false,
+              message: `Payment failed with code: ${responseCode}`,
+              orderId: order._id.toString(),
+            });
+          } else {
+            // Chuyển hướng cho browser access
+            return res.redirect(
+              `${frontendUrl}/order/${order._id}?payment=failed`
+            );
+          }
+        }
       } else {
-        console.log("Payment failed with code:", responseCode);
-        return res.redirect(`${frontendUrl}/order/${order._id}?payment=failed`);
+        // Order not found logic (unchanged)
+        console.error("Order not found for ID:", orderId);
+
+        // Kiểm tra xem yêu cầu có phải là API call hay không
+        const isApiCall =
+          req.xhr || req.headers.accept?.includes("application/json");
+
+        if (isApiCall) {
+          // Trả về JSON cho API call
+          return res.json({
+            success: false,
+            message: "Order not found",
+            orderId: null,
+          });
+        } else {
+          // Chuyển hướng cho browser access
+          return res.redirect(
+            `${frontendUrl}/payment-error?error=order-not-found`
+          );
+        }
       }
     } else {
-      console.error("Order not found for ID:", orderId);
-      return res.redirect(`${frontendUrl}/payment-error?error=order-not-found`);
+      console.error("Invalid signature");
+
+      // Kiểm tra xem yêu cầu có phải là API call hay không
+      const isApiCall =
+        req.xhr || req.headers.accept?.includes("application/json");
+
+      if (isApiCall) {
+        // Trả về JSON cho API call
+        return res.status(401).json({
+          success: false,
+          message: "Invalid payment signature. Possible tampering detected.",
+        });
+      } else {
+        // Chuyển hướng cho browser access
+        return res.redirect(
+          `${frontendUrl}/payment-error?error=invalid-signature`
+        );
+      }
     }
-    // } else {
-    //   console.error('Invalid signature');
-    //   return res.redirect(`${frontendUrl}/payment-error?error=invalid-signature`);
-    // }
   } catch (error) {
+    // Error handling (unchanged)
     console.error("VNPay return error:", error);
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-    return res.redirect(
-      `${frontendUrl}/payment-error?error=${encodeURIComponent(error.message)}`
-    );
+
+    // Kiểm tra xem yêu cầu có phải là API call hay không
+    const isApiCall =
+      req.xhr || req.headers.accept?.includes("application/json");
+
+    if (isApiCall) {
+      // Trả về JSON cho API call
+      return res.status(500).json({
+        success: false,
+        message:
+          error.message || "An error occurred during payment verification",
+      });
+    } else {
+      // Chuyển hướng cho browser access
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      return res.redirect(
+        `${frontendUrl}/payment-error?error=${encodeURIComponent(
+          error.message
+        )}`
+      );
+    }
   }
 });
 
