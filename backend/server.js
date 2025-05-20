@@ -60,6 +60,19 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/payment", vnpayRoutes);
 // app.use("/api/upload", uploadRoutes);
+
+// Ghi log chi tiết cho trường hợp VNPay
+app.use("/api/vnpay", (req, res, next) => {
+  console.log("------- VNPay Request Log -------");
+  console.log("Time:", new Date().toISOString());
+  console.log("Method:", req.method);
+  console.log("URL:", req.url);
+  console.log("Query:", JSON.stringify(req.query));
+  console.log("Body:", JSON.stringify(req.body));
+  console.log("---------------------------------");
+  next();
+});
+
 app.use("/api/vnpay", vnpayRoutes);
 
 // Import error middleware

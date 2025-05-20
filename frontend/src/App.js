@@ -14,6 +14,7 @@ import ProfilePage from "./pages/ProfilePage";
 import OrderPage from "./pages/OrderPage";
 import OrdersPage from "./pages/OrdersPage";
 import VNPayResult from "./pages/VNPayResult";
+import PaymentErrorPage from "./pages/PaymentErrorPage";
 
 // Admin components
 import AdminLayout from "./admin/components/AdminLayout";
@@ -45,7 +46,7 @@ function App() {
             <Route path="/order/:id" element={<OrderPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/vnpay-result" element={<VNPayResult />} />
-            {/* <Route path="/payment/vnpay_return" element={<VNPayResult />} /> */}
+            <Route path="/payment-error" element={<PaymentErrorPage />} />
 
             {/* Admin Routes - Protected by AdminRoute */}
             <Route path="/admin" element={<AdminRoute />}>

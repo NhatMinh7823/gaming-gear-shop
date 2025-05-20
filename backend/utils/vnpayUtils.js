@@ -62,11 +62,22 @@ const createTxnRef = (orderId) => {
  * @returns {string} ID của đơn hàng
  */
 const extractOrderId = (txnRef) => {
-  // Nếu txnRef có format PyyyyMMddHHmmss + orderId
-  if (txnRef.startsWith("P") && txnRef.length > 14) {
-    return txnRef.substring(14); // Lấy phần sau timestamp
+  try {
+    console.log("Extracting order ID from:", txnRef);
+
+    // Nếu txnRef có format PyyyyMMddHHmmss + orderId
+    if (txnRef && txnRef.startsWith("P") && txnRef.length > 15) {
+      const orderId = txnRef.substring(15);
+      console.log("Extracted order ID:", orderId);
+      return orderId;
+    }
+
+    console.log("Using original txnRef as order ID");
+    return txnRef;
+  } catch (error) {
+    console.error("Error in extractOrderId:", error);
+    return null;
   }
-  return txnRef; // Trả về nguyên txnRef nếu không phải format trên
 };
 
 module.exports = {
