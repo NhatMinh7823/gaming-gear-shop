@@ -3,6 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setProducts } from "../redux/slices/productSlice";
 import api from "../services/api";
+import { FaStar, FaRegStar, FaShoppingCart, FaHeart, FaEye, FaRegHeart } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import { setCart } from '../redux/slices/cartSlice';
+
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -15,6 +19,9 @@ const HomePage = () => {
   const [errorCategories, setErrorCategories] = useState(null);
   const dispatch = useDispatch();
   const { products } = useSelector((state) => state.product);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [banners, setBanners] = useState([]);
+  const [loadingProductIds, setLoadingProductIds] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,7 +32,7 @@ const HomePage = () => {
           api.get("/products/featured"),
           api.get("/categories/featured"),
         ]);
-        
+
         dispatch(
           setProducts({
             products: productsResponse.data.products,
@@ -64,6 +71,30 @@ const HomePage = () => {
     fetchData();
   }, [dispatch]);
 
+  useEffect(() => {
+
+    const bannerImages = [
+      "banner_6.png",
+      "banner_7.png",
+      "banner_8.png",
+      "banner_9.png",
+    ];
+    setBanners(bannerImages);
+  }, []);
+
+  // Set up rotation interval
+  useEffect(() => {
+    if (banners.length <= 1) return;
+
+    const rotationInterval = setInterval(() => {
+      setCurrentBannerIndex(prevIndex =>
+        prevIndex === banners.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 2000);
+
+    return () => clearInterval(rotationInterval);
+  }, [banners.length]);
+
   const ProductSkeleton = () => (
     <div className="bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform duration-300 animate-pulse">
       <div className="h-64 bg-gray-600"></div>
@@ -87,13 +118,46 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Hero Section */}
-      <div className="relative h-[500px] overflow-hidden">
+      <div className="relative h-[500px] overflow-hidden mb-4">
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 to-transparent z-10"></div>
-        <img
-          src={`${process.env.REACT_APP_API_URL.replace('/api', '')}/uploads/hero-banner.jpg`}
-          alt="Banner sản phẩm công nghệ"
-          className="absolute inset-0 w-full h-full object-cover object-top"
-        />
+
+        {/* Banner Images */}
+        <div className="absolute inset-0 w-full h-full">
+          {banners.map((banner, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentBannerIndex
+                ? "opacity-100 translate-x-0"
+                : index < currentBannerIndex
+                  ? "opacity-0 -translate-x-full"
+                  : "opacity-0 translate-x-full"
+                }`}
+            >
+              <img
+                src={`${process.env.REACT_APP_API_URL.replace('/api', '')}/uploads/images/banners/${banner}`}
+                alt={`Banner sản phẩm công nghệ ${index + 1}`}
+                className="w-full h-full object-cover object-top"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Indicators */}
+        <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentBannerIndex(index)}
+              className={`w-3 h-3 rounded-full transition-all ${index === currentBannerIndex
+                ? "bg-white w-6"
+                : "bg-white/50 hover:bg-white/80"
+                }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+
+        {/* Hero content */}
         <div className="container mx-auto px-4 h-full flex items-center relative z-20">
           <div className="max-w-xl text-white">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
@@ -104,13 +168,13 @@ const HomePage = () => {
               kế tinh tế và tính năng vượt trội.
             </p>
             <div className="flex space-x-4">
-              <button 
+              <button
                 onClick={() => navigate('/products')}
                 className="bg-white text-indigo-900 px-6 py-3 rounded-button font-medium hover:bg-opacity-90 transition-all duration-300 cursor-pointer whitespace-nowrap"
               >
                 Mua Ngay
               </button>
-              <button 
+              <button
                 onClick={() => featuredCategoriesRef.current?.scrollIntoView({ behavior: 'smooth' })}
                 className="border-2 border-white text-white px-6 py-3 rounded-button font-medium hover:bg-white hover:bg-opacity-10 transition-all duration-300 cursor-pointer whitespace-nowrap"
               >
@@ -124,10 +188,6 @@ const HomePage = () => {
       <div ref={featuredCategoriesRef} className="container mx-auto px-4 py-16">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-gray-100">Danh Mục Nổi Bật</h2>
-          <button className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center cursor-pointer whitespace-nowrap">
-            Xem tất cả
-            <i className="fas fa-arrow-right ml-2 text-sm"></i>
-          </button>
         </div>
         {loadingCategories ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
@@ -136,17 +196,27 @@ const HomePage = () => {
             ))}
           </div>
         ) : errorCategories ? (
-          <div className="text-red-500">Error: {errorCategories.message}</div>
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400">
+            <div className="flex items-center mb-2">
+              <i className="fas fa-exclamation-circle mr-2"></i>
+              <h3 className="font-medium">Lỗi tải danh mục</h3>
+            </div>
+            <p className="text-sm">{errorCategories}</p>
+          </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {categories.map((category) => (
-              <div key={category._id} className="relative overflow-hidden rounded-lg shadow-md group cursor-pointer">
+              <div
+                key={category._id}
+                onClick={() => navigate(`/products?category=${category._id}`)}
+                className="relative overflow-hidden rounded-lg shadow-md group cursor-pointer transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+              >
                 <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/80 to-indigo-900/20 z-10 opacity-80 group-hover:opacity-90 transition-opacity duration-300"></div>
                 <img
-                  src={category.image?.url 
-                    ? (category.image.url.startsWith('http') 
-                        ? category.image.url 
-                        : `${process.env.REACT_APP_API_URL}${category.image.url}`)
+                  src={category.image?.url
+                    ? (category.image.url.startsWith('http')
+                      ? category.image.url
+                      : `${process.env.REACT_APP_API_URL}${category.image.url}`)
                     : `${process.env.REACT_APP_API_URL.replace('/api', '')}/uploads/default-category.jpg`
                   }
                   alt={category.name}
@@ -154,6 +224,16 @@ const HomePage = () => {
                 />
                 <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
                   <h3 className="text-white font-medium">{category.name}</h3>
+                  {category.productCount && (
+                    <div className="flex items-center mt-1">
+                      <span className="text-xs text-indigo-200">{category.productCount} sản phẩm</span>
+                    </div>
+                  )}
+                </div>
+                <div className="absolute top-0 right-0 m-2 z-20">
+                  <div className="bg-indigo-500/80 text-white text-xs px-2 py-1 rounded-full opacity-0 transform translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                    Xem ngay
+                  </div>
                 </div>
               </div>
             ))}
@@ -167,7 +247,10 @@ const HomePage = () => {
             <h2 className="text-3xl font-bold text-gray-100">
               Sản Phẩm Nổi Bật
             </h2>
-            <button className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center cursor-pointer whitespace-nowrap">
+            <button
+              onClick={() => navigate('/products')}
+              className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center cursor-pointer whitespace-nowrap"
+            >
               Xem tất cả
               <i className="fas fa-arrow-right ml-2 text-sm"></i>
             </button>
@@ -185,28 +268,51 @@ const HomePage = () => {
                   key={product._id}
                   className="bg-gray-700 rounded-lg shadow-md overflow-hidden group hover:shadow-lg transition-all duration-300 cursor-pointer"
                 >
-                  <div className="relative h-64 overflow-hidden">
+                  <div
+                    className="relative h-64 overflow-hidden"
+                    onClick={() => navigate(`/product/${product._id}`)}
+                  >
                     <img
-                      src={product.images?.[0]?.url 
+                      src={product.images?.[0]?.url
                         ? (product.images[0].url.startsWith('http')
-                            ? product.images[0].url
-                            : `${process.env.REACT_APP_API_URL}${product.images[0].url}`)
+                          ? product.images[0].url
+                          : `${process.env.REACT_APP_API_URL}${product.images[0].url}`)
                         : `${process.env.REACT_APP_API_URL.replace('/api', '')}/uploads/default-product.jpg`
                       }
                       alt={product.name}
                       className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                     />
                     {product.discountPrice && (
-                      <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                         -{Math.round(((product.price - product.discountPrice) / product.price) * 100)}%
                       </div>
                     )}
+                    {product.countInStock <= 0 && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">Hết hàng</span>
+                      </div>
+                    )}
                     <div className="absolute top-2 right-2 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <button className="bg-white text-gray-800 p-2 rounded-full shadow-md hover:bg-gray-100 cursor-pointer whitespace-nowrap">
-                        <i className="far fa-heart"></i>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Wishlist logic - you can implement a proper service call here
+                          toast.info(`Added ${product.name} to wishlist`);
+                        }}
+                        className="bg-white text-gray-800 p-2 rounded-full shadow-md hover:bg-gray-100 hover:text-red-500 transition-colors duration-300"
+                        aria-label="Add to wishlist"
+                      >
+                        <FaRegHeart size={16} />
                       </button>
-                      <button className="bg-white text-gray-800 p-2 rounded-full shadow-md hover:bg-gray-100 cursor-pointer whitespace-nowrap">
-                        <i className="fas fa-eye"></i>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/product/${product._id}`);
+                        }}
+                        className="bg-white text-gray-800 p-2 rounded-full shadow-md hover:bg-gray-100 hover:text-blue-500 transition-colors duration-300"
+                        aria-label="Quick view"
+                      >
+                        <FaEye size={16} />
                       </button>
                     </div>
                   </div>
@@ -214,38 +320,84 @@ const HomePage = () => {
                     <div className="flex items-center mb-1">
                       <div className="flex text-yellow-400">
                         {[...Array(5)].map((_, i) => (
-                          <i
-                            key={i}
-                            className={`fas fa-star ${i < Math.round(product.averageRating) ? "text-yellow-400" : "text-gray-300"}`}
-                          ></i>
+                          <span key={i}>
+                            {i < Math.round(product.averageRating || 0) ? (
+                              <FaStar className="text-yellow-400" />
+                            ) : (
+                              <FaRegStar className="text-gray-300" />
+                            )}
+                          </span>
                         ))}
                       </div>
                       <span className="text-gray-500 text-sm ml-2">
                         ({product.numReviews || 0})
                       </span>
                     </div>
-                    <h3 className="font-medium text-gray-100 mb-2">
+                    <h3
+                      className="font-medium text-gray-100 mb-2 line-clamp-2 hover:text-indigo-300 transition-colors"
+                      onClick={() => navigate(`/product/${product._id}`)}
+                    >
                       {product.name}
                     </h3>
                     <div className="flex items-center justify-between">
                       <div>
                         {product.discountPrice ? (
                           <div className="flex items-center">
-                      <span className="text-lg font-bold text-indigo-400">
-                              {product.discountPrice.toLocaleString("vi-VN")}₫
+                            <span className="text-lg font-bold text-indigo-400">
+                              {new Intl.NumberFormat('vi-VN', {
+                                style: 'currency',
+                                currency: 'VND'
+                              }).format(product.discountPrice)}
                             </span>
                             <span className="text-sm text-gray-500 line-through ml-2">
-                              {product.price.toLocaleString("vi-VN")}₫
+                              {new Intl.NumberFormat('vi-VN', {
+                                style: 'currency',
+                                currency: 'VND'
+                              }).format(product.price)}
                             </span>
                           </div>
                         ) : (
                           <span className="text-lg font-bold text-indigo-400">
-                            {product.price.toLocaleString("vi-VN")}₫
+                            {new Intl.NumberFormat('vi-VN', {
+                              style: 'currency',
+                              currency: 'VND'
+                            }).format(product.price)}
                           </span>
                         )}
                       </div>
-                      <button className="bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 transition-colors duration-300 cursor-pointer whitespace-nowrap">
-                        <i className="fas fa-shopping-cart"></i>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          e.preventDefault(); // Thêm dòng này
+                          if (product.countInStock > 0) {
+                            try {
+                              setLoadingProductIds(prev => [...prev, product._id]);
+                              const { data } = await api.post('/cart/items', {
+                                productId: product._id,
+                                quantity: 1
+                              });
+
+                              dispatch(setCart(data.cart));
+                              toast.success('Đã thêm sản phẩm vào giỏ hàng');
+                            } catch (error) {
+                              toast.error('Không thể thêm vào giỏ hàng');
+                            } finally {
+                              setLoadingProductIds(prev => prev.filter(id => id !== product._id));
+                            }
+                          }
+                        }}
+                        disabled={product.countInStock <= 0 || loadingProductIds.includes(product._id)}
+                        className={`p-3 rounded-full ${product.countInStock > 0
+                          ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                          : "bg-gray-500 text-gray-300 cursor-not-allowed"
+                          } transition-colors duration-300 relative z-20`}
+                        aria-label="Add to cart"
+                      >
+                        {loadingProductIds.includes(product._id) ? (
+                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        ) : (
+                          <FaShoppingCart size={16} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -283,7 +435,7 @@ const HomePage = () => {
             </div>
             <div className="w-full md:w-1/2 relative">
               <img
-                src={`${process.env.REACT_APP_API_URL.replace('/api', '')}/uploads/special-offer.jpg`}
+                src={`${process.env.REACT_APP_API_URL.replace('/api', '')}/uploads/images/banners/special-offer.jpg`}
                 alt="Ưu đãi đặc biệt"
                 className="w-full h-full object-cover"
               />
