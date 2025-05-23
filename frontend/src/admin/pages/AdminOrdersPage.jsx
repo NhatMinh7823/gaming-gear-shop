@@ -9,6 +9,8 @@ const AdminOrdersPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [ordersPerPage, setOrdersPerPage] = useState(10);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -80,6 +82,17 @@ const AdminOrdersPage = () => {
     return sortData(filteredOrders, sortConfig);
   }, [filteredOrders, sortConfig]);
 
+  // Calculate pagination
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = sortedOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const getSortIndicator = (key) => {
     if (sortConfig.key === key) {
       return sortConfig.direction === 'asc' ? ' ↑' : ' ↓';
@@ -87,6 +100,10 @@ const AdminOrdersPage = () => {
     return '';
   };
 
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
 
   if (loading && orders.length === 0) {
     return <div className="flex justify-center items-center h-64"><p className="text-xl">Loading orders...</p></div>;
@@ -126,7 +143,7 @@ const AdminOrdersPage = () => {
         <p className="text-center text-gray-500">No orders found.</p>
       )}
 
-      {sortedOrders.length > 0 && (
+      {currentOrders.length > 0 && (
         <div className="bg-white shadow-xl rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -185,7 +202,7 @@ const AdminOrdersPage = () => {
                 </tr>
             </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {sortedOrders.map((order) => (
+                {currentOrders.map((order) => (
                   <tr key={order._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <Link 
@@ -267,14 +284,101 @@ const AdminOrdersPage = () => {
             </table>
           </div>
           <div className="px-6 py-4 border-t">
-            <p className="text-sm text-gray-500">
-              Showing {sortedOrders.length} of {orders.length} orders
-            </p>
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <p className="text-sm text-gray-500">
+                Showing {indexOfFirstOrder + 1}-{Math.min(indexOfLastOrder, sortedOrders.length)} of {sortedOrders.length} orders
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <button
+                  onClick={() => paginate(1)}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  First
+                </button>
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Previous
+                </button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => paginate(pageNum)}
+                      className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
+                        currentPage === pageNum
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
+                    currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Next
+                </button>
+                <button
+                  onClick={() => paginate(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
+                    currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Last
+                </button>
+              </div>
+              <select
+                value={ordersPerPage}
+                onChange={(e) => {
+                  setOrdersPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-1 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={5}>5 / trang</option>
+                <option value={10}>10 / trang</option>
+                <option value={25}>25 / trang</option>
+                <option value={50}>50 / trang</option>
+              </select>
+            </div>
           </div>
         </div>
       )}
       
-      {sortedOrders.length === 0 && !loading && (
+      {currentOrders.length === 0 && !loading && (
         <div className="text-center py-12 bg-white rounded-lg shadow">
           <p className="text-gray-500 text-lg">
             {searchTerm || filterStatus !== 'all' 

@@ -11,11 +11,13 @@ const ProductFormPage = () => {
   const [productData, setProductData] = useState({
     name: '',
     price: '',
+    discountPrice: '',
     brand: '',
     category: '', // Will be category ID later
     stock: '',
     description: '',
     images: [], // Placeholder for images
+    isFeatured: false,
     // Add other fields as needed based on productModel.js
   });
   const [loading, setLoading] = useState(false);
@@ -39,11 +41,13 @@ const ProductFormPage = () => {
           setProductData({
             name: product.name || '',
             price: product.price || '',
+            discountPrice: product.discountPrice || '',
             brand: product.brand || '',
             category: product.category?._id || product.category || '',
             stock: product.stock || '',
             description: product.description || '',
             images: product.images || [],
+            isFeatured: product.isFeatured || false,
           });
         }
         setError(null);
@@ -95,10 +99,12 @@ const ProductFormPage = () => {
       const formData = new FormData();
       formData.append('name', productData.name);
       formData.append('price', parseFloat(productData.price));
+      formData.append('discountPrice', productData.discountPrice ? parseFloat(productData.discountPrice) : '');
       formData.append('brand', productData.brand);
       formData.append('category', productData.category);
       formData.append('stock', parseInt(productData.stock, 10));
       formData.append('description', productData.description);
+      formData.append('isFeatured', productData.isFeatured);
 
       // Filter out new image files to get existing images to keep
       const existingImagesToKeep = productData.images.filter(img => !img.isNew);
@@ -181,7 +187,7 @@ const ProductFormPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Giá (VNĐ)</label>
+            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Giá gốc (VNĐ)</label>
             <input
               type="number"
               name="price"
@@ -194,6 +200,21 @@ const ProductFormPage = () => {
             />
           </div>
           <div>
+            <label htmlFor="discountPrice" className="block text-sm font-medium text-gray-700 mb-1">Giá khuyến mãi (VNĐ)</label>
+            <input
+              type="number"
+              name="discountPrice"
+              id="discountPrice"
+              step="1"
+              value={productData.discountPrice}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
             <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">Số lượng tồn kho</label>
             <input
               type="number"
@@ -204,6 +225,21 @@ const ProductFormPage = () => {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sản phẩm nổi bật</label>
+            <div className="mt-2">
+              <label className="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  name="isFeatured"
+                  checked={productData.isFeatured}
+                  onChange={(e) => setProductData(prev => ({ ...prev, isFeatured: e.target.checked }))}
+                  className="form-checkbox h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-gray-700">Đánh dấu là sản phẩm nổi bật</span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -218,8 +254,7 @@ const ProductFormPage = () => {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
             >
-              <option value="">Chọn danh mục</option>
-              {categories.length === 0 ? (
+              <option value="">Chọn danh mục</option>              {categories.length === 0 ? (
                 <option value="" disabled>Không có danh mục</option>
               ) : (
                 categories.map(cat => (
