@@ -62,14 +62,19 @@ export const login = (data) => api.post("/users/login", data);
 export const getProfile = () => api.get("/users/profile");
 export const updateProfile = (data) => api.put("/users/profile", data);
 export const addToWishlist = async (productId) => {
-  return await api.post('/users/wishlist', { productId });
+  return await api.post("/users/wishlist", { productId });
 };
 export const removeFromWishlist = async (productId) => {
   return await api.delete(`/users/wishlist/${productId}`);
 };
 export const getWishlist = async () => {
-  return await api.get('/users/wishlist');
+  return await api.get("/users/wishlist");
 };
+// Coupon APIs
+export const generateCoupon = () => api.post("/users/generate-coupon");
+export const applyCoupon = (code) => api.post("/users/apply-coupon", { code });
+export const markCouponAsUsed = (code) =>
+  api.post("/users/mark-coupon-used", { code });
 
 // Product APIs
 export const getProducts = (params = {}) => {

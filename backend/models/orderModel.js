@@ -60,6 +60,14 @@ const orderSchema = new mongoose.Schema({
     required: true,
     default: 0.0,
   },
+  couponDiscount: {
+    type: Number,
+    default: 0.0,
+  },
+  couponCode: {
+    type: String,
+    default: null,
+  },
   totalPrice: {
     type: Number,
     required: true,

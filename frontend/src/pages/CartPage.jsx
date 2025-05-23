@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getCart, updateCartItem, removeCartItem, clearCart, createOrder } from '../services/api';
+import { getCart, updateCartItem, removeCartItem, clearCart, createOrder, applyCoupon, markCouponAsUsed } from '../services/api';
 import { setCart, clearCart as clearCartAction } from '../redux/slices/cartSlice';
 import { FaShoppingCart, FaTruck, FaCreditCard, FaRegCreditCard, FaArrowLeft, FaArrowRight, FaMoneyBillWave, FaCheck, FaBoxOpen } from 'react-icons/fa';
 
@@ -149,31 +149,51 @@ function CartPage() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
-      toast.error('Please enter a coupon code');
+      toast.error('Vui lòng nhập mã giảm giá');
       return;
     }
 
-    const validCoupons = {
-      'WELCOME10': { code: 'WELCOME10', discount: 10, type: 'percentage' },
-      'SAVE20': { code: 'SAVE20', discount: 20, type: 'percentage' },
-      'FREESHIP': { code: 'FREESHIP', discount: 5, type: 'fixed' }
-    };
+    try {
+      const { data } = await applyCoupon(couponCode.toUpperCase());
 
-    const coupon = validCoupons[couponCode.toUpperCase()];
+      if (data.success) {
+        // Đây là mã cho người dùng mới (từ special offer)
+        const discount = (totalPrice * data.coupon.discountPercent) / 100;
+        setDiscountAmount(discount);
+        setAppliedCoupon({
+          code: data.coupon.code,
+          discount: data.coupon.discountPercent,
+          type: 'percentage'
+        });
+        toast.success(`Mã giảm giá ${data.coupon.code} đã được áp dụng!`);
+      }
+    } catch (error) {
+      // Kiểm tra xem coupon có hợp lệ không, nếu không thì thử các mã cố định
+      const validCoupons = {
+        'WELCOME10': { code: 'WELCOME10', discount: 10, type: 'percentage' },
+        'SAVE20': { code: 'SAVE20', discount: 20, type: 'percentage' },
+        'FREESHIP': { code: 'FREESHIP', discount: 15000, type: 'fixed' }
+      };
 
-    if (coupon) {
-      const discount = coupon.type === 'percentage'
-        ? (totalPrice * coupon.discount) / 100
-        : coupon.discount;
+      const coupon = validCoupons[couponCode.toUpperCase()];
 
-      setDiscountAmount(discount);
-      setAppliedCoupon(coupon);
-      toast.success(`Coupon ${couponCode.toUpperCase()} applied successfully!`);
-    } else {
-      toast.error('Invalid coupon code');
+      if (coupon) {
+        const discount = coupon.type === 'percentage'
+          ? (totalPrice * coupon.discount) / 100
+          : coupon.discount;
+
+        setDiscountAmount(discount);
+        setAppliedCoupon(coupon);
+        toast.success(`Mã giảm giá ${couponCode.toUpperCase()} đã được áp dụng!`);
+      } else if (error.response && error.response.status === 400) {
+        toast.error('Mã giảm giá đã được sử dụng');
+      } else if (error.response && error.response.status === 404) {
+        toast.error('Mã giảm giá không hợp lệ');
+      } else {
+        toast.error('Lỗi khi áp dụng mã giảm giá');
+      }
     }
   };
 
@@ -202,14 +222,18 @@ function CartPage() {
         })),
         shippingAddress,
         paymentMethod,
-        taxPrice: 10,
-        shippingPrice: 5,
+        taxPrice: 10000,
+        shippingPrice: 15000,
         totalPrice: finalTotal,
         couponApplied: appliedCoupon?.code,
         discountAmount
-      };
+      }; const { data } = await createOrder(orderData);
 
-      const { data } = await createOrder(orderData);
+      // Nếu có áp dụng coupon, đánh dấu là đã sử dụng
+      if (appliedCoupon && appliedCoupon.code && !appliedCoupon.code.match(/^(WELCOME10|SAVE20|FREESHIP)$/)) {
+        await markCouponAsUsed(appliedCoupon.code);
+      }
+
       await clearCart();
       dispatch(clearCartAction());
       navigate(`/order/${data.order._id}`);
@@ -309,7 +333,7 @@ function CartPage() {
               {new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
                 currency: 'VND'
-              }).format(5)}
+              }).format(15000)}
             </span>
           </div>
           <div className="flex justify-between text-sm text-gray-400">
@@ -318,7 +342,7 @@ function CartPage() {
               {new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
                 currency: 'VND'
-              }).format(10)}
+              }).format(10000)}
             </span>
           </div>
           {discountAmount > 0 && (
@@ -616,8 +640,8 @@ function CartPage() {
                     <div className="space-y-4">
                       <div
                         className={`flex items-center p-4 border rounded-lg ${paymentMethod === 'VNPay'
-                            ? 'border-blue-600 bg-gray-700'
-                            : 'border-gray-600 bg-gray-800'
+                          ? 'border-blue-600 bg-gray-700'
+                          : 'border-gray-600 bg-gray-800'
                           } cursor-pointer transition-colors duration-200`}
                         onClick={() => setPaymentMethod('VNPay')}
                       >
@@ -641,8 +665,8 @@ function CartPage() {
 
                       <div
                         className={`flex items-center p-4 border rounded-lg ${paymentMethod === 'CashOnDelivery'
-                            ? 'border-blue-600 bg-gray-700'
-                            : 'border-gray-600 bg-gray-800'
+                          ? 'border-blue-600 bg-gray-700'
+                          : 'border-gray-600 bg-gray-800'
                           } cursor-pointer transition-colors duration-200`}
                         onClick={() => setPaymentMethod('CashOnDelivery')}
                       >

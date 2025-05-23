@@ -3,6 +3,7 @@
 const Order = require("../models/orderModel");
 const Product = require("../models/productModel");
 const Cart = require("../models/cartModel");
+const User = require("../models/userModel");
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -16,6 +17,7 @@ exports.createOrder = async (req, res) => {
       taxPrice,
       shippingPrice,
       totalPrice,
+      couponCode,
     } = req.body;
 
     if (orderItems && orderItems.length === 0) {
@@ -23,17 +25,24 @@ exports.createOrder = async (req, res) => {
         success: false,
         message: "No order items",
       });
+    } // Tính toán giảm giá từ coupon (nếu có)
+    let couponDiscount = 0;
+    if (req.couponData) {
+      couponDiscount = req.couponData.discountAmount;
     }
 
-    // Create order
+    // Điều chỉnh tổng tiền nếu có coupon
+    const finalTotalPrice = Math.max(0, totalPrice - couponDiscount); // Create order
     const order = await Order.create({
       user: req.user._id,
       orderItems,
+      couponCode: couponCode || null,
+      couponDiscount,
       shippingAddress,
       paymentMethod,
       taxPrice,
       shippingPrice,
-      totalPrice,
+      totalPrice: Math.round(finalTotalPrice), // Làm tròn để tránh lỗi amount mismatch
     });
 
     // Update product stock
@@ -44,17 +53,25 @@ exports.createOrder = async (req, res) => {
         product.sold += item.quantity;
         await product.save();
       }
-    }
-
-    // Clear user's cart
+    } // Clear user's cart
     await Cart.findOneAndDelete({ user: req.user._id });
+
+    // Xử lý coupon nếu có
+    if (couponCode) {
+      // Đánh dấu coupon đã sử dụng
+      const user = await User.findOne({ "coupon.code": couponCode });
+      if (user && !user.coupon.used) {
+        user.coupon.used = true;
+        await user.save();
+      }
+    }
 
     res.status(201).json({
       success: true,
       order,
     });
   } catch (error) {
-    console.error("Error in getOrderStats:", error); // Added for detailed logging
+    console.error("Error in createOrder:", error); // Đổi tên lỗi để phù hợp
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -92,12 +109,16 @@ exports.getOrderById = async (req, res) => {
     }
 
     // Transform image URLs in order items
-    const backendBaseUrl = `${req.protocol}://${req.get('host')}`;
-    order.orderItems = order.orderItems.map(item => {
-      if (item.image && typeof item.image === 'string' && !item.image.startsWith('http')) {
+    const backendBaseUrl = `${req.protocol}://${req.get("host")}`;
+    order.orderItems = order.orderItems.map((item) => {
+      if (
+        item.image &&
+        typeof item.image === "string" &&
+        !item.image.startsWith("http")
+      ) {
         return {
           ...item.toObject(), // Convert Mongoose document to plain object
-          image: `${backendBaseUrl}${item.image}`
+          image: `${backendBaseUrl}${item.image}`,
         };
       }
       return item.toObject(); // Convert Mongoose document to plain object
@@ -340,64 +361,63 @@ exports.getSalesData = async (req, res) => {
   }
 };
 
-
 exports.getOrderHistory = async (req, res) => {
   try {
     const today = new Date();
-    const lastWeek = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
+    const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     // Get daily stats for the last 7 days
     const dailyStats = await Order.aggregate([
       {
         $match: {
-          createdAt: { $gte: lastWeek }
-        }
+          createdAt: { $gte: lastWeek },
+        },
       },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
           totalOrders: { $sum: 1 },
           totalRevenue: { $sum: "$totalPrice" },
-          paidOrders: { 
-            $sum: { 
-              $cond: [{ $eq: ["$isPaid", true] }, 1, 0]
-            }
+          paidOrders: {
+            $sum: {
+              $cond: [{ $eq: ["$isPaid", true] }, 1, 0],
+            },
           },
           paidRevenue: {
             $sum: {
-              $cond: [{ $eq: ["$isPaid", true] }, "$totalPrice", 0]
-            }
+              $cond: [{ $eq: ["$isPaid", true] }, "$totalPrice", 0],
+            },
           },
           deliveredOrders: {
             $sum: {
-              $cond: [{ $eq: ["$isDelivered", true] }, 1, 0]
-            }
-          }
-        }
+              $cond: [{ $eq: ["$isDelivered", true] }, 1, 0],
+            },
+          },
+        },
       },
-      { $sort: { _id: 1 } }
+      { $sort: { _id: 1 } },
     ]);
 
     // Transform data into arrays
     const historyData = {
       usersHistory: [], // Users will be handled separately
-      ordersHistory: dailyStats.map(day => day.totalOrders),
-      revenueHistory: dailyStats.map(day => day.totalRevenue),
-      paidOrdersHistory: dailyStats.map(day => day.paidOrders),
-      paidRevenueHistory: dailyStats.map(day => day.paidRevenue),
-      deliveredOrdersHistory: dailyStats.map(day => day.deliveredOrders),
+      ordersHistory: dailyStats.map((day) => day.totalOrders),
+      revenueHistory: dailyStats.map((day) => day.totalRevenue),
+      paidOrdersHistory: dailyStats.map((day) => day.paidOrders),
+      paidRevenueHistory: dailyStats.map((day) => day.paidRevenue),
+      deliveredOrdersHistory: dailyStats.map((day) => day.deliveredOrders),
     };
 
     res.status(200).json({
       success: true,
-      ...historyData
+      ...historyData,
     });
   } catch (error) {
     console.error("Error in getOrderHistory:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -419,7 +439,8 @@ exports.getOrderStats = async (req, res) => {
         },
       },
     ]);
-    const totalRevenue = revenueAggregation.length > 0 ? revenueAggregation[0].totalRevenue : 0;
+    const totalRevenue =
+      revenueAggregation.length > 0 ? revenueAggregation[0].totalRevenue : 0;
 
     const paidRevenueAggregation = await Order.aggregate([
       { $match: { isPaid: true } },
@@ -430,7 +451,10 @@ exports.getOrderStats = async (req, res) => {
         },
       },
     ]);
-    const paidRevenue = paidRevenueAggregation.length > 0 ? paidRevenueAggregation[0].paidRevenue : 0;
+    const paidRevenue =
+      paidRevenueAggregation.length > 0
+        ? paidRevenueAggregation[0].paidRevenue
+        : 0;
 
     const statusCounts = await Order.aggregate([
       {

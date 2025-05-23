@@ -47,6 +47,24 @@ const userSchema = new mongoose.Schema({
       ref: "Product",
     },
   ],
+  coupon: {
+    code: {
+      type: String,
+      default: null,
+    },
+    used: {
+      type: Boolean,
+      default: false,
+    },
+    discountPercent: {
+      type: Number,
+      default: 30, // Giảm 30% cho đơn hàng đầu tiên
+    },
+    createdAt: {
+      type: Date,
+      default: null,
+    },
+  },
   createdAt: {
     type: Date,
     default: Date.now,

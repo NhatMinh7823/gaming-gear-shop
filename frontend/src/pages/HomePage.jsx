@@ -9,7 +9,8 @@ import {
   getProductReviews,
   addCartItem,
   addToWishlist,
-  removeFromWishlist
+  removeFromWishlist,
+  generateCoupon
 } from "../services/api";
 import { FaStar, FaRegStar, FaShoppingCart, FaHeart, FaEye, FaRegHeart } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -36,6 +37,8 @@ const HomePage = () => {
   const { userInfo } = useSelector((state) => state.user);
   const { wishlistItems } = useSelector((state) => state.wishlist);
   const [loadingWishlistIds, setLoadingWishlistIds] = useState([]);
+  const [subscribeEmail, setSubscribeEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -155,7 +158,7 @@ const HomePage = () => {
         dispatch(setWishlist(updatedWishlistIds));
         toast.success(`Đã xóa ${product.name} khỏi danh sách yêu thích`);
       } else {
-        // Add to wishlist - use our API function and update local state
+        // Add to wishlist
         const response = await addToWishlist(product._id);
         if (response.data && response.data.success) {
           const wishlistIds = response.data.wishlist;
@@ -169,6 +172,45 @@ const HomePage = () => {
       console.error('Wishlist error:', error);
     } finally {
       setLoadingWishlistIds(prev => prev.filter(id => id !== product._id));
+    }
+  };
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+
+    if (!subscribeEmail) {
+      toast.error('Vui lòng nhập email của bạn');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(subscribeEmail)) {
+      toast.error('Vui lòng nhập một địa chỉ email hợp lệ');
+      return;
+    }
+
+    setIsSubscribing(true);
+    try {
+      // Kiểm tra user đã đăng nhập chưa
+      if (!userInfo) {
+        // Lưu email vào localStorage để điền vào form đăng ký
+        localStorage.setItem('specialOfferEmail', subscribeEmail);
+        toast.success('Vui lòng đăng ký để nhận mã giảm giá 30% cho đơn hàng đầu tiên');
+        navigate('/register');
+      } else {
+        // Nếu đã đăng nhập, tạo coupon mới
+        const response = await generateCoupon();
+        if (response.data.success) {
+          toast.success('Đã tạo mã giảm giá 30% cho đơn hàng đầu tiên của bạn!');
+          navigate('/profile');
+        }
+      }
+    } catch (error) {
+      toast.error('Không thể đăng ký lúc này. Vui lòng thử lại sau!');
+      console.error('Subscription error:', error);
+    } finally {
+      setIsSubscribing(false);
+      setSubscribeEmail('');
     }
   };
 
@@ -479,17 +521,36 @@ const HomePage = () => {
               <p className="text-indigo-100 mb-8">
                 Đăng ký nhận thông báo để không bỏ lỡ những ưu đãi đặc biệt và
                 sản phẩm mới nhất từ chúng tôi.
-              </p>
-              <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+              </p>              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
                 <input
                   type="email"
+                  value={subscribeEmail}
+                  onChange={(e) => setSubscribeEmail(e.target.value)}
                   placeholder="Email của bạn"
-                  className="px-4 py-3 rounded-button border-none focus:ring-2 focus:ring-indigo-300 focus:outline-none text-sm"
+                  disabled={isSubscribing}
+                  className="px-4 py-3 rounded-button border-none focus:ring-2 focus:ring-indigo-300 focus:outline-none text-sm 
+                           disabled:opacity-50 disabled:cursor-not-allowed bg-white text-gray-800"
                 />
-                <button className="bg-white text-indigo-600 px-6 py-3 rounded-button font-medium hover:bg-indigo-50 transition-colors duration-300 cursor-pointer whitespace-nowrap">
-                  Đăng Ký Ngay
+                <button
+                  type="submit"
+                  disabled={isSubscribing}
+                  className="bg-white text-indigo-600 px-6 py-3 rounded-button font-medium hover:bg-indigo-50 
+                           transition-colors duration-300 cursor-pointer whitespace-nowrap disabled:opacity-50 
+                           disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
+                >
+                  {isSubscribing ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Đang xử lý...
+                    </>
+                  ) : (
+                    'Đăng Ký Ngay'
+                  )}
                 </button>
-              </div>
+              </form>
             </div>
             <div className="w-full md:w-1/2 relative">
               <img

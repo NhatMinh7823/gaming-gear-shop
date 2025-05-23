@@ -15,12 +15,16 @@ const {
   updateUser,
   deleteUser,
   getRecentUsers,
+  generateCoupon,
+  applyCoupon,
+  markCouponAsUsed,
 } = require("../controllers/userController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
 // Public routes
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.post("/apply-coupon", applyCoupon);
 
 // Protected routes (require authentication)
 router.get("/profile", protect, getUserProfile);
@@ -29,6 +33,8 @@ router.put("/password", protect, updatePassword);
 router.post("/wishlist", protect, addToWishlist);
 router.delete("/wishlist/:productId", protect, removeFromWishlist);
 router.get("/wishlist", protect, getWishlist);
+router.post("/generate-coupon", protect, generateCoupon);
+router.post("/mark-coupon-used", protect, markCouponAsUsed);
 
 // Admin routes
 router.get("/", protect, authorize("admin"), getAllUsers);

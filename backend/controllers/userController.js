@@ -1,11 +1,12 @@
 const User = require("../models/userModel");
+const { generateCouponCode } = require("../utils/couponUtils");
 
 // @desc    Register a new user
 // @route   POST /api/users/register
 // @access  Public
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, fromSpecialOffer } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -21,6 +22,19 @@ exports.registerUser = async (req, res) => {
       password,
     });
 
+    // Nếu đăng ký từ form special offer, tạo coupon ngay
+    if (fromSpecialOffer) {
+      const couponCode = generateCouponCode();
+      user.coupon = {
+        code: couponCode,
+        used: false,
+        discountPercent: 30,
+        createdAt: Date.now(),
+      };
+
+      await user.save();
+    }
+
     const token = user.getSignedJwtToken();
 
     res.status(201).json({
@@ -31,6 +45,7 @@ exports.registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        coupon: user.coupon,
       },
     });
   } catch (error) {
@@ -73,7 +88,6 @@ exports.loginUser = async (req, res) => {
     }
 
     const token = user.getSignedJwtToken();
-
     res.status(200).json({
       success: true,
       token,
@@ -82,6 +96,7 @@ exports.loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        coupon: user.coupon,
       },
     });
   } catch (error) {
@@ -106,7 +121,6 @@ exports.getUserProfile = async (req, res) => {
         message: "User not found",
       });
     }
-
     res.status(200).json({
       success: true,
       user: {
@@ -117,6 +131,7 @@ exports.getUserProfile = async (req, res) => {
         phone: user.phone,
         address: user.address,
         wishlist: user.wishlist || [], // Đảm bảo wishlist luôn tồn tại
+        coupon: user.coupon || null, // Trả về thông tin coupon
         createdAt: user.createdAt,
       },
     });
@@ -225,8 +240,9 @@ exports.updatePassword = async (req, res) => {
 exports.getWishlist = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate({
-      path: 'wishlist',
-      select: 'name price images discountPrice countInStock averageRating numReviews'
+      path: "wishlist",
+      select:
+        "name price images discountPrice countInStock averageRating numReviews",
     });
 
     if (!user) {
@@ -308,6 +324,135 @@ exports.removeFromWishlist = async (req, res) => {
   }
 };
 
+// @desc    Generate coupon for user
+// @route   POST /api/users/generate-coupon
+// @access  Private
+exports.generateCoupon = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    // Nếu user đã có coupon và chưa sử dụng, trả về coupon hiện tại
+    if (user.coupon && user.coupon.code && !user.coupon.used) {
+      return res.status(200).json({
+        success: true,
+        coupon: user.coupon,
+      });
+    }
+
+    // Tạo mã coupon ngẫu nhiên 5 ký tự
+    const couponCode = generateCouponCode();
+
+    // Cập nhật coupon cho user
+    user.coupon = {
+      code: couponCode,
+      used: false,
+      discountPercent: 30,
+      createdAt: Date.now(),
+    };
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      coupon: user.coupon,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi tạo coupon",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Apply coupon to order
+// @route   POST /api/users/apply-coupon
+// @access  Public
+exports.applyCoupon = async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng cung cấp mã coupon",
+      });
+    }
+
+    // Tìm user với mã coupon này
+    const user = await User.findOne({ "coupon.code": code });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Mã coupon không hợp lệ",
+      });
+    }
+
+    if (user.coupon.used) {
+      return res.status(400).json({
+        success: false,
+        message: "Mã coupon đã được sử dụng",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      coupon: {
+        code: user.coupon.code,
+        discountPercent: user.coupon.discountPercent,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi áp dụng coupon",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Mark coupon as used after successful order
+// @route   POST /api/users/mark-coupon-used
+// @access  Private
+exports.markCouponAsUsed = async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng cung cấp mã coupon",
+      });
+    }
+
+    // Tìm user với mã coupon này
+    const user = await User.findOne({ "coupon.code": code });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy coupon",
+      });
+    }
+
+    // Đánh dấu coupon đã sử dụng
+    user.coupon.used = true;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Đã đánh dấu coupon là đã sử dụng",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi cập nhật trạng thái coupon",
+      error: error.message,
+    });
+  }
+};
+
 // @desc    Get recent users (admin only)
 // @route   GET /api/users/recent
 // @access  Private/Admin
@@ -331,7 +476,6 @@ exports.getRecentUsers = async (req, res) => {
     });
   }
 };
-
 
 // @desc    Get all users (admin only)
 // @route   GET /api/users

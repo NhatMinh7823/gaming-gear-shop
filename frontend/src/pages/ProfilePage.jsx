@@ -2,11 +2,11 @@ import { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getProfile, updateProfile, addToWishlist, removeFromWishlist, getMyReviews, updateReview, deleteReview, getWishlist } from '../services/api';
+import { getProfile, updateProfile, addToWishlist, removeFromWishlist, getMyReviews, updateReview, deleteReview, getWishlist, generateCoupon } from '../services/api';
 import { setCredentials, updateWishlist } from '../redux/slices/userSlice';
 import { setWishlist } from '../redux/slices/wishlistSlice';
 import useWishlist from '../hooks/useWishlist';
-import { FaStar, FaRegStar, FaEdit, FaTrash, FaHeart, FaShoppingCart } from 'react-icons/fa';
+import { FaStar, FaRegStar, FaEdit, FaTrash, FaHeart, FaShoppingCart, FaTicketAlt } from 'react-icons/fa';
 
 function ProfilePage() {
   const { userInfo } = useSelector((state) => state.user);
@@ -189,8 +189,78 @@ function ProfilePage() {
     }).format(price);
   };
 
-  if (!userInfo) return null;
+  // Coupon Section Component
+  const CouponSection = () => {
+    const [generating, setGenerating] = useState(false);
 
+    const handleGenerateCoupon = async () => {
+      if (generating) return;
+
+      setGenerating(true);
+      try {
+        const { data } = await generateCoupon();
+        if (data.success) {
+          // Cập nhật user info với coupon mới
+          dispatch(setCredentials({
+            ...userInfo,
+            coupon: data.coupon
+          }));
+          toast.success('Đã tạo mã giảm giá 30% thành công!');
+        }
+      } catch (error) {
+        toast.error('Không thể tạo mã giảm giá. Vui lòng thử lại sau!');
+      } finally {
+        setGenerating(false);
+      }
+    };
+
+    return (
+      <div className="bg-gray-800 shadow-lg rounded-lg p-8 mb-8">
+        <h2 className="text-2xl font-bold mb-6 text-gray-100 border-b border-gray-700 pb-4 flex items-center">
+          <FaTicketAlt className="text-purple-500 mr-2" /> Mã giảm giá của tôi
+        </h2>
+
+        {userInfo?.coupon?.code ? (
+          <div className="bg-gray-700 rounded-lg p-6 mb-4 border border-purple-500">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-100">Giảm {userInfo.coupon.discountPercent}% cho đơn hàng đầu tiên</h3>
+                <p className="text-gray-400 text-sm">
+                  {userInfo.coupon.used ? 'Đã sử dụng' : 'Chưa sử dụng'}
+                </p>
+              </div>
+              <div className="text-3xl font-bold text-purple-400 mt-2 md:mt-0">{userInfo.coupon.code}</div>
+            </div>
+            <div className="border-t border-gray-600 pt-4 mt-2">
+              <p className="text-gray-300 text-sm">
+                {userInfo.coupon.used
+                  ? 'Mã giảm giá này đã được sử dụng.'
+                  : 'Sử dụng mã này khi thanh toán để được giảm giá.'}
+              </p>
+              {userInfo.coupon.createdAt && (
+                <p className="text-gray-400 text-xs mt-2">
+                  Ngày tạo: {new Date(userInfo.coupon.createdAt).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-400 mb-4">Bạn chưa có mã giảm giá nào.</p>
+            <button
+              onClick={handleGenerateCoupon}
+              disabled={generating}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium shadow-md transition duration-300 inline-block disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generating ? 'Đang tạo...' : 'Tạo mã giảm giá'}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  if (!userInfo) return null;
   return (
     <div className="min-h-screen bg-gray-900 py-12 px-4 md:px-0">
       <div className="container mx-auto max-w-4xl">
@@ -323,7 +393,8 @@ function ProfilePage() {
               ))}
             </div>
           )}
-        </div>
+        </div>        {/* Mã giảm giá section */}
+        <CouponSection />
 
         <div className="bg-gray-800 shadow-lg rounded-lg p-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-100 border-b border-gray-700 pb-4">My Reviews</h2>
@@ -435,6 +506,8 @@ function ProfilePage() {
             </ul>
           )}
         </div>
+
+        <CouponSection />
       </div>
     </div>
   );
