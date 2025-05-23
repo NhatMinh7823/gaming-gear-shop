@@ -34,11 +34,11 @@ function ProfilePage() {
       navigate('/login');
       return;
     }
-    
+
     // Load profile data only if not loaded already
     const fetchProfile = async () => {
       if (dataLoadedRef.current.profile) return;
-      
+
       try {
         const { data } = await getProfile();
         setName(data.user.name);
@@ -48,11 +48,11 @@ function ProfilePage() {
         toast.error('Error fetching profile');
       }
     };
-    
+
     // Load reviews only if not loaded already
     const fetchMyReviews = async () => {
       if (dataLoadedRef.current.reviews) return;
-      
+
       try {
         const { data } = await getMyReviews();
         setMyReviews(data.reviews);
@@ -61,13 +61,13 @@ function ProfilePage() {
         toast.error('Error fetching reviews');
       }
     };
-      // Use wishlist data from Redux store instead of making a separate API call
+    // Use wishlist data from Redux store instead of making a separate API call
     const fetchWishlistData = async () => {
       if (dataLoadedRef.current.wishlist || !userInfo.token) return;
-      
+
       try {
         setLoadingWishlist(true);
-        
+
         // Check if wishlist data is already in Redux store
         if (wishlistItems.length > 0) {
           // If we have wishlist IDs in Redux, only fetch product details if needed
@@ -80,14 +80,14 @@ function ProfilePage() {
           const { data } = await getWishlist();
           if (data.success && data.wishlist) {
             setWishlistProducts(data.wishlist);
-            
+
             // Update Redux state only if needed
             const wishlistIds = data.wishlist.map(item => item._id);
             dispatch(updateWishlist(wishlistIds));
             dispatch(setWishlist(wishlistIds));
           }
         }
-        
+
         // Mark as loaded to prevent future API calls
         dataLoadedRef.current.wishlist = true;
       } catch (error) {
@@ -97,7 +97,7 @@ function ProfilePage() {
         setLoadingWishlist(false);
       }
     };
-    
+
     fetchProfile();
     fetchMyReviews();
     fetchWishlistData();
@@ -114,7 +114,7 @@ function ProfilePage() {
     }
   };  // Import the useWishlist hook outside, with the other hooks
   const { refreshWishlist } = useWishlist();
-  
+
   const handleWishlistAction = async (productId, action) => {
     try {
       if (action === 'add') {
@@ -126,10 +126,10 @@ function ProfilePage() {
       } else {
         await removeFromWishlist(productId);
         toast.success('Removed from wishlist');
-        
+
         // Remove product from local state immediately for UI responsiveness
         setWishlistProducts(prev => prev.filter(item => item._id !== productId));
-        
+
         // Update Redux state directly without an additional API call
         const updatedWishlistIds = wishlistItems.filter(id => id !== productId);
         dispatch(updateWishlist(updatedWishlistIds));
@@ -248,16 +248,16 @@ function ProfilePage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {wishlistProducts.map((product) => (
-                <div 
-                  key={product._id} 
+                <div
+                  key={product._id}
                   className="flex flex-col bg-gray-700 border border-gray-600 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   <div className="relative h-40 overflow-hidden">
                     <Link to={`/product/${product._id}`}>
                       {product.images && product.images.length > 0 ? (
-                        <img 
-                          src={product.images[0]} 
-                          alt={product.name} 
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
                           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                         />
                       ) : (
@@ -277,7 +277,7 @@ function ProfilePage() {
                     <Link to={`/product/${product._id}`} className="text-lg font-semibold text-gray-100 hover:text-blue-400 mb-1">
                       {product.name}
                     </Link>
-                    
+
                     <div className="flex items-center mb-2">
                       <div className="flex text-yellow-400">
                         {[...Array(5)].map((_, i) => (
@@ -290,7 +290,7 @@ function ProfilePage() {
                         ({product.numReviews || 0} reviews)
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between mt-auto">
                       <div>
                         {product.discountPrice ? (
@@ -308,7 +308,7 @@ function ProfilePage() {
                           </span>
                         )}
                       </div>
-                      
+
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleWishlistAction(product._id, 'remove')}
@@ -316,8 +316,8 @@ function ProfilePage() {
                         >
                           <FaTrash />
                         </button>
-                        
-                        <Link 
+
+                        <Link
                           to={`/product/${product._id}`}
                           className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors flex items-center justify-center"
                         >

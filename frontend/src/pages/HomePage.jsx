@@ -145,7 +145,7 @@ const HomePage = () => {
 
       // Check if the product is already in wishlist
       const isInWishlist = wishlistItems.includes(product._id);
-      
+
       if (isInWishlist) {
         // Remove from wishlist
         await removeFromWishlist(product._id);

@@ -23,36 +23,57 @@ exports.protect = async (req, res, next) => {
     });
   }
 
-  try {    // Verify token - log only when DEBUG is enabled
+  try {
+    // Verify token - log only when DEBUG is enabled
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Only log when DEBUG environment variable is set
-    if (process.env.DEBUG === 'true') {
-      console.log("Auth: Token verification successful for user ID:", decoded.id);
+    if (process.env.DEBUG === "true") {
+      console.log(
+        "Auth: Token verification successful for user ID:",
+        decoded.id
+      );
     }
 
     // Get user from the token
     const user = await User.findById(decoded.id).select("-password");
-    
+
     if (!user) {
-      console.error(`Protect Middleware: User not found in DB for ID: ${decoded.id}`);
+      console.error(
+        `Protect Middleware: User not found in DB for ID: ${decoded.id}`
+      );
       return res.status(401).json({
         success: false,
         message: "User associated with token not found. Not authorized.",
       });
     }
-    
+
     req.user = user; // Assign user to request object
 
     next();
   } catch (error) {
-    console.error("Error in protect middleware:", error.name, error.message, error.stack); // Log more details
-    
-    if (error.name === 'JsonWebTokenError') {
-        return res.status(401).json({ success: false, message: 'Invalid token. Please log in again.' });
+    console.error(
+      "Error in protect middleware:",
+      error.name,
+      error.message,
+      error.stack
+    ); // Log more details
+
+    if (error.name === "JsonWebTokenError") {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Invalid token. Please log in again.",
+        });
     }
-    if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({ success: false, message: 'Token expired. Please log in again.' });
+    if (error.name === "TokenExpiredError") {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Token expired. Please log in again.",
+        });
     }
     // Generic error for other cases during token processing
     return res.status(401).json({

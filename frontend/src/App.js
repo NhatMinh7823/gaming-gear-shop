@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Provider, useSelector } from "react-redux";
 import { ToastContainer } from "react-toastify";
-import { useEffect } from 'react';
+import { useEffect } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import { store } from "./redux/store";
 import Navbar from "./components/Navbar";
@@ -42,7 +42,7 @@ function AppContent() {
     // already handles loading data when user logs in
     // This prevents duplicate API calls
   }, []);
-  
+
   return (
     <div className="min-h-screen bg-gray-100 pt-[80px]">
       <Navbar />
@@ -69,19 +69,13 @@ function AppContent() {
             <Route path="products/new" element={<ProductFormPage />} />
             <Route path="products/edit/:id" element={<ProductFormPage />} />
             <Route path="orders" element={<AdminOrdersPage />} />
-            <Route
-              path="orders/:id"
-              element={<AdminOrderDetailPage />}
-            />{" "}
+            <Route path="orders/:id" element={<AdminOrderDetailPage />} />{" "}
             {/* Route for order details */}
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="users/edit/:id" element={<UserEditPage />} />
             <Route path="categories" element={<AdminCategoriesPage />} />
             <Route path="categories/new" element={<CategoryFormPage />} />
-            <Route
-              path="categories/edit/:id"
-              element={<CategoryFormPage />}
-            />
+            <Route path="categories/edit/:id" element={<CategoryFormPage />} />
           </Route>
         </Route>
       </Routes>

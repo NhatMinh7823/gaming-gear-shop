@@ -20,7 +20,7 @@ function LoginPage() {
     try {
       const { data } = await login({ email, password });
       dispatch(setCredentials({ ...data.user, token: data.token }));
-      
+
       // Load wishlist data after successful login
       try {
         const wishlistResponse = await getWishlist();
@@ -32,7 +32,7 @@ function LoginPage() {
       } catch (error) {
         console.error('Failed to load wishlist:', error);
       }
-      
+
       navigate('/');
       toast.success('Login successful! Welcome back, gamer!');
     } catch (error) {
@@ -49,7 +49,7 @@ function LoginPage() {
         <div className="absolute -top-40 -left-40 w-80 h-80 bg-blue-600 opacity-10 rounded-full blur-3xl"></div>
         <div className="absolute top-2/3 -right-20 w-96 h-96 bg-purple-600 opacity-10 rounded-full blur-3xl"></div>
       </div>
-      
+
       <div className="max-w-md w-full space-y-8 relative">
         <div className="text-center">
           <h2 className="mt-6 text-4xl font-extrabold text-gray-100 tracking-wider">
@@ -61,7 +61,7 @@ function LoginPage() {
             Access your gaming gear account
           </p>
         </div>
-        
+
         <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl p-8 backdrop-blur-sm bg-opacity-80">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -84,7 +84,7 @@ function LoginPage() {
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
                 Password
@@ -105,7 +105,7 @@ function LoginPage() {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
@@ -118,14 +118,14 @@ function LoginPage() {
                   Remember me
                 </label>
               </div>
-              
+
               <div className="text-sm">
                 <Link to="/forgot-password" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
                   Forgot your password?
                 </Link>
               </div>
             </div>
-            
+
             <div>
               <button
                 type="submit"
@@ -151,7 +151,7 @@ function LoginPage() {
               </button>
             </div>
           </form>
-          
+
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-400">
               Don't have an account?{' '}
@@ -161,7 +161,7 @@ function LoginPage() {
             </p>
           </div>
         </div>
-        
+
         <div className="text-center mt-4">
           <p className="text-xs text-gray-500">
             &copy; {new Date().getFullYear()} Gaming Gear Shop. All rights reserved.

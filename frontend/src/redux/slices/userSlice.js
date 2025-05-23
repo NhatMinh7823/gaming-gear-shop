@@ -22,11 +22,11 @@ const userSlice = createSlice({
       if (state.userInfo) {
         state.userInfo = {
           ...state.userInfo,
-          wishlist: action.payload
+          wishlist: action.payload,
         };
-        localStorage.setItem('userInfo', JSON.stringify(state.userInfo));
+        localStorage.setItem("userInfo", JSON.stringify(state.userInfo));
       }
-    }
+    },
   },
 });
 
