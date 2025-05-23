@@ -23,11 +23,13 @@ exports.protect = async (req, res, next) => {
     });
   }
 
-  try {
-    // Verify token
-    console.log("Token received by backend:", token); // Log token
+  try {    // Verify token - log only when DEBUG is enabled
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded token:", decoded); // Log decoded payload
+    
+    // Only log when DEBUG environment variable is set
+    if (process.env.DEBUG === 'true') {
+      console.log("Auth: Token verification successful for user ID:", decoded.id);
+    }
 
     // Get user from the token
     const user = await User.findById(decoded.id).select("-password");
@@ -41,7 +43,6 @@ exports.protect = async (req, res, next) => {
     }
     
     req.user = user; // Assign user to request object
-    console.log("Protect Middleware: User found from token:", req.user.email);
 
     next();
   } catch (error) {

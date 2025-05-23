@@ -1,11 +1,22 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setProducts } from "../redux/slices/productSlice";
-import api from "../services/api";
+import {
+  getFeaturedProducts,
+  getFeaturedCategories,
+  getProducts,
+  getProductReviews,
+  addCartItem,
+  addToWishlist,
+  removeFromWishlist
+} from "../services/api";
 import { FaStar, FaRegStar, FaShoppingCart, FaHeart, FaEye, FaRegHeart } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { setCart } from '../redux/slices/cartSlice';
+import { updateWishlist } from '../redux/slices/userSlice';
+import { setWishlist } from '../redux/slices/wishlistSlice';
+import useWishlist from '../hooks/useWishlist';
 
 
 const HomePage = () => {
@@ -22,6 +33,9 @@ const HomePage = () => {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [banners, setBanners] = useState([]);
   const [loadingProductIds, setLoadingProductIds] = useState([]);
+  const { userInfo } = useSelector((state) => state.user);
+  const { wishlistItems } = useSelector((state) => state.wishlist);
+  const [loadingWishlistIds, setLoadingWishlistIds] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,8 +43,8 @@ const HomePage = () => {
       setLoadingCategories(true);
       try {
         const [productsResponse, categoriesResponse] = await Promise.all([
-          api.get("/products/featured"),
-          api.get("/categories/featured"),
+          getFeaturedProducts(),
+          getFeaturedCategories(),
         ]);
 
         dispatch(
@@ -43,7 +57,7 @@ const HomePage = () => {
         setCategories(categoriesResponse.data.categories);
 
         // Lấy danh sách thương hiệu
-        const allProductsResponse = await api.get("/products", { params: { limit: 100 } });
+        const allProductsResponse = await getProducts({ limit: 100 });
         const uniqueBrands = [
           ...new Set(allProductsResponse.data.products.map((p) => p.brand)),
         ].slice(0, 6);
@@ -52,7 +66,7 @@ const HomePage = () => {
         // Lấy đánh giá từ các sản phẩm nổi bật
         const reviewPromises = productsResponse.data.products
           .slice(0, 3)
-          .map((product) => api.get(`/reviews/product/${product._id}`));
+          .map((product) => getProductReviews(product._id));
         const reviewResponses = await Promise.all(reviewPromises);
         const topReviews = reviewResponses
           .flatMap((res) => res.data.reviews)
@@ -72,7 +86,6 @@ const HomePage = () => {
   }, [dispatch]);
 
   useEffect(() => {
-
     const bannerImages = [
       "banner_6.png",
       "banner_7.png",
@@ -114,6 +127,50 @@ const HomePage = () => {
       </div>
     </div>
   );
+  // Get the refreshWishlist method from our custom hook
+  const { refreshWishlist } = useWishlist();
+
+  const handleWishlistClick = async (e, product) => {
+    e.stopPropagation();
+
+    // Check if user is logged in
+    if (!userInfo) {
+      toast.info("Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích");
+      navigate('/login');
+      return;
+    }
+
+    try {
+      setLoadingWishlistIds(prev => [...prev, product._id]);
+
+      // Check if the product is already in wishlist
+      const isInWishlist = wishlistItems.includes(product._id);
+      
+      if (isInWishlist) {
+        // Remove from wishlist
+        await removeFromWishlist(product._id);
+        // Update local Redux state immediately for better UX
+        const updatedWishlistIds = wishlistItems.filter(id => id !== product._id);
+        dispatch(updateWishlist(updatedWishlistIds));
+        dispatch(setWishlist(updatedWishlistIds));
+        toast.success(`Đã xóa ${product.name} khỏi danh sách yêu thích`);
+      } else {
+        // Add to wishlist - use our API function and update local state
+        const response = await addToWishlist(product._id);
+        if (response.data && response.data.success) {
+          const wishlistIds = response.data.wishlist;
+          dispatch(updateWishlist(wishlistIds));
+          dispatch(setWishlist(wishlistIds));
+          toast.success(`Đã thêm ${product.name} vào danh sách yêu thích`);
+        }
+      }
+    } catch (error) {
+      toast.error('Không thể cập nhật danh sách yêu thích');
+      console.error('Wishlist error:', error);
+    } finally {
+      setLoadingWishlistIds(prev => prev.filter(id => id !== product._id));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -294,15 +351,18 @@ const HomePage = () => {
                     )}
                     <div className="absolute top-2 right-2 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Wishlist logic - you can implement a proper service call here
-                          toast.info(`Added ${product.name} to wishlist`);
-                        }}
+                        onClick={(e) => handleWishlistClick(e, product)}
+                        disabled={loadingWishlistIds.includes(product._id)}
                         className="bg-white text-gray-800 p-2 rounded-full shadow-md hover:bg-gray-100 hover:text-red-500 transition-colors duration-300"
                         aria-label="Add to wishlist"
                       >
-                        <FaRegHeart size={16} />
+                        {loadingWishlistIds.includes(product._id) ? (
+                          <div className="animate-spin h-4 w-4 border-2 border-gray-800 border-t-transparent rounded-full"></div>
+                        ) : wishlistItems.includes(product._id) ? (
+                          <FaHeart size={16} className="text-red-500" />
+                        ) : (
+                          <FaRegHeart size={16} />
+                        )}
                       </button>
                       <button
                         onClick={(e) => {
@@ -368,11 +428,11 @@ const HomePage = () => {
                       <button
                         onClick={async (e) => {
                           e.stopPropagation();
-                          e.preventDefault(); // Thêm dòng này
+                          e.preventDefault();
                           if (product.countInStock > 0) {
                             try {
                               setLoadingProductIds(prev => [...prev, product._id]);
-                              const { data } = await api.post('/cart/items', {
+                              const { data } = await addCartItem({
                                 productId: product._id,
                                 quantity: 1
                               });

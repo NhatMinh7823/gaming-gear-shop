@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { login } from '../services/api';
-import { setCredentials } from '../redux/slices/userSlice';
+import { login, getWishlist } from '../services/api';
+import { setCredentials, updateWishlist } from '../redux/slices/userSlice';
+import { setWishlist } from '../redux/slices/wishlistSlice';
 import { FaLock, FaEnvelope, FaSignInAlt } from 'react-icons/fa';
 
 function LoginPage() {
@@ -19,6 +20,19 @@ function LoginPage() {
     try {
       const { data } = await login({ email, password });
       dispatch(setCredentials({ ...data.user, token: data.token }));
+      
+      // Load wishlist data after successful login
+      try {
+        const wishlistResponse = await getWishlist();
+        if (wishlistResponse.data.success && wishlistResponse.data.wishlist) {
+          const wishlistIds = wishlistResponse.data.wishlist.map(item => item._id || item);
+          dispatch(updateWishlist(wishlistIds));
+          dispatch(setWishlist(wishlistIds));
+        }
+      } catch (error) {
+        console.error('Failed to load wishlist:', error);
+      }
+      
       navigate('/');
       toast.success('Login successful! Welcome back, gamer!');
     } catch (error) {

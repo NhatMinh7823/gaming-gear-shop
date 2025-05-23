@@ -61,10 +61,15 @@ export const register = (data) => api.post("/users/register", data);
 export const login = (data) => api.post("/users/login", data);
 export const getProfile = () => api.get("/users/profile");
 export const updateProfile = (data) => api.put("/users/profile", data);
-export const addToWishlist = (productId) =>
-  api.post("/users/wishlist", { productId });
-export const removeFromWishlist = (productId) =>
-  api.delete(`/users/wishlist/${productId}`);
+export const addToWishlist = async (productId) => {
+  return await api.post('/users/wishlist', { productId });
+};
+export const removeFromWishlist = async (productId) => {
+  return await api.delete(`/users/wishlist/${productId}`);
+};
+export const getWishlist = async () => {
+  return await api.get('/users/wishlist');
+};
 
 // Product APIs
 export const getProducts = (params = {}) => {

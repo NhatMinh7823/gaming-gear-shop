@@ -219,6 +219,36 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
+// @desc    Get user wishlist
+// @route   GET /api/users/wishlist
+// @access  Private
+exports.getWishlist = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate({
+      path: 'wishlist',
+      select: 'name price images discountPrice countInStock averageRating numReviews'
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      wishlist: user.wishlist || [],
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
 // @desc    Add product to wishlist
 // @route   POST /api/users/wishlist
 // @access  Private

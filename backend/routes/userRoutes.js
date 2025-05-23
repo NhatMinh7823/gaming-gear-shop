@@ -8,6 +8,7 @@ const {
   updateUserProfile,
   updatePassword,
   addToWishlist,
+  getWishlist,
   removeFromWishlist,
   getAllUsers,
   getUserById,
@@ -27,6 +28,7 @@ router.put("/profile", protect, updateUserProfile);
 router.put("/password", protect, updatePassword);
 router.post("/wishlist", protect, addToWishlist);
 router.delete("/wishlist/:productId", protect, removeFromWishlist);
+router.get("/wishlist", protect, getWishlist);
 
 // Admin routes
 router.get("/", protect, authorize("admin"), getAllUsers);

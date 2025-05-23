@@ -18,8 +18,17 @@ const userSlice = createSlice({
       state.userInfo = null;
       localStorage.removeItem("userInfo");
     },
+    updateWishlist: (state, action) => {
+      if (state.userInfo) {
+        state.userInfo = {
+          ...state.userInfo,
+          wishlist: action.payload
+        };
+        localStorage.setItem('userInfo', JSON.stringify(state.userInfo));
+      }
+    }
   },
 });
 
-export const { setCredentials, logout } = userSlice.actions;
+export const { setCredentials, logout, updateWishlist } = userSlice.actions;
 export default userSlice.reducer;

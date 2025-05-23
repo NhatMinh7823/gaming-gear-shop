@@ -49,7 +49,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const vnpayRoutes = require("./routes/vnpayRoutes");
-// const uploadRoutes = require("./routes/uploadRoutes");
+const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 // Use routes
 app.use("/api/users", userRoutes);
@@ -59,7 +59,6 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/payment", vnpayRoutes);
-// app.use("/api/upload", uploadRoutes);
 
 // Ghi log chi tiết cho trường hợp VNPay
 app.use("/api/vnpay", (req, res, next) => {
@@ -75,9 +74,6 @@ app.use("/api/vnpay", (req, res, next) => {
 
 app.use("/api/vnpay", vnpayRoutes);
 
-// Import error middleware
-const { notFound, errorHandler } = require("./middleware/errorMiddleware");
-
 // Root route
 app.get("/", (req, res) => {
   res.send("Gaming Gear Shop API is running");
@@ -90,5 +86,5 @@ app.use(errorHandler);
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+  console.log(`Server running on port ${PORT}`);
 });
