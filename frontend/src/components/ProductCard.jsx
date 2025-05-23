@@ -1,7 +1,45 @@
-import { Link } from 'react-router-dom';
-import { FaStar, FaRegStar, FaShoppingCart } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { FaStar, FaRegStar, FaShoppingCart, FaBoxOpen, FaHeart, FaRegHeart } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import { addToWishlist, removeFromWishlist } from '../services/api';
+import useWishlist from '../hooks/useWishlist';
+import { useState } from 'react';
 
 function ProductCard({ product }) {
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.user);
+  const { wishlistItems } = useSelector((state) => state.wishlist);
+  const { refreshWishlist } = useWishlist();
+  const [loadingWishlist, setLoadingWishlist] = useState(false);
+
+  const handleWishlistClick = async (e) => {
+    e.preventDefault(); // Prevent navigating to product detail
+    e.stopPropagation();
+
+    if (!userInfo) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      setLoadingWishlist(true);
+      if (wishlistItems.includes(product._id)) {
+        await removeFromWishlist(product._id);
+        toast.success('Removed from wishlist');
+      } else {
+        await addToWishlist(product._id);
+        toast.success('Added to wishlist');
+      }
+      // Refresh wishlist to update the UI
+      await refreshWishlist(true);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error updating wishlist');
+    } finally {
+      setLoadingWishlist(false);
+    }
+  };
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -29,6 +67,12 @@ function ProductCard({ product }) {
 
   const discount = calculateDiscount(product.price, product.discountPrice);
 
+  const getStockStatusClass = (stock) => {
+    if (stock <= 0) return 'text-red-500';
+    if (stock <= 5) return 'text-yellow-500';
+    return 'text-green-500';
+  };
+
   return (
     <div className="bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group border border-gray-700">
       <div className="relative overflow-hidden">
@@ -42,6 +86,21 @@ function ProductCard({ product }) {
             -{discount}%
           </div>
         )}
+        {/* Wishlist Button */}
+        <button
+          onClick={handleWishlistClick}
+          disabled={loadingWishlist}
+          className="absolute top-2 left-2 p-2 rounded-full bg-white/90 hover:bg-white transition-colors duration-300"
+          aria-label={wishlistItems.includes(product._id) ? 'Remove from wishlist' : 'Add to wishlist'}
+        >
+          {loadingWishlist ? (
+            <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+          ) : wishlistItems.includes(product._id) ? (
+            <FaHeart className="w-4 h-4 text-red-500" />
+          ) : (
+            <FaRegHeart className="w-4 h-4 text-gray-800" />
+          )}
+        </button>
       </div>
 
       <div className="p-4">
@@ -53,6 +112,17 @@ function ProductCard({ product }) {
             {renderStars(product.averageRating || 0)}
             <span className="text-sm text-gray-400 ml-1">
               ({product.numReviews || 0})
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1 mb-2">
+            <FaBoxOpen className={getStockStatusClass(product.stock)} />
+            <span className={`text-sm ${getStockStatusClass(product.stock)}`}>
+              {product.stock <= 0
+                ? 'Hết hàng'
+                : product.stock <= 5
+                  ? `Còn ${product.stock} sản phẩm`
+                  : 'Còn hàng'}
             </span>
           </div>
         </div>
@@ -70,7 +140,7 @@ function ProductCard({ product }) {
               )}
             </div>
           </div>
-          
+
           <Link
             to={`/product/${product._id}`}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg 

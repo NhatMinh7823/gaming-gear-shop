@@ -15,6 +15,7 @@ exports.getProducts = async (req, res) => {
       minPrice,
       maxPrice,
       brand,
+      stockStatus,
       ...otherFilters
     } = req.query;
 
@@ -30,9 +31,9 @@ exports.getProducts = async (req, res) => {
           const Category = require("../models/categoryModel");
           const categoryDoc = await Category.findOne({
             $or: [
-              { name: { $regex: new RegExp(category, 'i') }},
-              { slug: category.toLowerCase().replace(/[^a-zA-Z0-9]/g, "-") }
-            ]
+              { name: { $regex: new RegExp(category, "i") } },
+              { slug: category.toLowerCase().replace(/[^a-zA-Z0-9]/g, "-") },
+            ],
           });
           if (categoryDoc) {
             queryConditions.category = categoryDoc._id;
@@ -44,6 +45,22 @@ exports.getProducts = async (req, res) => {
     }
     if (brand && brand !== "")
       queryConditions.brand = { $regex: brand, $options: "i" };
+
+    // Xử lý lọc theo tình trạng tồn kho
+    if (stockStatus) {
+      switch (stockStatus) {
+        case "in_stock":
+          queryConditions.stock = { $gt: 5 };
+          break;
+        case "low_stock":
+          queryConditions.stock = { $gt: 0, $lte: 5 };
+          break;
+        case "out_of_stock":
+          queryConditions.stock = { $lte: 0 };
+          break;
+      }
+    }
+
     const priceCondition = {};
     if (minPrice !== undefined && minPrice !== "") {
       const parsedMinPrice = parseFloat(minPrice);
@@ -155,19 +172,19 @@ exports.createProduct = async (req, res) => {
     const images = [];
     if (req.files && req.files.images) {
       for (const file of req.files.images) {
-        const uploadType = 'products';
+        const uploadType = "products";
         const relativePath = `/uploads/images/${uploadType}/${file.filename}`;
         images.push({
           url: relativePath,
           filename: file.filename,
-          public_id: file.filename
+          public_id: file.filename,
         });
       }
     }
 
     const productData = {
       ...req.body,
-      images: images
+      images: images,
     };
 
     const product = await Product.create(productData);
@@ -233,12 +250,12 @@ exports.updateProduct = async (req, res) => {
     if (req.files && req.files.images) {
       for (const file of req.files.images) {
         try {
-          const uploadType = 'products';
+          const uploadType = "products";
           const relativePath = `/uploads/images/${uploadType}/${file.filename}`;
           newImages.push({
             url: relativePath,
             filename: file.filename,
-            public_id: file.filename
+            public_id: file.filename,
           });
         } catch (uploadError) {
           console.error("Error uploading file:", uploadError);
@@ -430,11 +447,13 @@ exports.searchProducts = async (req, res) => {
       minPrice,
       maxPrice,
       brand,
+      stockStatus,
     } = req.query;
     if (!keyword) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Please provide a search keyword" });
+      return res.status(400).json({
+        success: false,
+        message: "Keyword is required",
+      });
     }
 
     const query = {
@@ -456,6 +475,21 @@ exports.searchProducts = async (req, res) => {
     }
     if (brand) {
       query.brand = { $regex: brand, $options: "i" };
+    }
+
+    // Xử lý lọc theo tình trạng tồn kho
+    if (stockStatus) {
+      switch (stockStatus) {
+        case "in_stock":
+          query.stock = { $gt: 5 };
+          break;
+        case "low_stock":
+          query.stock = { $gt: 0, $lte: 5 };
+          break;
+        case "out_of_stock":
+          query.stock = { $lte: 0 };
+          break;
+      }
     }
 
     const skip = (page - 1) * limit;
@@ -489,7 +523,9 @@ exports.getSearchSuggestions = async (req, res) => {
   try {
     const { keyword } = req.query;
     if (!keyword) {
-      return res.status(400).json({ success: false, message: "Please provide a keyword" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Please provide a keyword" });
     }
 
     const suggestions = await Product.aggregate([
@@ -501,7 +537,9 @@ exports.getSearchSuggestions = async (req, res) => {
 
     res.status(200).json({ success: true, suggestions });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
   }
 };
 

@@ -5,8 +5,10 @@ import { setProducts as setProductAction } from '../redux/slices/productSlice';
 import { toast } from 'react-toastify';
 import { getProducts, searchProducts, getCategories, getSearchSuggestions } from '../services/api';
 import ProductCard from '../components/ProductCard';
-import { FaSearch, FaFilter, FaSlidersH, FaTimes, FaSort, FaBox, FaTags, 
-         FaDollarSign, FaShoppingBag, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import {
+  FaSearch, FaFilter, FaSlidersH, FaTimes, FaSort, FaBox, FaTags,
+  FaDollarSign, FaShoppingBag, FaChevronLeft, FaChevronRight, FaBoxOpen
+} from 'react-icons/fa';
 
 function ProductsPage() {
   const dispatch = useDispatch();
@@ -24,6 +26,7 @@ function ProductsPage() {
   const [brand, setBrand] = useState('');
   const [loading, setLoading] = useState(false);
   const [expandFilters, setExpandFilters] = useState(false);
+  const [stockStatus, setStockStatus] = useState('');  // Thêm state cho tình trạng tồn kho
   const searchRef = useRef(null);
 
   // Initialize state from URL parameters on component mount
@@ -35,6 +38,7 @@ function ProductsPage() {
     if (params.minPrice) setMinPrice(params.minPrice);
     if (params.maxPrice) setMaxPrice(params.maxPrice);
     if (params.brand) setBrand(params.brand);
+    if (params.stockStatus) setStockStatus(params.stockStatus);
   }, [searchParams]);
 
   useEffect(() => {
@@ -61,6 +65,7 @@ function ProductsPage() {
         const minPriceParam = params.minPrice || minPrice;
         const maxPriceParam = params.maxPrice || maxPrice;
         const brandParam = params.brand || brand;
+        const stockStatusParam = params.stockStatus || stockStatus;  // Thêm tham số tình trạng tồn kho
 
         let data;
         if (params.keyword) {
@@ -73,6 +78,7 @@ function ProductsPage() {
             minPrice: minPriceParam,
             maxPrice: maxPriceParam,
             brand: brandParam,
+            stockStatus: stockStatusParam,  // Thêm tham số tình trạng tồn kho
           });
           data = response.data;
         } else {
@@ -85,6 +91,7 @@ function ProductsPage() {
             minPrice: minPriceParam,
             maxPrice: maxPriceParam,
             brand: brandParam,
+            stockStatus: stockStatusParam,  // Thêm tham số tình trạng tồn kho
           });
           data = response.data;
         }
@@ -98,7 +105,7 @@ function ProductsPage() {
       }
     };
     fetchProducts();
-  }, [dispatch, searchParams, currentPage, sort, category, minPrice, maxPrice, brand]);
+  }, [dispatch, searchParams, currentPage, sort, category, minPrice, maxPrice, brand, stockStatus]);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -116,41 +123,43 @@ function ProductsPage() {
         setShowSuggestions(false);
       }
     };
-    
+
     const debounceTimer = setTimeout(() => {
       if (search.length >= 2) {
         fetchSuggestions();
       }
     }, 300);
-    
+
     return () => clearTimeout(debounceTimer);
   }, [search]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     setShowSuggestions(false);
-    setSearchParams({ 
-      ...(search && { keyword: search }), 
+    setSearchParams({
+      ...(search && { keyword: search }),
       page: 1,
       ...(sort && { sort }),
       ...(category && { category }),
       ...(minPrice && { minPrice }),
       ...(maxPrice && { maxPrice }),
-      ...(brand && { brand })
+      ...(brand && { brand }),
+      ...(stockStatus && { stockStatus })  // Thêm tình trạng tồn kho vào tham số tìm kiếm
     });
   };
 
   const handleSuggestionClick = (suggestion) => {
     setSearch(suggestion.name);
     setShowSuggestions(false);
-    setSearchParams({ 
-      keyword: suggestion.name, 
+    setSearchParams({
+      keyword: suggestion.name,
       page: 1,
       ...(sort && { sort }),
       ...(category && { category }),
       ...(minPrice && { minPrice }),
       ...(maxPrice && { maxPrice }),
-      ...(brand && { brand })
+      ...(brand && { brand }),
+      ...(stockStatus && { stockStatus })  // Thêm tình trạng tồn kho vào tham số tìm kiếm
     });
   };
 
@@ -165,10 +174,10 @@ function ProductsPage() {
     const sortValue = e.target.value;
     setSort(sortValue);
     const params = Object.fromEntries(searchParams);
-    setSearchParams({ 
-      ...params, 
-      sort: sortValue, 
-      page: 1 
+    setSearchParams({
+      ...params,
+      sort: sortValue,
+      page: 1
     });
   };
 
@@ -176,23 +185,35 @@ function ProductsPage() {
     const categoryValue = e.target.value;
     setCategory(categoryValue);
     const params = Object.fromEntries(searchParams);
-    setSearchParams({ 
-      ...params, 
-      category: categoryValue, 
-      page: 1 
+    setSearchParams({
+      ...params,
+      category: categoryValue,
+      page: 1
+    });
+  };
+
+  const handleStockStatusChange = (e) => {
+    const stockValue = e.target.value;
+    setStockStatus(stockValue);
+    const params = Object.fromEntries(searchParams);
+    setSearchParams({
+      ...params,
+      stockStatus: stockValue,
+      page: 1
     });
   };
 
   const handleFilterChange = () => {
     const params = Object.fromEntries(searchParams);
-    setSearchParams({ 
-      ...params, 
+    setSearchParams({
+      ...params,
       ...(minPrice && { minPrice }),
       ...(maxPrice && { maxPrice }),
       ...(brand && { brand }),
-      page: 1 
+      ...(stockStatus && { stockStatus }),  // Thêm tình trạng tồn kho vào tham số lọc
+      page: 1
     });
-    
+
     // Only close filters on mobile after applying
     if (window.innerWidth < 768) {
       setExpandFilters(false);
@@ -206,7 +227,8 @@ function ProductsPage() {
     setCategory('');
     setSort('-createdAt');
     setSearch('');
-    
+    setStockStatus('');  // Thêm reset cho tình trạng tồn kho
+
     setSearchParams({ page: 1 });
   };
 
@@ -216,7 +238,8 @@ function ProductsPage() {
     brand !== '',
     category !== '',
     sort !== '' && sort !== '-createdAt',
-    searchParams.has('keyword')
+    searchParams.has('keyword'),
+    stockStatus !== ''  // Thêm tình trạng tồn kho vào đếm bộ lọc
   ].filter(Boolean).length;
 
   const formatPrice = (price) => {
@@ -231,7 +254,7 @@ function ProductsPage() {
       <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white rounded-2xl p-8 mb-8">
         <h1 className="text-3xl md:text-4xl font-bold mb-4">Gaming Products</h1>
         <p className="text-blue-100 text-lg">
-          {isSearching 
+          {isSearching
             ? `Showing search results for "${searchParams.get('keyword')}"`
             : 'Browse our collection of high-quality gaming gear'}
         </p>
@@ -271,7 +294,7 @@ function ProductsPage() {
                 )}
               </div>
               {filterCount > 0 && (
-                <button 
+                <button
                   onClick={clearFilters}
                   className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
                 >
@@ -280,7 +303,7 @@ function ProductsPage() {
                 </button>
               )}
             </div>
-            
+
             {/* Search Box */}
             <div className="mb-6">
               <div className="flex items-center gap-2 text-gray-800 mb-3">
@@ -298,14 +321,14 @@ function ProductsPage() {
                   ref={searchRef}
                 />
                 <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <button 
+                <button
                   type="submit"
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white 
                            p-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <FaSearch className="w-4 h-4" />
                 </button>
-                
+
                 {/* Search Suggestions */}
                 {showSuggestions && suggestions.length > 0 && (
                   <ul className="absolute z-20 bg-gray-700 w-full mt-2 border border-gray-600 rounded-xl 
@@ -329,7 +352,7 @@ function ProductsPage() {
                 )}
               </form>
             </div>
-            
+
             {/* Category Filter */}
             <div className="mb-6">
               <div className="flex items-center gap-2 text-gray-800 mb-3">
@@ -343,14 +366,14 @@ function ProductsPage() {
                   className="w-full bg-transparent border-2 border-gray-600 rounded-lg px-3 py-2.5 
                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none text-white"
                 >
-                  <option value="">All Categories</option>
+                  <option value="" className="bg-gray-800 text-white">All Categories</option>
                   {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    <option key={cat._id} value={cat._id} className="bg-gray-800 text-white">{cat.name}</option>
                   ))}
                 </select>
               </div>
             </div>
-            
+
             {/* Price Range */}
             <div className="mb-6">
               <div className="flex items-center gap-2 text-gray-800 mb-3">
@@ -382,7 +405,7 @@ function ProductsPage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Brand Filter */}
             <div className="mb-6">
               <div className="flex items-center gap-2 text-gray-800 mb-3">
@@ -400,8 +423,29 @@ function ProductsPage() {
                 />
               </div>
             </div>
-            
-            {/* Sort Order */}
+
+            {/* Stock Status Filter */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 text-gray-800 mb-3">
+                <FaBoxOpen className="text-blue-600" />
+                <label className="font-medium">Stock Status</label>
+              </div>
+              <div className="bg-gray-700 rounded-xl p-2">
+                <select
+                  value={stockStatus}
+                  onChange={handleStockStatusChange}
+                  className="w-full bg-transparent border-2 border-gray-600 rounded-lg px-3 py-2.5 
+                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none text-white"
+                >
+                  <option value="" className="bg-gray-800 text-white">All Products</option>
+                  <option value="in_stock" className="bg-gray-800 text-white">In Stock</option>
+                  <option value="low_stock" className="bg-gray-800 text-white">Low Stock (5 or less)</option>
+                  <option value="out_of_stock" className="bg-gray-800 text-white">Out of Stock</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Sort Options */}
             <div className="mb-6">
               <div className="flex items-center gap-2 text-gray-800 mb-3">
                 <FaSort className="text-blue-600" />
@@ -414,14 +458,14 @@ function ProductsPage() {
                   className="w-full bg-transparent border-2 border-gray-600 rounded-lg px-3 py-2.5
                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none text-white"
                 >
-                  <option value="-createdAt">Newest First</option>
-                  <option value="price">Price: Low to High</option>
-                  <option value="-price">Price: High to Low</option>
-                  <option value="-averageRating">Highest Rated</option>
+                  <option value="-createdAt" className="bg-gray-800 text-white">Newest First</option>
+                  <option value="price" className="bg-gray-800 text-white">Price: Low to High</option>
+                  <option value="-price" className="bg-gray-800 text-white">Price: High to Low</option>
+                  <option value="-averageRating" className="bg-gray-800 text-white">Highest Rated</option>
                 </select>
               </div>
             </div>
-            
+
             <button
               onClick={handleFilterChange}
               className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 
@@ -434,7 +478,7 @@ function ProductsPage() {
             </button>
           </div>
         </div>
-        
+
         {/* Main Content */}
         <div className="md:w-3/4" id="products-section">
           {/* Product Grid */}
@@ -482,7 +526,7 @@ function ProductsPage() {
                   </div>
                 ))}
               </div>
-              
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="mt-10 flex justify-center">
@@ -491,17 +535,16 @@ function ProductsPage() {
                     <button
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className={`px-4 py-2 rounded-md ${
-                        currentPage === 1
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
+                      className={`px-4 py-2 rounded-md ${currentPage === 1
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-700 hover:bg-gray-100'
+                        }`}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </button>
-                    
+
                     {/* Page Numbers */}
                     {[...Array(Math.min(5, totalPages))].map((_, index) => {
                       // Calculate page numbers to show (current page centered when possible)
@@ -513,31 +556,29 @@ function ProductsPage() {
                         const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
                         pageNum = startPage + index;
                       }
-                      
+
                       return (
                         <button
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
-                          className={`min-w-[40px] px-4 py-2 rounded-md ${
-                            currentPage === pageNum
-                              ? 'bg-blue-600 text-white'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`min-w-[40px] px-4 py-2 rounded-md ${currentPage === pageNum
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                           {pageNum}
                         </button>
                       );
                     })}
-                    
+
                     {/* Next Button */}
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className={`px-4 py-2 rounded-md ${
-                        currentPage === totalPages
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
+                      className={`px-4 py-2 rounded-md ${currentPage === totalPages
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-700 hover:bg-gray-100'
+                        }`}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -554,11 +595,11 @@ function ProductsPage() {
               </svg>
               <h3 className="text-lg font-semibold text-white mb-2">No products found</h3>
               <p className="text-gray-300 mb-4">
-                {isSearching 
+                {isSearching
                   ? `We couldn't find any products matching "${searchParams.get('keyword')}"`
                   : "There are no products matching your selected filters."}
               </p>
-              <button 
+              <button
                 onClick={clearFilters}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
               >

@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
-import { getProductById, createReview, addCartItem } from '../services/api';
+import { getProductById, createReview, addCartItem, addToWishlist, removeFromWishlist } from '../services/api';
 import { setCart } from '../redux/slices/cartSlice';
-import { FaStar, FaRegStar, FaShoppingCart, FaMinus, FaPlus, FaCheck, 
-         FaArrowLeft, FaSpinner, FaExclamationCircle } from 'react-icons/fa';
+import {
+  FaStar, FaRegStar, FaShoppingCart, FaMinus, FaPlus, FaCheck,
+  FaArrowLeft, FaSpinner, FaExclamationCircle, FaBoxOpen, FaHeart, FaRegHeart
+} from 'react-icons/fa';
+import useWishlist from '../hooks/useWishlist';
 
 function ProductPage() {
   const { id } = useParams();
@@ -16,9 +19,17 @@ function ProductPage() {
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
+  const [loadingWishlist, setLoadingWishlist] = useState(false);
   const { userInfo } = useSelector((state) => state.user);
+  const { wishlistItems } = useSelector((state) => state.wishlist);
+  const { refreshWishlist } = useWishlist();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Cuộn trang lên đầu khi component được mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -80,6 +91,30 @@ function ProductPage() {
       setProduct(data.product);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error submitting review');
+    }
+  };
+
+  const handleWishlistClick = async () => {
+    if (!userInfo) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      setLoadingWishlist(true);
+      if (wishlistItems.includes(id)) {
+        await removeFromWishlist(id);
+        toast.success('Removed from wishlist');
+      } else {
+        await addToWishlist(id);
+        toast.success('Added to wishlist');
+      }
+      // Refresh wishlist to update the UI
+      await refreshWishlist(true);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error updating wishlist');
+    } finally {
+      setLoadingWishlist(false);
     }
   };
 
@@ -151,10 +186,19 @@ function ProductPage() {
 
   const discount = calculateDiscount(product.price, product.discountPrice);
 
+  // Hàm xác định trạng thái tồn kho và màu sắc tương ứng
+  const getStockStatus = () => {
+    if (product.stock <= 0) return { text: 'Hết hàng', color: 'text-red-500 bg-red-900/30' };
+    if (product.stock <= 5) return { text: `Còn ${product.stock} sản phẩm`, color: 'text-yellow-500 bg-yellow-900/30' };
+    return { text: 'Còn hàng', color: 'text-green-500 bg-green-900/30' };
+  };
+
+  const stockStatus = getStockStatus();
+
   return (
     <div className="min-h-screen bg-gray-900 py-8 px-4">
       <div className="container mx-auto">
-        <Link 
+        <Link
           to="/products"
           className="inline-flex items-center gap-2 text-gray-300 hover:text-gray-100 mb-6 transition-colors"
         >
@@ -183,8 +227,27 @@ function ProductPage() {
             {/* Product Details */}
             <div className="flex flex-col">
               <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-100 mb-4">{product.name}</h1>
-                
+                <div className="flex justify-between items-start mb-4">
+                  <h1 className="text-3xl font-bold text-gray-100">{product.name}</h1>
+                  <button
+                    onClick={handleWishlistClick}
+                    disabled={loadingWishlist}
+                    className={`p-3 rounded-full ${wishlistItems.includes(id)
+                        ? 'bg-red-500/10 hover:bg-red-500/20'
+                        : 'bg-gray-700 hover:bg-gray-600'
+                      } transition-colors duration-300`}
+                    aria-label={wishlistItems.includes(id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                  >
+                    {loadingWishlist ? (
+                      <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                    ) : wishlistItems.includes(id) ? (
+                      <FaHeart className="w-6 h-6 text-red-500" />
+                    ) : (
+                      <FaRegHeart className="w-6 h-6 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+
                 <div className="flex items-center gap-2 mb-4">
                   <div className="flex gap-1">
                     {renderStars(product.averageRating || 0)}
@@ -192,6 +255,14 @@ function ProductPage() {
                   <span className="text-gray-400">
                     ({product.numReviews} reviews)
                   </span>
+                </div>
+
+                {/* Hiển thị trạng thái tồn kho */}
+                <div className="flex items-center gap-2 mb-4">
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md ${stockStatus.color}`}>
+                    <FaBoxOpen />
+                    <span className="font-medium">{stockStatus.text}</span>
+                  </div>
                 </div>
 
                 <div className="flex items-baseline gap-3 mb-4">
@@ -224,37 +295,40 @@ function ProductPage() {
                     <input
                       type="number"
                       min="1"
+                      max={product.stock}
                       value={quantity}
-                      onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                      onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, Number(e.target.value))))}
                       className="w-16 text-center border-x-2 border-gray-600 py-2 focus:outline-none bg-gray-700 text-gray-200"
                     />
                     <button
-                      onClick={() => setQuantity(quantity + 1)}
+                      onClick={() => setQuantity(Math.min(quantity + 1, product.stock))}
                       className="px-3 py-2 text-gray-300 hover:text-blue-400 transition-colors"
+                      disabled={quantity >= product.stock}
                     >
-                      <FaPlus />
+                      <FaPlus className={quantity >= product.stock ? 'text-gray-500' : ''} />
                     </button>
                   </div>
                 </div>
 
                 <button
                   onClick={handleAddToCart}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 
-                           rounded-xl hover:from-blue-700 hover:to-blue-800 transition duration-300 
-                           flex items-center justify-center gap-2 font-medium shadow-md"
+                  className={`w-full bg-gradient-to-r ${product.stock <= 0 ? 'from-gray-600 to-gray-700 cursor-not-allowed' : 'from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'} text-white px-8 py-3 
+                           rounded-xl transition duration-300 
+                           flex items-center justify-center gap-2 font-medium shadow-md`}
+                  disabled={product.stock <= 0}
                 >
                   <FaShoppingCart />
-                  <span>Add to Cart</span>
+                  <span>{product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Reviews Section */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold text-gray-100 mb-6">Customer Reviews</h2>
-          
+
           {userInfo && (
             <div className="bg-gray-800 rounded-xl shadow-md p-6 mb-8">
               <h3 className="text-lg font-semibold text-gray-100 mb-4">Write a Review</h3>

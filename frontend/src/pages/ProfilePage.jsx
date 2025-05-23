@@ -250,21 +250,14 @@ function ProfilePage() {
               {wishlistProducts.map((product) => (
                 <div
                   key={product._id}
-                  className="flex flex-col bg-gray-700 border border-gray-600 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+                  className="flex flex-col bg-gray-700 border border-gray-600 rounded-lg overflow-hidden hover:shadow-lg transition-shadow group"
                 >
                   <div className="relative h-40 overflow-hidden">
-                    <Link to={`/product/${product._id}`}>
-                      {product.images && product.images.length > 0 ? (
-                        <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-600 text-gray-400">
-                          No image
-                        </div>
-                      )}
+                    <Link to={`/product/${product._id}`}>                      <img
+                      src={product.images[0]?.url || 'https://via.placeholder.com/150'}
+                      alt={product.name}
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
+                    />
                       {product.discountPrice && product.discountPrice < product.price && (
                         <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                           -{Math.round(((product.price - product.discountPrice) / product.price) * 100)}%

@@ -343,8 +343,7 @@ const HomePage = () => {
                       <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                         -{Math.round(((product.price - product.discountPrice) / product.price) * 100)}%
                       </div>
-                    )}
-                    {product.countInStock <= 0 && (
+                    )}                    {product.stock <= 0 && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                         <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">Hết hàng</span>
                       </div>
@@ -424,12 +423,11 @@ const HomePage = () => {
                             }).format(product.price)}
                           </span>
                         )}
-                      </div>
-                      <button
+                      </div>                      <button
                         onClick={async (e) => {
                           e.stopPropagation();
                           e.preventDefault();
-                          if (product.countInStock > 0) {
+                          if (product.stock > 0) {
                             try {
                               setLoadingProductIds(prev => [...prev, product._id]);
                               const { data } = await addCartItem({
@@ -446,8 +444,8 @@ const HomePage = () => {
                             }
                           }
                         }}
-                        disabled={product.countInStock <= 0 || loadingProductIds.includes(product._id)}
-                        className={`p-3 rounded-full ${product.countInStock > 0
+                        disabled={product.stock <= 0 || loadingProductIds.includes(product._id)}
+                        className={`p-3 rounded-full ${product.stock > 0
                           ? "bg-indigo-600 text-white hover:bg-indigo-700"
                           : "bg-gray-500 text-gray-300 cursor-not-allowed"
                           } transition-colors duration-300 relative z-20`}

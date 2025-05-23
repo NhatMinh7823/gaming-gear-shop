@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getCart, updateCartItem, removeCartItem, clearCart, createOrder } from '../services/api';
 import { setCart, clearCart as clearCartAction } from '../redux/slices/cartSlice';
-import { FaShoppingCart, FaTruck, FaCreditCard, FaRegCreditCard, FaArrowLeft, FaArrowRight, FaMoneyBillWave, FaCheck } from 'react-icons/fa';
+import { FaShoppingCart, FaTruck, FaCreditCard, FaRegCreditCard, FaArrowLeft, FaArrowRight, FaMoneyBillWave, FaCheck, FaBoxOpen } from 'react-icons/fa';
 
 function CartPage() {
   const { cartItems, totalPrice } = useSelector((state) => state.cart);
@@ -46,8 +46,25 @@ function CartPage() {
     }
   }, [dispatch, userInfo]);
 
-  const handleUpdateQuantity = async (itemId, quantity) => {
+  const getStockStatusClass = (stock) => {
+    if (stock <= 0) return 'text-red-500';
+    if (stock <= 5) return 'text-yellow-500';
+    return 'text-green-500';
+  };
+
+  const getStockStatusText = (stock) => {
+    if (stock <= 0) return 'Hết hàng';
+    if (stock <= 5) return `Còn ${stock} sản phẩm`;
+    return 'Còn hàng';
+  };
+
+  const handleUpdateQuantity = async (itemId, quantity, stock) => {
     if (quantity < 1) return;
+    if (quantity > stock) {
+      toast.error(`Only ${stock} items available in stock`);
+      return;
+    }
+
     try {
       const { data } = await updateCartItem(itemId, { quantity });
       dispatch(setCart(data.cart));
@@ -85,7 +102,7 @@ function CartPage() {
       ...prev,
       [name]: value
     }));
-    
+
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -97,17 +114,17 @@ function CartPage() {
   const validateShippingForm = () => {
     const newErrors = {};
     const required = ['street', 'city', 'state', 'postalCode'];
-    
+
     required.forEach(field => {
       if (!shippingAddress[field].trim()) {
         newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
       }
     });
-    
+
     if (shippingAddress.postalCode && !/^\d{5,6}$/.test(shippingAddress.postalCode)) {
       newErrors.postalCode = 'Postal code must be 5-6 digits';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -138,20 +155,20 @@ function CartPage() {
       toast.error('Please enter a coupon code');
       return;
     }
-    
+
     const validCoupons = {
       'WELCOME10': { code: 'WELCOME10', discount: 10, type: 'percentage' },
       'SAVE20': { code: 'SAVE20', discount: 20, type: 'percentage' },
       'FREESHIP': { code: 'FREESHIP', discount: 5, type: 'fixed' }
     };
-    
+
     const coupon = validCoupons[couponCode.toUpperCase()];
-    
+
     if (coupon) {
-      const discount = coupon.type === 'percentage' 
-        ? (totalPrice * coupon.discount) / 100 
+      const discount = coupon.type === 'percentage'
+        ? (totalPrice * coupon.discount) / 100
         : coupon.discount;
-      
+
       setDiscountAmount(discount);
       setAppliedCoupon(coupon);
       toast.success(`Coupon ${couponCode.toUpperCase()} applied successfully!`);
@@ -215,18 +232,18 @@ function CartPage() {
           </div>
           <span className={`text-xs font-medium ${activeStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>Cart</span>
         </div>
-        
+
         <div className={`w-full h-1 max-w-[80px] self-center ${activeStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'} transition-all duration-300`} />
-        
+
         <div className="flex flex-col items-center">
           <div className={`flex items-center justify-center w-12 h-12 rounded-full ${activeStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'} mb-2 transition-all duration-300`}>
             <FaTruck className="w-5 h-5" />
           </div>
           <span className={`text-xs font-medium ${activeStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>Shipping</span>
         </div>
-        
+
         <div className={`w-full h-1 max-w-[80px] self-center ${activeStep >= 3 ? 'bg-blue-600' : 'bg-gray-200'} transition-all duration-300`} />
-        
+
         <div className="flex flex-col items-center">
           <div className={`flex items-center justify-center w-12 h-12 rounded-full ${activeStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'} mb-2 transition-all duration-300`}>
             <FaCreditCard className="w-5 h-5" />
@@ -335,7 +352,7 @@ function CartPage() {
     <div className="min-h-screen bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <StepIndicator />
-        
+
         {isCartEmpty ? (
           <EmptyCartState />
         ) : (
@@ -353,7 +370,7 @@ function CartPage() {
                         Empty Cart
                       </button>
                     </div>
-                    
+
                     <div className="divide-y">
                       {cartItems.map((item) => (
                         <div key={item._id} className="py-6 flex">
@@ -372,6 +389,12 @@ function CartPage() {
                                     currency: 'VND'
                                   }).format(item.price)}
                                 </p>
+                                <div className="flex items-center gap-1 mt-1">
+                                  <FaBoxOpen className={getStockStatusClass(item.product.stock)} />
+                                  <span className={`text-sm ${getStockStatusClass(item.product.stock)}`}>
+                                    {getStockStatusText(item.product.stock)}
+                                  </span>
+                                </div>
                               </div>
                               <button
                                 onClick={() => handleRemoveItem(item._id)}
@@ -384,8 +407,9 @@ function CartPage() {
                             </div>
                             <div className="mt-4 flex items-center">
                               <button
-                                onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
-                                className="text-gray-400 hover:text-gray-700 p-1"
+                                onClick={() => handleUpdateQuantity(item._id, item.quantity - 1, item.product.stock)}
+                                className="text-gray-400 hover:text-gray-700 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={item.quantity <= 1}
                               >
                                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
@@ -393,8 +417,9 @@ function CartPage() {
                               </button>
                               <span className="mx-2 text-gray-100">{item.quantity}</span>
                               <button
-                                onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
-                                className="text-gray-400 hover:text-gray-700 p-1"
+                                onClick={() => handleUpdateQuantity(item._id, item.quantity + 1, item.product.stock)}
+                                className="text-gray-400 hover:text-gray-700 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={item.quantity >= item.product.stock}
                               >
                                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -422,7 +447,7 @@ function CartPage() {
                           Apply
                         </button>
                       </div>
-                      
+
                       {appliedCoupon && (
                         <div className="mt-4 flex items-center justify-between p-3 bg-green-900 rounded-lg">
                           <div className="flex items-center">
@@ -483,14 +508,13 @@ function CartPage() {
                           name="street"
                           value={shippingAddress.street}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${
-                            errors.street ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${errors.street ? 'border-red-500' : 'border-gray-300'
+                            }`}
                           placeholder="123 Main St"
                         />
                         {errors.street && <p className="mt-1 text-sm text-red-300">{errors.street}</p>}
                       </div>
-                      
+
                       <div>
                         <label htmlFor="city" className="block text-sm font-medium text-gray-200 mb-2">
                           City
@@ -501,14 +525,13 @@ function CartPage() {
                           name="city"
                           value={shippingAddress.city}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${
-                            errors.city ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${errors.city ? 'border-red-500' : 'border-gray-300'
+                            }`}
                           placeholder="Your City"
                         />
                         {errors.city && <p className="mt-1 text-sm text-red-300">{errors.city}</p>}
                       </div>
-                      
+
                       <div>
                         <label htmlFor="state" className="block text-sm font-medium text-gray-200 mb-2">
                           State/Province
@@ -519,14 +542,13 @@ function CartPage() {
                           name="state"
                           value={shippingAddress.state}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${
-                            errors.state ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${errors.state ? 'border-red-500' : 'border-gray-300'
+                            }`}
                           placeholder="Your State"
                         />
                         {errors.state && <p className="mt-1 text-sm text-red-300">{errors.state}</p>}
                       </div>
-                      
+
                       <div>
                         <label htmlFor="postalCode" className="block text-sm font-medium text-gray-200 mb-2">
                           Postal Code
@@ -537,14 +559,13 @@ function CartPage() {
                           name="postalCode"
                           value={shippingAddress.postalCode}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${
-                            errors.postalCode ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 ${errors.postalCode ? 'border-red-500' : 'border-gray-300'
+                            }`}
                           placeholder="12345"
                         />
                         {errors.postalCode && <p className="mt-1 text-sm text-red-300">{errors.postalCode}</p>}
                       </div>
-                      
+
                       <div>
                         <label htmlFor="country" className="block text-sm font-medium text-gray-200 mb-2">
                           Country
@@ -593,12 +614,11 @@ function CartPage() {
                       Payment Method
                     </h2>
                     <div className="space-y-4">
-                      <div 
-                        className={`flex items-center p-4 border rounded-lg ${
-                          paymentMethod === 'VNPay' 
-                            ? 'border-blue-600 bg-gray-700' 
+                      <div
+                        className={`flex items-center p-4 border rounded-lg ${paymentMethod === 'VNPay'
+                            ? 'border-blue-600 bg-gray-700'
                             : 'border-gray-600 bg-gray-800'
-                        } cursor-pointer transition-colors duration-200`}
+                          } cursor-pointer transition-colors duration-200`}
                         onClick={() => setPaymentMethod('VNPay')}
                       >
                         <input
@@ -619,12 +639,11 @@ function CartPage() {
                         </label>
                       </div>
 
-                      <div 
-                        className={`flex items-center p-4 border rounded-lg ${
-                          paymentMethod === 'CashOnDelivery' 
-                            ? 'border-blue-600 bg-gray-700' 
+                      <div
+                        className={`flex items-center p-4 border rounded-lg ${paymentMethod === 'CashOnDelivery'
+                            ? 'border-blue-600 bg-gray-700'
                             : 'border-gray-600 bg-gray-800'
-                        } cursor-pointer transition-colors duration-200`}
+                          } cursor-pointer transition-colors duration-200`}
                         onClick={() => setPaymentMethod('CashOnDelivery')}
                       >
                         <input
