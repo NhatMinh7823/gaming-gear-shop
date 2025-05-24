@@ -31,6 +31,9 @@ exports.createOrder = async (req, res) => {
       couponDiscount = req.couponData.discountAmount;
     }
 
+    // Log the value of req.couponData to debug
+    console.log(`Coupon data in request:`, req.couponData);
+
     // Điều chỉnh tổng tiền nếu có coupon
     const finalTotalPrice = Math.max(0, totalPrice - couponDiscount); // Create order
     const order = await Order.create({
@@ -58,11 +61,15 @@ exports.createOrder = async (req, res) => {
 
     // Xử lý coupon nếu có
     if (couponCode) {
-      // Đánh dấu coupon đã sử dụng
+      // Đánh dấu coupon là "pending" và lưu ID đơn hàng
       const user = await User.findOne({ "coupon.code": couponCode });
-      if (user && !user.coupon.used) {
-        user.coupon.used = true;
+      if (user && (user.coupon.status === "usable" || !user.coupon.used)) {
+        user.coupon.status = "pending";
+        user.coupon.orderId = order._id;
         await user.save();
+        console.log(
+          `Đã đánh dấu coupon ${couponCode} đang được sử dụng trong đơn hàng ${order._id}`
+        );
       }
     }
 
@@ -222,6 +229,29 @@ exports.updateOrderToPaid = async (req, res) => {
       email_address: req.body.email_address,
     };
 
+    // Nếu đơn hàng có sử dụng coupon, cập nhật trạng thái coupon
+    if (order.couponCode) {
+      try {
+        const user = await User.findOne({ "coupon.code": order.couponCode });
+        // Chỉ cập nhật khi coupon đang ở trạng thái 'pending' và được liên kết với đơn hàng này
+        if (
+          user &&
+          user.coupon.status === "pending" &&
+          user.coupon.orderId &&
+          user.coupon.orderId.toString() === order._id.toString()
+        ) {
+          user.coupon.status = "used";
+          user.coupon.used = true; // Giữ trường cũ để tương thích ngược
+          await user.save();
+          console.log(
+            `Đã cập nhật trạng thái coupon ${order.couponCode} thành 'used' sau khi thanh toán`
+          );
+        }
+      } catch (couponErr) {
+        console.error("Lỗi khi cập nhật trạng thái coupon:", couponErr);
+      }
+    }
+
     const updatedOrder = await order.save();
 
     res.status(200).json({
@@ -260,8 +290,66 @@ exports.updateOrderStatus = async (req, res) => {
       });
     }
 
+    // Lưu trạng thái cũ để kiểm tra thay đổi
+    const previousStatus = order.status;
+
     // Update order status
-    order.status = status;
+    order.status = status; // Nếu đơn hàng bị hủy (Cancelled) và trạng thái trước đó không phải là hủy
+    if (status === "Cancelled" && previousStatus !== "Cancelled") {
+      // Xử lý hoàn trả coupon nếu đơn hàng chưa thanh toán
+      if (!order.isPaid && order.couponCode) {
+        try {
+          console.log(
+            `Đang tìm user với coupon code: ${order.couponCode} để hoàn trả do admin hủy đơn hàng`
+          );
+          const user = await User.findOne({ "coupon.code": order.couponCode });
+
+          if (!user) {
+            console.log(
+              `Không tìm thấy user nào có mã coupon ${order.couponCode}`
+            );
+          } else {
+            console.log(
+              `Tìm thấy user ${user.name} (${user._id}) với coupon ${order.couponCode}`
+            );
+            console.log(
+              `Trạng thái hiện tại của coupon: ${user.coupon.status}`
+            );
+
+            // Kiểm tra liên kết với đơn hàng
+            if (!user.coupon.orderId) {
+              console.log(
+                `Coupon ${order.couponCode} không liên kết với đơn hàng nào`
+              );
+              // Vẫn đảm bảo coupon ở trạng thái usable
+              user.coupon.status = "usable";
+              user.coupon.used = false;
+              await user.save();
+            } else if (
+              user.coupon.orderId.toString() === order._id.toString()
+            ) {
+              // Nếu coupon liên kết với đơn hàng hiện tại, hoàn trả về trạng thái usable
+              console.log(
+                `Coupon ${order.couponCode} liên kết với đơn hàng hiện tại (${order._id})`
+              );
+              user.coupon.status = "usable";
+              user.coupon.orderId = null;
+              user.coupon.used = false;
+              await user.save();
+              console.log(
+                `Đã hoàn trả coupon ${order.couponCode} về trạng thái usable do đơn hàng bị hủy bởi admin`
+              );
+            } else {
+              console.log(
+                `Coupon ${order.couponCode} đã được liên kết với đơn hàng khác (${user.coupon.orderId})`
+              );
+            }
+          }
+        } catch (couponErr) {
+          console.error("Lỗi khi hoàn trả coupon:", couponErr);
+        }
+      }
+    }
 
     // If status is Delivered, update isDelivered and deliveredAt
     if (status === "Delivered") {
@@ -486,6 +574,104 @@ exports.getOrderStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Cancel order (for users)
+// @route   PUT /api/orders/:id/cancel
+// @access  Private
+exports.cancelOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Đơn hàng không tồn tại",
+      });
+    }
+
+    // Kiểm tra quyền hủy đơn
+    if (
+      order.user.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn không có quyền hủy đơn hàng này",
+      });
+    }
+
+    // Không cho phép hủy đơn hàng đã thanh toán
+    if (order.isPaid) {
+      return res.status(400).json({
+        success: false,
+        message: "Không thể hủy đơn hàng đã thanh toán",
+      });
+    }
+
+    // Không cho phép hủy đơn hàng đã giao hoặc đang vận chuyển
+    if (order.status === "Delivered" || order.status === "Shipped") {
+      return res.status(400).json({
+        success: false,
+        message: "Không thể hủy đơn hàng đang vận chuyển hoặc đã giao",
+      });
+    } // Hủy đơn hàng
+    order.status = "Cancelled";
+
+    // Add more detailed logging to debug coupon reset logic
+    console.log(`Order status set to Cancelled for order ID: ${order._id}`);
+    if (order.couponCode) {
+      console.log(`Attempting to reset coupon with code: ${order.couponCode}`);
+      // Log the value of order.couponCode to debug
+      console.log(`Coupon code for order ID ${order._id}: ${order.couponCode}`);
+      try {
+        const user = await User.findOne({ "coupon.code": order.couponCode });
+
+        if (!user) {
+          console.log(`No user found with coupon code: ${order.couponCode}`);
+        } else {
+          console.log(
+            `User found: ${user.name} (${user._id}) with coupon code: ${order.couponCode}`
+          );
+          console.log(
+            `Current coupon status: ${user.coupon.status}, orderId: ${user.coupon.orderId}`
+          );
+
+          if (
+            user.coupon.orderId &&
+            user.coupon.orderId.toString() === order._id.toString()
+          ) {
+            user.coupon.status = "usable";
+            user.coupon.orderId = null;
+            user.coupon.used = false;
+            await user.save();
+            console.log(`Coupon ${order.couponCode} reset to usable.`);
+          } else {
+            console.log(
+              `Coupon ${order.couponCode} is linked to another order (${user.coupon.orderId}).`
+            );
+          }
+        }
+      } catch (couponErr) {
+        console.error(`Error resetting coupon: ${couponErr.message}`);
+      }
+    }
+
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Đơn hàng đã được hủy thành công",
+      order,
+    });
+  } catch (error) {
+    console.error("Error in cancelOrder:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi hệ thống",
       error: error.message,
     });
   }

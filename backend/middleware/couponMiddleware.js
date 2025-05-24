@@ -28,11 +28,20 @@ exports.validateCoupon = async (req, res, next) => {
       });
     }
 
+    // Kiểm tra trạng thái của coupon
     // Coupon đã được sử dụng
-    if (user.coupon.used) {
+    if (user.coupon.used || user.coupon.status === "used") {
       return res.status(400).json({
         success: false,
         message: "Mã giảm giá đã được sử dụng",
+      });
+    }
+
+    // Coupon đang được sử dụng trong một đơn hàng khác
+    if (user.coupon.status === "pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Mã giảm giá đang được sử dụng trong đơn hàng khác",
       });
     }
 

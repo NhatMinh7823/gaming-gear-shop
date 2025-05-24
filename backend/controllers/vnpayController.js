@@ -22,15 +22,19 @@ const createPayment = asyncHandler(async (req, res) => {
     if (!order) {
       res.status(404);
       throw new Error("Không tìm thấy đơn hàng");
-    }
-
-    // Kiểm tra quyền sở hữu đơn hàng
+    } // Kiểm tra quyền sở hữu đơn hàng
     if (
       order.user.toString() !== req.user._id.toString() &&
       req.user.role !== "admin"
     ) {
       res.status(401);
       throw new Error("Bạn không có quyền truy cập đơn hàng này");
+    }
+
+    // Kiểm tra trạng thái đơn hàng, không cho phép thanh toán đơn hàng đã hủy
+    if (order.status === "Cancelled") {
+      res.status(400);
+      throw new Error("Không thể thanh toán đơn hàng đã bị hủy");
     }
 
     // Tạo thông tin thanh toán
@@ -184,8 +188,29 @@ const handleReturn = asyncHandler(async (req, res) => {
       // Tìm đơn hàng
       const order = await Order.findById(orderId);
       console.log("Found order:", order ? "Yes" : "No");
-
       if (order) {
+        // Check if order is cancelled
+        if (order.status === "Cancelled") {
+          console.error(
+            "Cannot process payment for cancelled order:",
+            order._id
+          );
+
+          const isApiCall =
+            req.xhr || req.headers.accept?.includes("application/json");
+          if (isApiCall) {
+            return res.status(400).json({
+              success: false,
+              message: "Không thể thanh toán đơn hàng đã bị hủy",
+              orderId: order._id.toString(),
+            });
+          } else {
+            return res.redirect(
+              `${frontendUrl}/payment-error?error=order-cancelled&orderId=${order._id}`
+            );
+          }
+        }
+
         // Verify payment amount matches the order amount
         const paidAmount = parseInt(vnpParams.vnp_Amount) / 100; // Convert back from VNPay format
         const orderAmount = order.totalPrice;
@@ -260,6 +285,34 @@ const handleReturn = asyncHandler(async (req, res) => {
 
             await order.save();
             console.log("Order updated successfully:", order._id);
+          }
+
+          // Cập nhật trạng thái coupon nếu đơn hàng có áp dụng coupon
+          if (order.couponCode) {
+            try {
+              // Tìm người dùng có mã coupon này
+              const User = require("../models/userModel");
+              const user = await User.findOne({
+                "coupon.code": order.couponCode,
+              });
+              if (user) {
+                // Cập nhật trạng thái coupon thành 'used'
+                if (
+                  user.coupon.status === "pending" &&
+                  user.coupon.orderId &&
+                  user.coupon.orderId.toString() === order._id.toString()
+                ) {
+                  user.coupon.status = "used";
+                  user.coupon.used = true; // Giữ trường cũ để tương thích ngược
+                  await user.save();
+                  console.log(
+                    `Đã cập nhật trạng thái coupon ${order.couponCode} thành đã sử dụng sau khi thanh toán VNPay`
+                  );
+                }
+              }
+            } catch (couponErr) {
+              console.error("Lỗi khi cập nhật trạng thái coupon:", couponErr);
+            }
           }
 
           // Kiểm tra xem yêu cầu có phải là API call hay không

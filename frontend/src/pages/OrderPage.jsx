@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
-import { getOrderById, createVNPayUrl, checkVNPayPayment } from '../services/api';
-import { FaBox, FaShoppingBag, FaClock, FaCheckCircle, FaTruck, FaTimesCircle, 
-         FaMapMarkerAlt, FaCreditCard, FaArrowLeft } from 'react-icons/fa';
+import { getOrderById, createVNPayUrl, checkVNPayPayment, cancelOrder, getProfile } from '../services/api';
+import {
+  FaBox, FaShoppingBag, FaClock, FaCheckCircle, FaTruck, FaTimesCircle,
+  FaMapMarkerAlt, FaCreditCard, FaArrowLeft, FaBan
+} from 'react-icons/fa';
+import { setCredentials } from '../redux/slices/userSlice';
 
 function OrderPage() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const { userInfo } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const [cancelingOrder, setCancelingOrder] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -25,7 +30,6 @@ function OrderPage() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  
   useEffect(() => {
     // Check VNPay payment result from URL params
     if (location.search) {
@@ -35,21 +39,44 @@ function OrderPage() {
           // Phân tích query string để tìm mã đơn hàng gốc
           const urlParams = new URLSearchParams(location.search);
           const txnRef = urlParams.get('vnp_TxnRef');
-          
+
           // Log để debug
           console.log("Transaction reference:", txnRef);
-          
           const { data } = await checkVNPayPayment(location.search);
           if (data.success) {
             toast.success('Payment successful!');
+
             // Refresh order data to get updated payment status
             const { data: orderData } = await getOrderById(id);
             setOrder(orderData.order);
+
+            // Refresh user profile to get updated coupon status if the order used a coupon
+            if (orderData.order && orderData.order.couponCode) {
+              try {
+                const { data: profileData } = await getProfile();
+                if (profileData && profileData.user) {
+                  // Update Redux store with the latest user information including updated coupon status
+                  dispatch(setCredentials({
+                    ...userInfo,
+                    coupon: profileData.user.coupon
+                  }));
+                  console.log('Updated coupon status after successful payment:', profileData.user.coupon);
+                }
+              } catch (profileError) {
+                console.error('Failed to update user profile after payment:', profileError);
+              }
+            }
+
             // Remove query params from URL
             navigate(location.pathname, { replace: true });
           } else {
             toast.error(`Payment failed: ${data.message || 'Unknown error'}`);
             console.error("Payment failure details:", data);
+
+            // For specific error conditions, redirect to error page
+            if (data.message === "Không thể thanh toán đơn hàng đã bị hủy") {
+              navigate(`/payment-error?error=order-cancelled&orderId=${id}`);
+            }
           }
         } catch (error) {
           console.error("Error checking payment:", error);
@@ -71,6 +98,76 @@ function OrderPage() {
     } catch (error) {
       console.error("VNPay error details:", error.response?.data || error.message);
       toast.error('Error creating payment URL');
+    }
+  }; const handleCancelOrder = async () => {
+    try {
+      if (window.confirm('Are you sure you want to cancel this order?')) {
+        setCancelingOrder(true);
+
+        // Lưu couponCode trước khi gọi API hủy đơn
+        const hasCoupon = order && order.couponCode;
+        const couponCode = order?.couponCode;
+
+        const { data } = await cancelOrder(id);
+        toast.success('Order cancelled successfully');
+
+        // Refresh order data
+        const { data: orderData } = await getOrderById(id);
+        setOrder(orderData.order);
+
+        // Make sure to properly refresh user profile to get updated coupon status
+        if (hasCoupon) {
+          try {
+            // Thêm một khoảng thời gian lớn hơn để đảm bảo backend đã cập nhật xong
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            const { data: profileData } = await getProfile();
+            console.log('Profile data after cancel:', profileData);
+
+            if (profileData && profileData.user) {
+              // Kiểm tra xem coupon đã được hoàn trả chưa
+              if (profileData.user.coupon &&
+                (profileData.user.coupon.status === 'usable' || !profileData.user.coupon.used)) {
+                // Update Redux store with the latest user information including coupon status
+                dispatch(setCredentials({
+                  ...userInfo,
+                  coupon: profileData.user.coupon
+                }));
+
+                // Log coupon status for debugging
+                console.log('Updated coupon status:', profileData.user.coupon);
+
+                toast.info(`Mã giảm giá ${couponCode} đã được hoàn trả và bạn có thể sử dụng lại`);
+              } else {
+                console.log('Coupon status was not updated to usable:', profileData.user.coupon);
+                // Thử lại một lần nữa sau 2 giây
+                setTimeout(async () => {
+                  try {
+                    const { data: retryData } = await getProfile();
+                    if (retryData.user.coupon &&
+                      (retryData.user.coupon.status === 'usable' || !retryData.user.coupon.used)) {
+                      dispatch(setCredentials({
+                        ...userInfo,
+                        coupon: retryData.user.coupon
+                      }));
+                      toast.info(`Mã giảm giá ${couponCode} đã được hoàn trả và bạn có thể sử dụng lại`);
+                    }
+                  } catch (error) {
+                    console.error('Error on retry:', error);
+                  }
+                }, 2000);
+              }
+            }
+          } catch (profileError) {
+            console.error('Failed to update user profile after cancelling order:', profileError);
+          }
+        }
+      }
+    } catch (error) {
+      toast.error('Error cancelling order');
+      console.error("Error details:", error);
+    } finally {
+      setCancelingOrder(false);
     }
   };
 
@@ -137,7 +234,7 @@ function OrderPage() {
   return (
     <div className="min-h-screen bg-gray-900 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
-        <button 
+        <button
           onClick={() => navigate('/orders')}
           className="flex items-center gap-2 text-gray-300 hover:text-gray-100 mb-6 transition-colors"
         >
@@ -214,9 +311,7 @@ function OrderPage() {
                   <div className="flex justify-between font-semibold text-lg mt-4 text-gray-200">
                     <span>Total:</span>
                     <span className="text-blue-400">{formatPrice(order.totalPrice)}</span>
-                  </div>
-                  
-                  {!order.isPaid && order.paymentMethod === 'VNPay' && (
+                  </div>                  {!order.isPaid && order.status !== 'Cancelled' && order.paymentMethod === 'VNPay' && (
                     <button
                       onClick={handleVNPayPayment}
                       className="w-full mt-4 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 
@@ -225,9 +320,29 @@ function OrderPage() {
                       <FaCreditCard />
                       <span>Pay with VNPay</span>
                     </button>
+                  )}                  {/* Nút hủy đơn hàng - chỉ hiển thị khi đơn chưa thanh toán, chưa vận chuyển và chưa bị hủy */}
+                  {!order.isPaid && order.status !== 'Shipped' && order.status !== 'Delivered' && order.status !== 'Cancelled' && (
+                    <button
+                      onClick={handleCancelOrder}
+                      disabled={cancelingOrder}
+                      className="w-full mt-4 bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 
+                               transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {cancelingOrder ? (
+                        <>
+                          <span className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>
+                          <span className="ml-2">Processing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FaBan />
+                          <span>Cancel Order</span>
+                        </>
+                      )}
+                    </button>
                   )}
                 </div>
-              </div>
+              </div>              {/* Cancel Order section removed to avoid duplication - only showing the cancel button in Payment Details section */}
 
               <div className="bg-gray-700 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-lg font-semibold text-gray-100 mb-4">

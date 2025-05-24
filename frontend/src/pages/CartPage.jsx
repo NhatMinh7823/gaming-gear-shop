@@ -225,13 +225,29 @@ function CartPage() {
         taxPrice: 10000,
         shippingPrice: 15000,
         totalPrice: finalTotal,
-        couponApplied: appliedCoupon?.code,
+        couponCode: appliedCoupon?.code, // Changed from couponApplied to couponCode
         discountAmount
       }; const { data } = await createOrder(orderData);
 
-      // Nếu có áp dụng coupon, đánh dấu là đã sử dụng
+      // Nếu có áp dụng coupon, đánh dấu là đã sử dụng với ID đơn hàng
       if (appliedCoupon && appliedCoupon.code && !appliedCoupon.code.match(/^(WELCOME10|SAVE20|FREESHIP)$/)) {
-        await markCouponAsUsed(appliedCoupon.code);
+        await markCouponAsUsed(appliedCoupon.code, data.order._id);
+      }
+
+      // Cập nhật thông tin người dùng nếu sử dụng coupon
+      if (appliedCoupon && appliedCoupon.code) {
+        try {
+          const { data: profileData } = await getProfile();
+          if (profileData.user) {
+            // Cập nhật thông tin người dùng trong Redux store
+            dispatch(setCredentials({
+              ...userInfo,
+              coupon: profileData.user.coupon
+            }));
+          }
+        } catch (profileError) {
+          console.error('Failed to update user profile after order:', profileError);
+        }
       }
 
       await clearCart();

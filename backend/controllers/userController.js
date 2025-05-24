@@ -120,19 +120,21 @@ exports.getUserProfile = async (req, res) => {
         success: false,
         message: "User not found",
       });
-    }
+    } // Làm mới user để đảm bảo có dữ liệu coupon mới nhất
+    const freshUser = await User.findById(user._id);
+
     res.status(200).json({
       success: true,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        phone: user.phone,
-        address: user.address,
-        wishlist: user.wishlist || [], // Đảm bảo wishlist luôn tồn tại
-        coupon: user.coupon || null, // Trả về thông tin coupon
-        createdAt: user.createdAt,
+        id: freshUser._id,
+        name: freshUser.name,
+        email: freshUser.email,
+        role: freshUser.role,
+        phone: freshUser.phone,
+        address: freshUser.address,
+        wishlist: freshUser.wishlist || [], // Đảm bảo wishlist luôn tồn tại
+        coupon: freshUser.coupon || null, // Trả về thông tin coupon
+        createdAt: freshUser.createdAt,
       },
     });
   } catch (error) {
@@ -417,7 +419,7 @@ exports.applyCoupon = async (req, res) => {
 // @access  Private
 exports.markCouponAsUsed = async (req, res) => {
   try {
-    const { code } = req.body;
+    const { code, orderId } = req.body;
 
     if (!code) {
       return res.status(400).json({
@@ -436,8 +438,15 @@ exports.markCouponAsUsed = async (req, res) => {
       });
     }
 
-    // Đánh dấu coupon đã sử dụng
+    // Đánh dấu coupon đã sử dụng và cập nhật trạng thái mới
     user.coupon.used = true;
+    user.coupon.status = "used";
+
+    // Liên kết với đơn hàng nếu có
+    if (orderId) {
+      user.coupon.orderId = orderId;
+    }
+
     await user.save();
 
     res.status(200).json({

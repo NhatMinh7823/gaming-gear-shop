@@ -56,6 +56,16 @@ const userSchema = new mongoose.Schema({
       type: Boolean,
       default: false,
     },
+    status: {
+      type: String,
+      enum: ["usable", "pending", "used"],
+      default: "usable",
+    },
+    orderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Order",
+      default: null,
+    },
     discountPercent: {
       type: Number,
       default: 30, // Giảm 30% cho đơn hàng đầu tiên

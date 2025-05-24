@@ -77,9 +77,19 @@ function AppContent() {
             <Route path="categories/new" element={<CategoryFormPage />} />
             <Route path="categories/edit/:id" element={<CategoryFormPage />} />
           </Route>
-        </Route>
-      </Routes>
-      <ToastContainer />
+        </Route>      </Routes>
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        style={{ marginTop: '90px' }} // Điều chỉnh margin-top để không che khuất navbar
+      />
     </div>
   );
 }

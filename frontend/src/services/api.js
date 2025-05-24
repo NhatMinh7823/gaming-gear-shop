@@ -73,8 +73,8 @@ export const getWishlist = async () => {
 // Coupon APIs
 export const generateCoupon = () => api.post("/users/generate-coupon");
 export const applyCoupon = (code) => api.post("/users/apply-coupon", { code });
-export const markCouponAsUsed = (code) =>
-  api.post("/users/mark-coupon-used", { code });
+export const markCouponAsUsed = (code, orderId) =>
+  api.post("/users/mark-coupon-used", { code, orderId });
 
 // Product APIs
 export const getProducts = (params = {}) => {
@@ -126,9 +126,13 @@ export const removeCartItem = (itemId) => api.delete(`/cart/${itemId}`);
 export const clearCart = () => api.delete("/cart");
 
 // Order APIs
-export const createOrder = (data) => api.post("/orders", data);
+export const getOrders = () => api.get("/orders");
 export const getMyOrders = () => api.get("/orders/myorders");
 export const getOrderById = (id) => api.get(`/orders/${id}`);
+export const createOrder = (orderData) => api.post("/orders", orderData);
+export const cancelOrder = (id) => api.put(`/orders/${id}/cancel`);
+export const processPayment = (id, paymentResult) =>
+  api.put(`/orders/${id}/pay`, paymentResult);
 
 // Payment APIs
 export const createVNPayUrl = (orderId) =>

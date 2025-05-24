@@ -12,6 +12,7 @@ const {
   getOrderStats,
   getSalesData,
   getOrderHistory,
+  cancelOrder,
 } = require("../controllers/orderController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const { validateCoupon } = require("../middleware/couponMiddleware");
@@ -19,6 +20,7 @@ const { validateCoupon } = require("../middleware/couponMiddleware");
 // User routes
 router.post("/", protect, validateCoupon, createOrder);
 router.get("/myorders", protect, getMyOrders);
+router.put("/:id/cancel", protect, cancelOrder); // Endpoint mới cho việc hủy đơn hàng
 router.get("/stats", protect, authorize("admin"), getOrderStats);
 router.get("/salesdata", protect, authorize("admin"), getSalesData);
 router.get("/history", protect, authorize("admin"), getOrderHistory);
