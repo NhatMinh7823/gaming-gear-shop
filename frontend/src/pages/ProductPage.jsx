@@ -233,8 +233,8 @@ function ProductPage() {
                     onClick={handleWishlistClick}
                     disabled={loadingWishlist}
                     className={`p-3 rounded-full ${wishlistItems.includes(id)
-                        ? 'bg-red-500/10 hover:bg-red-500/20'
-                        : 'bg-gray-700 hover:bg-gray-600'
+                      ? 'bg-red-500/10 hover:bg-red-500/20'
+                      : 'bg-gray-700 hover:bg-gray-600'
                       } transition-colors duration-300`}
                     aria-label={wishlistItems.includes(id) ? 'Remove from wishlist' : 'Add to wishlist'}
                   >
@@ -291,14 +291,19 @@ function ProductPage() {
                       disabled={quantity <= 1}
                     >
                       <FaMinus className={quantity <= 1 ? 'text-gray-500' : ''} />
-                    </button>
-                    <input
+                    </button>                    <input
                       type="number"
                       min="1"
                       max={product.stock}
                       value={quantity}
                       onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, Number(e.target.value))))}
                       className="w-16 text-center border-x-2 border-gray-600 py-2 focus:outline-none bg-gray-700 text-gray-200"
+                      style={{
+                        MozAppearance: 'textfield',
+                        WebkitAppearance: 'none',
+                        appearance: 'none'
+                      }}
+                      onWheel={(e) => e.target.blur()}
                     />
                     <button
                       onClick={() => setQuantity(Math.min(quantity + 1, product.stock))}

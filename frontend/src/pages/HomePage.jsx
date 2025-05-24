@@ -214,6 +214,10 @@ const HomePage = () => {
     }
   };
 
+  const handleSpecialOfferClick = () => {
+    navigate('/profile#coupons');
+  };
+
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Hero Section */}
@@ -519,38 +523,44 @@ const HomePage = () => {
                 Giảm Đến 30% Cho Đơn Hàng Đầu Tiên
               </h2>
               <p className="text-indigo-100 mb-8">
-                Đăng ký nhận thông báo để không bỏ lỡ những ưu đãi đặc biệt và
-                sản phẩm mới nhất từ chúng tôi.
-              </p>              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-                <input
-                  type="email"
-                  value={subscribeEmail}
-                  onChange={(e) => setSubscribeEmail(e.target.value)}
-                  placeholder="Email của bạn"
-                  disabled={isSubscribing}
-                  className="px-4 py-3 rounded-button border-none focus:ring-2 focus:ring-indigo-300 focus:outline-none text-sm 
-                           disabled:opacity-50 disabled:cursor-not-allowed bg-white text-gray-800"
-                />
+                Đăng ký nhận thông báo để không bỏ lỡ những ưu đãi đặc biệt và sản phẩm mới nhất từ chúng tôi.
+              </p>
+              {userInfo ? (
                 <button
-                  type="submit"
-                  disabled={isSubscribing}
-                  className="bg-white text-indigo-600 px-6 py-3 rounded-button font-medium hover:bg-indigo-50 
-                           transition-colors duration-300 cursor-pointer whitespace-nowrap disabled:opacity-50 
-                           disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
+                  onClick={handleSpecialOfferClick}
+                  className="bg-white text-indigo-600 px-6 py-3 rounded-button font-medium hover:bg-indigo-50 transition-colors duration-300 cursor-pointer whitespace-nowrap flex items-center justify-center min-w-[140px]"
                 >
-                  {isSubscribing ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Đang xử lý...
-                    </>
-                  ) : (
-                    'Đăng Ký Ngay'
-                  )}
+                  Nhận mã
                 </button>
-              </form>
+              ) : (
+                <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+                  <input
+                    type="email"
+                    value={subscribeEmail}
+                    onChange={(e) => setSubscribeEmail(e.target.value)}
+                    placeholder="Email của bạn"
+                    disabled={isSubscribing}
+                    className="px-4 py-3 rounded-button border-none focus:ring-2 focus:ring-indigo-300 focus:outline-none text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-white text-gray-800"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubscribing}
+                    className="bg-white text-indigo-600 px-6 py-3 rounded-button font-medium hover:bg-indigo-50 transition-colors duration-300 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
+                  >
+                    {isSubscribing ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Đang xử lý...
+                      </>
+                    ) : (
+                      'Đăng Ký Ngay'
+                    )}
+                  </button>
+                </form>
+              )}
             </div>
             <div className="w-full md:w-1/2 relative">
               <img
