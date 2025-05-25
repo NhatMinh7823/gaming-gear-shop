@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import api from "./api"; // Import API service to fetch product data
 
 class GamingChatbot {
   constructor() {
@@ -6,10 +7,13 @@ class GamingChatbot {
     this.model = null;
     this.chat = null;
     this.chatHistory = [];
+    this.productData = null; // Store cached product data
+    this.lastProductFetch = null; // Track when we last fetched products
+    this.productFetchInProgress = false; // Prevent multiple simultaneous fetch requests
     this.systemPrompt = `Bạn là trợ lý AI cho cửa hàng Gaming Gear Shop chuyên về thiết bị gaming.
           
 Nhiệm vụ của bạn:
-- Tư vấn sản phẩm gaming (chuột, bàn phím, tai nghe, màn hình, laptop gaming)
+- Tư vấn sản phẩm gaming (chuột, bàn phím, tai nghe, màn hình, laptop gaming) dựa trên dữ liệu sản phẩm thực
 - Giúp khách hàng chọn setup gaming phù hợp với budget
 - Trả lời về thông số kỹ thuật và so sánh sản phẩm
 - Tư vấn về combo gaming và khuyến mãi
@@ -18,8 +22,9 @@ Nhiệm vụ của bạn:
 Phong cách trả lời:
 - Thân thiện, nhiệt tình như một gamer chuyên nghiệp
 - Sử dụng thuật ngữ gaming phù hợp
-- Đưa ra gợi ý cụ thể và thực tế
+- Đưa ra gợi ý cụ thể và thực tế dựa trên sản phẩm thực trong hệ thống
 - Luôn hỏi thêm về budget và nhu cầu sử dụng
+- Khi gợi ý sản phẩm, hãy nhắc đến tên sản phẩm cụ thể, giá và đặc điểm nổi bật
 
 Kiến thức về sản phẩm:
 - Chuột gaming: DPI, polling rate, sensor, switch
@@ -28,9 +33,114 @@ Kiến thức về sản phẩm:
 - Màn hình: refresh rate, response time, panel types
 - Laptop gaming: GPU, CPU, RAM, storage
 
-Lưu ý: Nếu không chắc chắn về thông tin cụ thể, hãy thừa nhận và đề xuất liên hệ nhân viên tư vấn.`;
+Lưu ý: Khi không chắc chắn về thông tin cụ thể, bạn có thể gợi ý khách hàng kiểm tra thêm trên website hoặc liên hệ nhân viên tư vấn.`;
 
     this.initializeModel();
+    // Fetch product data during initialization
+    this.fetchProductData();
+  }
+
+  // Fetch product data from our API
+  async fetchProductData(query = {}) {
+    // If a fetch is already in progress, don't start another one
+    if (this.productFetchInProgress) {
+      return;
+    }
+
+    try {
+      this.productFetchInProgress = true;
+      console.log("🔄 Fetching product data for chatbot...");
+
+      const response = await api.get("/products/chatbot-data", {
+        params: query,
+      });
+
+      if (response && response.data && response.data.success) {
+        this.productData = response.data.data;
+        this.lastProductFetch = new Date();
+        console.log(
+          `✅ Fetched ${this.productData.products.length} products for chatbot`
+        );
+
+        // Update system prompt with real product data summary
+        this.updateSystemPromptWithProductData();
+
+        return this.productData;
+      }
+    } catch (error) {
+      console.error("❌ Error fetching product data:", error);
+    } finally {
+      this.productFetchInProgress = false;
+    }
+  }
+
+  // Update system prompt with product data summary
+  updateSystemPromptWithProductData() {
+    if (!this.productData) return;
+
+    const { summary } = this.productData;
+
+    // Create brands summary
+    const brandsSummary = summary.brands
+      .map((b) => `${b._id} (${b.count} sản phẩm)`)
+      .join(", ");
+
+    // Create categories summary
+    const categoriesSummary = summary.categories
+      .map((c) => `${c._id} (${c.count} sản phẩm)`)
+      .join(", ");
+
+    // Create price range summary
+    const { minPrice, maxPrice, avgPrice } = summary.priceRange;
+    const priceRangeSummary = `Giá từ ${minPrice.toLocaleString(
+      "vi-VN"
+    )}đ đến ${maxPrice.toLocaleString("vi-VN")}đ, trung bình ${Math.round(
+      avgPrice
+    ).toLocaleString("vi-VN")}đ`;
+
+    // Append product knowledge to the existing system prompt
+    const productDataSummary = `
+THÔNG TIN SẢN PHẨM THỰC TẾ:
+- Tổng số sản phẩm: ${summary.totalProducts} sản phẩm
+- Thương hiệu: ${brandsSummary}
+- Danh mục: ${categoriesSummary}
+- Khoảng giá: ${priceRangeSummary}
+
+Khi khách hỏi về sản phẩm cụ thể, hãy tìm và trích dẫn từ danh sách sản phẩm thực trong hệ thống để đưa ra tư vấn chính xác nhất.`;
+
+    this.extendedSystemPrompt = `${this.systemPrompt}\n\n${productDataSummary}`;
+
+    // If chat is already initialized, we need to reinitialize with extended prompt
+    if (this.chat) {
+      this.clearMemory();
+    }
+  }
+
+  // Search for relevant products based on query
+  async searchProducts(query) {
+    // Refresh product data if it's older than 30 minutes or doesn't exist
+    const needsRefresh =
+      !this.lastProductFetch ||
+      new Date() - this.lastProductFetch > 30 * 60 * 1000;
+
+    if (needsRefresh || !this.productData) {
+      await this.fetchProductData({ search: query });
+    }
+
+    if (!this.productData) return [];
+
+    const { products } = this.productData;
+
+    // Simple search implementation - can be enhanced as needed
+    const searchTerms = query.toLowerCase().split(" ");
+
+    return products
+      .filter((product) => {
+        const searchText =
+          `${product.name} ${product.description} ${product.brand}`.toLowerCase();
+        return searchTerms.some((term) => searchText.includes(term));
+      })
+      .slice(0, 5); // Return top 5 matches
   }
 
   initializeModel() {
@@ -52,18 +162,21 @@ Lưu ý: Nếu không chắc chắn về thông tin cụ thể, hãy thừa nh�
         },
       });
 
+      // Use the extended system prompt if available
+      const promptToUse = this.extendedSystemPrompt || this.systemPrompt;
+
       // Initialize chat with system prompt
       this.chat = this.model.startChat({
         history: [
           {
             role: "user",
-            parts: [{ text: this.systemPrompt }],
+            parts: [{ text: promptToUse }],
           },
           {
             role: "model",
             parts: [
               {
-                text: "Xin chào! Tôi đã hiểu vai trò của mình là trợ lý AI chuyên tư vấn gaming gear. Tôi sẵn sàng giúp bạn!",
+                text: "Xin chào! Tôi đã hiểu vai trò của mình là trợ lý AI chuyên tư vấn gaming gear. Tôi sẵn sàng giúp bạn với dữ liệu sản phẩm thực từ cửa hàng!",
               },
             ],
           },
@@ -85,14 +198,35 @@ Lưu ý: Nếu không chắc chắn về thông tin cụ thể, hãy thừa nh�
         throw new Error("Chatbot not initialized");
       }
 
-      // Send message to Gemini
-      const result = await this.chat.sendMessage(message);
+      // Before answering, try to find relevant products for the query
+      const relevantProducts = await this.searchProducts(message);
+
+      let enhancedPrompt = message;
+
+      // If we found relevant products, enhance the user's query with product info
+      if (relevantProducts && relevantProducts.length > 0) {
+        const productDetails = relevantProducts
+          .map((p) => {
+            const price = p.discountPrice || p.price;
+            return `- ${p.name}: ${price.toLocaleString("vi-VN")}đ, ${
+              p.brand
+            }, ${p.description.substring(0, 100)}...${
+              p.stock > 0 ? " (Còn hàng)" : " (Hết hàng)"
+            }`;
+          })
+          .join("\n");
+
+        enhancedPrompt = `${message}\n\nSản phẩm liên quan trong hệ thống:\n${productDetails}\n\nHãy sử dụng thông tin sản phẩm thực này để tư vấn cho khách hàng.`;
+      }
+
+      // Send enhanced message to Gemini
+      const result = await this.chat.sendMessage(enhancedPrompt);
       const response = await result.response;
       const text = response.text();
 
       // Store in chat history for context
       this.chatHistory.push({
-        user: message,
+        user: message, // Store original user message
         bot: text,
         timestamp: new Date().toISOString(),
       });
@@ -142,12 +276,15 @@ Lưu ý: Nếu không chắc chắn về thông tin cụ thể, hãy thừa nh�
   }
 
   clearMemory() {
+    // Use the extended system prompt if available
+    const promptToUse = this.extendedSystemPrompt || this.systemPrompt;
+
     // Reset chat session
     this.chat = this.model.startChat({
       history: [
         {
           role: "user",
-          parts: [{ text: this.systemPrompt }],
+          parts: [{ text: promptToUse }],
         },
         {
           role: "model",
@@ -195,6 +332,8 @@ Lưu ý: Nếu không chắc chắn về thông tin cụ thể, hãy thừa nh�
       totalMessages: this.chatHistory.length,
       isInitialized: !!this.chat,
       modelName: "gemini-1.5-flash",
+      hasProductData: !!this.productData,
+      productCount: this.productData?.products?.length || 0,
     };
   }
 }

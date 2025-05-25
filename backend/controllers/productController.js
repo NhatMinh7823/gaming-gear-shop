@@ -551,3 +551,116 @@ exports.compareProducts = async (req, res) => {
   const products = await Product.find({ _id: { $in: productIds.split(",") } });
   res.status(200).json({ success: true, products });
 };
+
+// @desc    Get products data for chatbot
+// @route   GET /api/products/chatbot-data
+// @access  Public
+exports.getChatbotProductData = async (req, res) => {
+  try {
+    const { category, search, limit = 50 } = req.query;
+
+    let queryConditions = {};
+
+    // Filter by category if provided
+    if (category && category !== "") {
+      // Try to find category by name or slug
+      const Category = require("../models/categoryModel");
+      const categoryDoc = await Category.findOne({
+        $or: [
+          { name: { $regex: category, $options: "i" } },
+          { slug: category.toLowerCase() },
+        ],
+      });
+      if (categoryDoc) {
+        queryConditions.category = categoryDoc._id;
+      }
+    }
+
+    // Add search functionality
+    if (search && search !== "") {
+      queryConditions.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { brand: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Get products with essential information for chatbot
+    const products = await Product.find(queryConditions)
+      .populate("category", "name slug")
+      .select([
+        "name",
+        "description",
+        "price",
+        "discountPrice",
+        "brand",
+        "stock",
+        "averageRating",
+        "numReviews",
+        "specifications",
+        "features",
+        "isFeatured",
+        "isNewArrival",
+      ])
+      .sort({ averageRating: -1, numReviews: -1 })
+      .limit(parseInt(limit));
+
+    // Get summary statistics
+    const totalProducts = await Product.countDocuments(queryConditions);
+    const categories = await Product.aggregate([
+      { $match: queryConditions },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "categoryInfo",
+        },
+      },
+      { $unwind: "$categoryInfo" },
+      { $group: { _id: "$categoryInfo.name", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+
+    const brands = await Product.aggregate([
+      { $match: queryConditions },
+      { $group: { _id: "$brand", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+
+    const priceRange = await Product.aggregate([
+      { $match: queryConditions },
+      {
+        $group: {
+          _id: null,
+          minPrice: { $min: "$price" },
+          maxPrice: { $max: "$price" },
+          avgPrice: { $avg: "$price" },
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        products,
+        summary: {
+          totalProducts,
+          categories: categories.slice(0, 10),
+          brands: brands.slice(0, 15),
+          priceRange: priceRange[0] || {
+            minPrice: 0,
+            maxPrice: 0,
+            avgPrice: 0,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
