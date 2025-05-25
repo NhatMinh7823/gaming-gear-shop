@@ -30,6 +30,7 @@ import AdminOrderDetailPage from "./admin/pages/AdminOrderDetailPage"; // Import
 import AdminRoute from "./components/AdminRoute";
 import AdminCategoriesPage from "./admin/pages/AdminCategoriesPage"; // Import AdminOrderDetailPage
 import CategoryFormPage from "./admin/pages/CategoryFormPage";
+import Chatbot from "./components/Chatbot/Chatbot";
 
 // Component con chứa nội dung của ứng dụng
 function AppContent() {
@@ -58,7 +59,6 @@ function AppContent() {
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/vnpay-result" element={<VNPayResult />} />
         <Route path="/payment-error" element={<PaymentErrorPage />} />
-
         {/* Admin Routes - Protected by AdminRoute */}
         <Route path="/admin" element={<AdminRoute />}>
           {/* AdminLayout is now a child of AdminRoute's Outlet */}
@@ -77,8 +77,9 @@ function AppContent() {
             <Route path="categories/new" element={<CategoryFormPage />} />
             <Route path="categories/edit/:id" element={<CategoryFormPage />} />
           </Route>
-        </Route>      </Routes>
-      <ToastContainer 
+        </Route>{" "}
+      </Routes>
+      <ToastContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
@@ -88,8 +89,11 @@ function AppContent() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        style={{ marginTop: '90px' }} // Điều chỉnh margin-top để không che khuất navbar
+        style={{ marginTop: "90px" }} // Điều chỉnh margin-top để không che khuất navbar
       />
+
+      {/* Chatbot - Available on all pages */}
+      <Chatbot />
     </div>
   );
 }
