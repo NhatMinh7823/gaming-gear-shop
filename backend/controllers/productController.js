@@ -116,6 +116,7 @@ exports.getProducts = async (req, res) => {
     res.status(200).json({
       success: true,
       count: sanitizedProducts.length,
+      totalCount: totalProducts,
       totalPages: Math.ceil(totalProducts / limit),
       currentPage: page,
       products: sanitizedProducts,
@@ -187,6 +188,28 @@ exports.createProduct = async (req, res) => {
       images: images,
     };
 
+    // Parse specifications if it exists as a JSON string
+    if (
+      productData.specifications &&
+      typeof productData.specifications === "string"
+    ) {
+      try {
+        const specsObj = JSON.parse(productData.specifications);
+        productData.specifications = new Map(Object.entries(specsObj));
+      } catch (error) {
+        console.error("Error parsing specifications:", error);
+      }
+    }
+
+    // Parse features if it exists as a JSON string
+    if (productData.features && typeof productData.features === "string") {
+      try {
+        productData.features = JSON.parse(productData.features);
+      } catch (error) {
+        console.error("Error parsing features:", error);
+      }
+    }
+
     const product = await Product.create(productData);
 
     res.status(201).json({
@@ -243,19 +266,43 @@ exports.updateProduct = async (req, res) => {
     // Delete images that are no longer needed
     for (const image of imagesToDelete) {
       await deleteFile(image.public_id);
+    } // Parse new images order information if available
+    let newImagesOrder = [];
+    if (req.body.newImagesOrder) {
+      try {
+        newImagesOrder = JSON.parse(req.body.newImagesOrder);
+      } catch (error) {
+        console.error("Error parsing newImagesOrder:", error);
+        newImagesOrder = [];
+      }
     }
 
     // Upload new files with error handling
     const newImages = [];
     if (req.files && req.files.images) {
-      for (const file of req.files.images) {
+      // Convert FileArray to regular array for easier processing
+      const filesArray = Array.isArray(req.files.images)
+        ? req.files.images
+        : [req.files.images];
+
+      for (const file of filesArray) {
         try {
           const uploadType = "products";
           const relativePath = `/uploads/images/${uploadType}/${file.filename}`;
+
+          // Find order information for this file if available
+          const orderInfo = newImagesOrder.find(
+            (img) => img.name === file.originalname
+          );
+
           newImages.push({
             url: relativePath,
             filename: file.filename,
             public_id: file.filename,
+            // Use order information if available, otherwise default to end of list
+            displayOrder: orderInfo
+              ? orderInfo.order
+              : existingImagesToKeep.length + newImages.length,
           });
         } catch (uploadError) {
           console.error("Error uploading file:", uploadError);
@@ -266,7 +313,27 @@ exports.updateProduct = async (req, res) => {
           });
         }
       }
-    }
+
+      // Sort new images based on displayOrder if available
+      newImages.sort((a, b) => a.displayOrder - b.displayOrder);
+    } // Sort existing images to keep based on displayOrder if available
+    existingImagesToKeep = existingImagesToKeep.sort((a, b) => {
+      const orderA =
+        typeof a.displayOrder === "number"
+          ? a.displayOrder
+          : Number.MAX_SAFE_INTEGER;
+      const orderB =
+        typeof b.displayOrder === "number"
+          ? b.displayOrder
+          : Number.MAX_SAFE_INTEGER;
+      return orderA - orderB;
+    });
+
+    // Remove displayOrder field from objects since it's only used for sorting
+    existingImagesToKeep = existingImagesToKeep.map((img) => {
+      const { displayOrder, ...rest } = img;
+      return rest;
+    });
 
     // Combine existing images to keep and new images
     const finalImages = [...existingImagesToKeep, ...newImages];
@@ -278,6 +345,28 @@ exports.updateProduct = async (req, res) => {
 
     // Remove existingImages from req.body before updating the product
     delete updatedData.existingImages;
+
+    // Parse specifications if it exists as a JSON string
+    if (
+      updatedData.specifications &&
+      typeof updatedData.specifications === "string"
+    ) {
+      try {
+        const specsObj = JSON.parse(updatedData.specifications);
+        updatedData.specifications = new Map(Object.entries(specsObj));
+      } catch (error) {
+        console.error("Error parsing specifications:", error);
+      }
+    }
+
+    // Parse features if it exists as a JSON string
+    if (updatedData.features && typeof updatedData.features === "string") {
+      try {
+        updatedData.features = JSON.parse(updatedData.features);
+      } catch (error) {
+        console.error("Error parsing features:", error);
+      }
+    }
 
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,

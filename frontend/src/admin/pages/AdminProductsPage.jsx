@@ -14,7 +14,7 @@ const AdminProductsPage = () => {
   const [sortDirection, setSortDirection] = useState('asc');
   const [filterCategory, setFilterCategory] = useState('');
   const [categories, setCategories] = useState([]);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchProducts();
@@ -42,7 +42,7 @@ const AdminProductsPage = () => {
         limit: itemsPerPage,
       });
       setProducts(response.data.products || []);
-      setTotalPages(Math.ceil(response.data.count || 0) / itemsPerPage);
+      setTotalPages(response.data.totalPages || 1);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to fetch products');
@@ -87,7 +87,7 @@ const AdminProductsPage = () => {
   };
 
   const toggleSelectProduct = (productId) => {
-    setSelectedProducts(current => 
+    setSelectedProducts(current =>
       current.includes(productId)
         ? current.filter(id => id !== productId)
         : [...current, productId]
@@ -95,7 +95,7 @@ const AdminProductsPage = () => {
   };
 
   const toggleSelectAll = () => {
-    setSelectedProducts(current => 
+    setSelectedProducts(current =>
       current.length === products.length ? [] : products.map(p => p._id)
     );
   };
@@ -103,9 +103,9 @@ const AdminProductsPage = () => {
   // Client-side filtering only when search term is used
   const filteredProducts = searchTerm
     ? products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : products;
 
   const SortIcon = ({ field }) => (
@@ -264,14 +264,13 @@ const AdminProductsPage = () => {
                         <div className="text-sm text-gray-900">{product.stock}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          product.stock > 10 ? 'bg-green-100 text-green-800' :
-                          product.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.stock > 10 ? 'bg-green-100 text-green-800' :
+                            product.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                          }`}>
                           {product.stock > 10 ? 'In Stock' :
-                           product.stock > 0 ? 'Low Stock' :
-                           'Out of Stock'}
+                            product.stock > 0 ? 'Low Stock' :
+                              'Out of Stock'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -297,32 +296,97 @@ const AdminProductsPage = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-6">
-              <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className={`px-4 py-2 border rounded-md ${
-                  currentPage === 1
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Previous
-              </button>
-              <span className="text-sm text-gray-700">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className={`px-4 py-2 border rounded-md ${
-                  currentPage === totalPages
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Next
-              </button>
+            <div className="px-6 py-4 border-t bg-white rounded-b-lg">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <p className="text-sm text-gray-500">
+                  Showing {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, products.length)} of {products.length} products
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
+                      currentPage === 1
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    First
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
+                      currentPage === 1
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
+                          currentPage === pageNum
+                            ? 'bg-indigo-600 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
+                      currentPage === totalPages
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Next
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
+                      currentPage === totalPages
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Last
+                  </button>
+                </div>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-1 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value={5}>5 / trang</option>
+                  <option value={10}>10 / trang</option>
+                  <option value={25}>25 / trang</option>
+                  <option value={50}>50 / trang</option>
+                </select>
+              </div>
             </div>
           )}
         </>

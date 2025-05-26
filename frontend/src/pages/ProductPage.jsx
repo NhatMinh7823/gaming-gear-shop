@@ -6,7 +6,8 @@ import { getProductById, createReview, addCartItem, addToWishlist, removeFromWis
 import { setCart } from '../redux/slices/cartSlice';
 import {
   FaStar, FaRegStar, FaShoppingCart, FaMinus, FaPlus, FaCheck,
-  FaArrowLeft, FaSpinner, FaExclamationCircle, FaBoxOpen, FaHeart, FaRegHeart
+  FaArrowLeft, FaSpinner, FaExclamationCircle, FaBoxOpen, FaHeart, FaRegHeart,
+  FaList, FaClipboardList
 } from 'react-icons/fa';
 import useWishlist from '../hooks/useWishlist';
 
@@ -328,6 +329,45 @@ function ProductPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Product Specifications & Features */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Specifications Section */}
+          {product.specifications && Object.keys(product.specifications).length > 0 && (
+            <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <FaClipboardList className="text-blue-400 text-xl" />
+                <h2 className="text-2xl font-bold text-gray-100">Thông số kỹ thuật</h2>
+              </div>
+              <div className="space-y-3">
+                {Object.entries(product.specifications).map(([key, value]) => (
+                  <div key={key} className="grid grid-cols-3 gap-4 py-2 border-b border-gray-700">
+                    <div className="text-gray-400 font-medium capitalize">{key.replace(/_/g, ' ')}</div>
+                    <div className="text-gray-100 col-span-2">{value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Features Section */}
+          {product.features && product.features.length > 0 && (
+            <div className="bg-gray-800 rounded-2xl shadow-lg p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <FaList className="text-blue-400 text-xl" />
+                <h2 className="text-2xl font-bold text-gray-100">Tính năng nổi bật</h2>
+              </div>
+              <ul className="list-disc list-inside space-y-2 text-gray-100">
+                {product.features.map((feature, index) => (
+                  <li key={index} className="py-1.5 flex items-start">
+                    <span className="text-blue-400 mr-2">•</span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Reviews Section */}

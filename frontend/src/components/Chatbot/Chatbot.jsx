@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { gamingChatbot } from '../../services/chatbotService';
-// import { gamingChatbot } from '../../services/chatbotService_direct';
 
 const Chatbot = () => {
     const [messages, setMessages] = useState([]);
@@ -117,30 +116,30 @@ const Chatbot = () => {
         }).format(timestamp);
     };
 
-        // Hàm xử lý định dạng Markdown thành HTML
+    // Hàm xử lý định dạng Markdown thành HTML
     const formatMarkdown = (text) => {
         if (!text) return '';
-        
+
         // Xử lý nhiều xuống dòng liên tiếp thành một xuống dòng duy nhất (thay vì hai như trước)
         let formattedText = text.replace(/\n{2,}/g, '\n');
-    
+
         // Xử lý in đậm: **text** -> <strong>text</strong>
         formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
+
         // Xử lý nghiêng: *text* -> <em>text</em>
         formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    
+
         // Xử lý xuống dòng: \n -> <br>
         formattedText = formattedText.replace(/\n/g, '<br>');
-        
+
         // Xử lý danh sách đánh dấu (bullet lists)
         const lines = formattedText.split('<br>');
         let inList = false;
         let processedLines = [];
-    
+
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            
+
             // Kiểm tra xem dòng có bắt đầu bằng "- " hoặc "* " không
             if (line.trim().match(/^[-*]\s+/)) {
                 // Nếu chưa trong danh sách, bắt đầu danh sách mới
@@ -160,17 +159,17 @@ const Chatbot = () => {
                 processedLines.push(line);
             }
         }
-    
+
         // Nếu kết thúc văn bản mà vẫn còn trong danh sách, đóng thẻ danh sách
         if (inList) {
             processedLines.push('</ul>');
         }
-    
+
         formattedText = processedLines.join('<br>');
-        
+
         // Đảm bảo chỉ có tối đa một <br> liên tiếp
         formattedText = formattedText.replace(/<br>\s*<br>+/g, '<br>');
-    
+
         return formattedText;
     };
 
@@ -221,14 +220,13 @@ const Chatbot = () => {
                             <div
                                 key={message.id}
                                 className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'} animate-fadeIn`}
-                            >
-                                <div className={`max-w-[90%] p-2.5 rounded-2xl word-wrap break-words leading-snug ${message.sender === 'user'
-                                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-sm'
-                                    : message.success === false
-                                        ? 'bg-red-50 border border-red-200 text-red-700 rounded-bl-sm'
-                                        : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm shadow-sm'
-                                    }`}
-                                    dangerouslySetInnerHTML={{ __html: formatMarkdown(message.text) }}
+                            >                                <div className={`max-w-[90%] p-2.5 rounded-2xl word-wrap break-words leading-snug overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent ${message.sender === 'user'
+                                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-sm'
+                                : message.success === false
+                                    ? 'bg-red-50 border border-red-200 text-red-700 rounded-bl-sm'
+                                    : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm shadow-sm'
+                                }`}
+                                dangerouslySetInnerHTML={{ __html: formatMarkdown(message.text) }}
                                 />
                                 <div className="text-xs text-gray-500 mt-0.5 px-1">
                                     {formatTime(message.timestamp)}
@@ -248,17 +246,15 @@ const Chatbot = () => {
                             </div>
                         )}
                         <div ref={messagesEndRef} />
-                    </div>
-
-                    {/* Quick Categories - Show when few messages */}
+                    </div>                    {/* Quick Categories - Show when few messages */}
                     {messages.length <= 1 && (
                         <div className="p-2 bg-white border-t border-gray-200">
                             <p className="text-xs font-medium text-gray-700 mb-1.5">Danh mục sản phẩm:</p>
-                            <div className="flex overflow-x-auto pb-1.5 gap-1.5 hide-scrollbar">
+                            <div className="flex overflow-x-auto overflow-y-hidden pb-1.5 gap-1.5 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400" style={{ scrollbarWidth: 'thin' }}>
                                 {categories.map((category, index) => (
                                     <button
                                         key={index}
-                                        className="flex items-center p-1.5 text-left bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg text-xs cursor-pointer transition-all whitespace-nowrap"
+                                        className="flex items-center p-1.5 text-left bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg text-xs cursor-pointer transition-all whitespace-nowrap flex-shrink-0 min-w-fit"
                                         onClick={() => handleCategoryClick(category)}
                                     >
                                         <span className="mr-1">{category.icon}</span>
@@ -339,14 +335,46 @@ const Chatbot = () => {
         .animate-fadeIn {
           animation: fadeIn 0.3s ease-in;
         }
-        
-        .hide-scrollbar::-webkit-scrollbar {
+          .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
         
         .hide-scrollbar {
           -ms-overflow-style: none;
           scrollbar-width: none;
+        }        /* Custom scrollbar styles */
+        .scrollbar-thin::-webkit-scrollbar {
+          width: 4px;
+          height: 4px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: transparent;
+          border-radius: 2px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-track:hover {
+          background: #f1f5f9;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 2px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+        
+        /* Hide scrollbar when not hovering */
+        .scrollbar-thin {
+          scrollbar-width: thin;
+          scrollbar-color: transparent transparent;
+        }
+        
+        /* Show scrollbar on hover */
+        .scrollbar-thin:hover {
+          scrollbar-color: #cbd5e1 transparent;
         }
 
         /* CSS cho định dạng Markdown */
