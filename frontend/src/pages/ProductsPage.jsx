@@ -7,7 +7,8 @@ import { getProducts, searchProducts, getCategories, getSearchSuggestions } from
 import ProductCard from '../components/ProductCard';
 import {
   FaSearch, FaFilter, FaSlidersH, FaTimes, FaSort, FaBox, FaTags,
-  FaDollarSign, FaShoppingBag, FaChevronLeft, FaChevronRight, FaBoxOpen
+  FaDollarSign, FaShoppingBag, FaChevronLeft, FaChevronRight, FaBoxOpen,
+  FaCheckCircle, FaTimesCircle
 } from 'react-icons/fa';
 
 function ProductsPage() {
@@ -264,218 +265,272 @@ function ProductsPage() {
       <div className="md:hidden mb-6">
         <button
           onClick={() => setExpandFilters(!expandFilters)}
-          className="w-full flex items-center justify-between bg-gray-800 text-white shadow-lg p-4 rounded-xl"
+          className="w-full flex items-center justify-between bg-gradient-to-r from-gray-800 to-gray-700 text-white shadow-lg p-4 rounded-xl border border-gray-600 hover:from-gray-700 hover:to-gray-600 transition-all duration-200"
         >
           <div className="flex items-center gap-3">
-            <FaFilter className={`w-5 h-5 transition-colors ${filterCount > 0 ? 'text-blue-600' : 'text-gray-600'}`} />
+            <div className="relative">
+              <FaFilter className={`w-5 h-5 transition-colors ${filterCount > 0 ? 'text-blue-400' : 'text-gray-400'}`} />
+              {filterCount > 0 && (
+                <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">{filterCount}</span>
+                </div>
+              )}
+            </div>
             <span className="font-medium">Filters & Search</span>
-            {filterCount > 0 && (
-              <span className="bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                {filterCount}
-              </span>
-            )}
           </div>
-          <FaSlidersH className={`w-5 h-5 transition-transform ${expandFilters ? 'rotate-180' : ''}`} />
+          <FaSlidersH className={`w-5 h-5 transition-transform duration-200 ${expandFilters ? 'rotate-180' : ''}`} />
         </button>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Sidebar for Filters - Hidden on mobile unless expanded */}
+        {/* Enhanced Sidebar for Filters */}
         <div className={`md:w-1/4 md:block ${expandFilters ? 'block' : 'hidden'}`}>
-          <div className="bg-gray-800 p-6 rounded-2xl shadow-lg sticky top-4 text-white">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-xl shadow-xl sticky top-4 text-white border border-gray-700">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-700">
               <div className="flex items-center gap-2">
-                <FaFilter className="text-blue-600" />
-                <h3 className="text-lg font-semibold text-white">Filters</h3>
-                {filterCount > 0 && (
-                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full">
-                    {filterCount}
-                  </span>
-                )}
+                <div className="relative">
+                  <FaFilter className="text-blue-400 text-lg" />
+                  {filterCount > 0 && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold text-white">{filterCount}</span>
+                    </div>
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-white">Filters</h3>
               </div>
               {filterCount > 0 && (
                 <button
                   onClick={clearFilters}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                  className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-medium transition-colors duration-200 bg-red-900/20 px-2 py-1 rounded-md hover:bg-red-900/30"
                 >
                   <FaTimes className="w-3 h-3" />
-                  Clear
+                  <span>Clear</span>
                 </button>
               )}
             </div>
 
-            {/* Search Box */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 text-gray-800 mb-3">
-                <FaSearch className="text-blue-600" />
-                <label className="font-medium">Search Products</label>
+            {/* Search Section */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <FaSearch className="text-blue-400 text-sm" />
+                <label className="font-medium text-gray-200 text-sm">Search</label>
               </div>
               <form onSubmit={handleSearch} className="relative">
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by name, brand..."
-                  className="w-full border-2 border-gray-600 rounded-xl px-4 py-3 pl-11 focus:ring-2 
-                           focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-700 text-white placeholder-gray-400"
-                  ref={searchRef}
-                />
-                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white 
-                           p-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <FaSearch className="w-4 h-4" />
-                </button>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search products..."
+                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 pl-9 pr-10 
+                             text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 
+                             transition-all duration-200 hover:border-gray-500 text-sm"
+                    ref={searchRef}
+                  />
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs" />
+                  <button
+                    type="submit"
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 
+                             text-white p-1.5 rounded-md transition-colors duration-200 shadow-md"
+                  >
+                    <FaSearch className="w-3 h-3" />
+                  </button>
+                </div>
 
-                {/* Search Suggestions */}
+                {/* Enhanced Search Suggestions */}
                 {showSuggestions && suggestions.length > 0 && (
-                  <ul className="absolute z-20 bg-gray-700 w-full mt-2 border border-gray-600 rounded-xl 
-                               shadow-lg max-h-60 overflow-y-auto divide-y divide-gray-600">
+                  <div className="absolute z-20 bg-gray-800 w-full mt-1 border border-gray-600 rounded-lg 
+                               shadow-2xl max-h-48 overflow-y-auto backdrop-blur-sm">
                     {suggestions.map((suggestion, index) => (
-                      <li
+                      <div
                         key={index}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="p-3 hover:bg-gray-600 cursor-pointer transition-colors"
+                        className="p-2 hover:bg-gray-700 cursor-pointer transition-colors duration-200 
+                                 border-b border-gray-700 last:border-b-0 first:rounded-t-lg last:rounded-b-lg"
                       >
-                        <div className="flex items-center gap-3">
-                          <FaBox className="text-gray-400" />
-                          <div>
-                            <div className="font-medium text-white">{suggestion.name}</div>
-                            <div className="text-sm text-gray-300">{suggestion.brand}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-blue-600/20 rounded-md flex items-center justify-center">
+                            <FaBox className="text-blue-400 text-xs" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-white text-sm">{suggestion.name}</div>
+                            <div className="text-xs text-gray-400">{suggestion.brand}</div>
                           </div>
                         </div>
-                      </li>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 )}
               </form>
             </div>
 
-            {/* Category Filter */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 text-gray-800 mb-3">
-                <FaTags className="text-blue-600" />
-                <label className="font-medium">Category</label>
-              </div>
-              <div className="bg-gray-700 rounded-xl p-2">
-                <select
-                  value={category}
-                  onChange={handleCategoryChange}
-                  className="w-full bg-transparent border-2 border-gray-600 rounded-lg px-3 py-2.5 
-                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none text-white"
-                >
-                  <option value="" className="bg-gray-800 text-white">All Categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id} className="bg-gray-800 text-white">{cat.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Price Range */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 text-gray-800 mb-3">
-                <FaDollarSign className="text-blue-600" />
-                <label className="font-medium">Price Range</label>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
-                    placeholder="0"
-                    className="w-full border-2 border-gray-600 rounded-xl px-4 py-2.5 focus:ring-2 
-                             focus:ring-blue-500 focus:border-blue-500 text-right bg-gray-700 text-white"
-                  />
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">từ</span>
+            {/* Quick Filters Grid */}
+            <div className="grid grid-cols-1 gap-3 mb-4">
+              {/* Category & Stock in one row */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <FaTags className="text-blue-400 text-xs" />
+                    <label className="font-medium text-gray-200 text-xs">Category</label>
+                  </div>
+                  <select
+                    value={category}
+                    onChange={handleCategoryChange}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
+                             focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
+                             hover:border-gray-500 appearance-none cursor-pointer"
+                  >
+                    <option value="">All</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                    placeholder="Max"
-                    className="w-full border-2 border-gray-600 rounded-xl px-4 py-2.5 focus:ring-2 
-                             focus:ring-blue-500 focus:border-blue-500 text-right bg-gray-700 text-white"
-                  />
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">đến</span>
+
+                <div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <FaBoxOpen className="text-blue-400 text-xs" />
+                    <label className="font-medium text-gray-200 text-xs">Stock</label>
+                  </div>
+                  <select
+                    value={stockStatus}
+                    onChange={handleStockStatusChange}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
+                             focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
+                             hover:border-gray-500 appearance-none cursor-pointer"
+                  >
+                    <option value="">All</option>
+                    <option value="in_stock">In Stock</option>
+                    <option value="low_stock">Low Stock</option>
+                    <option value="out_of_stock">Out of Stock</option>
+                  </select>
                 </div>
               </div>
+
+              {/* Price Range */}
+              <div>
+                <div className="flex items-center gap-1 mb-2">
+                  <FaDollarSign className="text-blue-400 text-xs" />
+                  <label className="font-medium text-gray-200 text-xs">Price Range</label>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                      placeholder="Min"
+                      className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
+                               focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
+                               hover:border-gray-500 placeholder-gray-400"
+                    />
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                      placeholder="Max"
+                      className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
+                               focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
+                               hover:border-gray-500 placeholder-gray-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Brand & Sort in one row */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <FaShoppingBag className="text-blue-400 text-xs" />
+                    <label className="font-medium text-gray-200 text-xs">Brand</label>
+                  </div>
+                  <input
+                    type="text"
+                    value={brand}
+                    onChange={(e) => setBrand(e.target.value)}
+                    placeholder="Brand"
+                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
+                             focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
+                             hover:border-gray-500 placeholder-gray-400"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <FaSort className="text-blue-400 text-xs" />
+                    <label className="font-medium text-gray-200 text-xs">Sort</label>
+                  </div>
+                  <select
+                    value={sort}
+                    onChange={handleSortChange}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
+                             focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
+                             hover:border-gray-500 appearance-none cursor-pointer"
+                  >
+                    <option value="-createdAt">Newest</option>
+                    <option value="price">Price ↑</option>
+                    <option value="-price">Price ↓</option>
+                    <option value="-averageRating">Top Rated</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            {/* Brand Filter */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 text-gray-800 mb-3">
-                <FaShoppingBag className="text-blue-600" />
-                <label className="font-medium">Brand</label>
-              </div>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                  placeholder="Enter brand name"
-                  className="w-full border-2 border-gray-600 rounded-xl px-4 py-2.5 focus:ring-2 
-                           focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-white placeholder-gray-400"
-                />
-              </div>
-            </div>
-
-            {/* Stock Status Filter */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 text-gray-800 mb-3">
-                <FaBoxOpen className="text-blue-600" />
-                <label className="font-medium">Stock Status</label>
-              </div>
-              <div className="bg-gray-700 rounded-xl p-2">
-                <select
-                  value={stockStatus}
-                  onChange={handleStockStatusChange}
-                  className="w-full bg-transparent border-2 border-gray-600 rounded-lg px-3 py-2.5 
-                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none text-white"
-                >
-                  <option value="" className="bg-gray-800 text-white">All Products</option>
-                  <option value="in_stock" className="bg-gray-800 text-white">In Stock</option>
-                  <option value="low_stock" className="bg-gray-800 text-white">Low Stock (5 or less)</option>
-                  <option value="out_of_stock" className="bg-gray-800 text-white">Out of Stock</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Sort Options */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 text-gray-800 mb-3">
-                <FaSort className="text-blue-600" />
-                <label className="font-medium">Sort By</label>
-              </div>
-              <div className="bg-gray-700 rounded-xl p-2">
-                <select
-                  value={sort}
-                  onChange={handleSortChange}
-                  className="w-full bg-transparent border-2 border-gray-600 rounded-lg px-3 py-2.5
-                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none text-white"
-                >
-                  <option value="-createdAt" className="bg-gray-800 text-white">Newest First</option>
-                  <option value="price" className="bg-gray-800 text-white">Price: Low to High</option>
-                  <option value="-price" className="bg-gray-800 text-white">Price: High to Low</option>
-                  <option value="-averageRating" className="bg-gray-800 text-white">Highest Rated</option>
-                </select>
-              </div>
-            </div>
-
+            {/* Apply Filters Button */}
             <button
               onClick={handleFilterChange}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 
-                       rounded-xl hover:from-blue-700 hover:to-blue-800 transition duration-300 
-                       font-medium shadow-blue-200 shadow-lg hover:shadow-xl
-                       flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 
+                       text-white px-4 py-2 rounded-lg transition-all duration-300 font-medium text-sm
+                       shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]
+                       flex items-center justify-center gap-2 border border-blue-500/20 mb-3"
             >
-              <FaFilter />
+              <FaCheckCircle className="w-3 h-3" />
               <span>Apply Filters</span>
             </button>
+
+            {/* Active Filters Display */}
+            {filterCount > 0 && (
+              <div className="pt-3 border-t border-gray-700">
+                <div className="flex items-center gap-1 mb-2">
+                  <span className="text-xs font-medium text-gray-300">Active:</span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {searchParams.has('keyword') && (
+                    <span className="inline-flex items-center gap-1 bg-blue-600/20 text-blue-300 px-1.5 py-0.5 rounded text-xs">
+                      <FaSearch className="w-2 h-2" />
+                      Search
+                    </span>
+                  )}
+                  {category && (
+                    <span className="inline-flex items-center gap-1 bg-green-600/20 text-green-300 px-1.5 py-0.5 rounded text-xs">
+                      <FaTags className="w-2 h-2" />
+                      Category
+                    </span>
+                  )}
+                  {(minPrice || maxPrice) && (
+                    <span className="inline-flex items-center gap-1 bg-yellow-600/20 text-yellow-300 px-1.5 py-0.5 rounded text-xs">
+                      <FaDollarSign className="w-2 h-2" />
+                      Price
+                    </span>
+                  )}
+                  {brand && (
+                    <span className="inline-flex items-center gap-1 bg-purple-600/20 text-purple-300 px-1.5 py-0.5 rounded text-xs">
+                      <FaShoppingBag className="w-2 h-2" />
+                      Brand
+                    </span>
+                  )}
+                  {stockStatus && (
+                    <span className="inline-flex items-center gap-1 bg-orange-600/20 text-orange-300 px-1.5 py-0.5 rounded text-xs">
+                      <FaBoxOpen className="w-2 h-2" />
+                      Stock
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -497,19 +552,20 @@ function ProductsPage() {
             </div>
           ) : products && products.length > 0 ? (
             <>
-              <div className="bg-gray-800 rounded-xl shadow-md p-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center text-white">
+              <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl shadow-lg p-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center text-white border border-gray-600">
                 <div className="mb-3 sm:mb-0">
                   <p className="text-gray-300">
-                    Showing <span className="font-semibold">{products.length}</span> results
-                    {isSearching && <span> for "<span className="font-semibold">{searchParams.get('keyword')}</span>"</span>}
+                    Showing <span className="font-semibold text-blue-400">{products.length}</span> results
+                    {isSearching && <span> for "<span className="font-semibold text-blue-400">{searchParams.get('keyword')}</span>"</span>}
                   </p>
                 </div>
                 <div className="flex items-center w-full sm:w-auto">
-                  <label className="hidden sm:inline mr-2 text-gray-600">Sort:</label>
+                  <label className="hidden sm:inline mr-2 text-gray-400">Sort:</label>
                   <select
                     value={sort}
                     onChange={handleSortChange}
-                    className="border border-gray-600 rounded-lg px-3 py-2 w-full sm:w-auto focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-700 text-white"
+                    className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 w-full sm:w-auto 
+                             focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white transition-all duration-200"
                   >
                     <option value="-createdAt">Newest First</option>
                     <option value="price">Price: Low to High</option>

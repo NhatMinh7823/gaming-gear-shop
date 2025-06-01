@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { gamingChatbot } from '../../services/chatbotService';
+import gamingChatbot from '../../services/chatbotService';
 
 const Chatbot = () => {
     const [messages, setMessages] = useState([]);
@@ -7,20 +7,15 @@ const Chatbot = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
-    const [categories] = useState(gamingChatbot.getGamingCategories());
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
         // Load quick suggestions
-        const loadSuggestions = async () => {
-            const quickSuggestions = await gamingChatbot.getQuickSuggestions();
-            setSuggestions(quickSuggestions);
-        };
-        loadSuggestions();
+        setSuggestions(gamingChatbot.getQuickResponses());
 
         // Welcome message
         setMessages([{
-            id: Date.now(),
+            id: 'welcome_' + Date.now(),
             text: "Chào bạn! 👋 Tôi là trợ lý AI của Gaming Gear Shop. Tôi có thể giúp bạn tư vấn về thiết bị gaming. Bạn cần hỗ trợ gì?",
             sender: 'bot',
             timestamp: new Date()
@@ -38,8 +33,15 @@ const Chatbot = () => {
     const handleSendMessage = async (messageText = inputMessage) => {
         if (!messageText.trim()) return;
 
+        // Validate message
+        const validation = gamingChatbot.validateMessage(messageText);
+        if (!validation.valid) {
+            alert(validation.error);
+            return;
+        }
+
         const userMessage = {
-            id: Date.now(),
+            id: 'user_' + Date.now(),
             text: messageText,
             sender: 'user',
             timestamp: new Date()
@@ -53,17 +55,24 @@ const Chatbot = () => {
             const response = await gamingChatbot.sendMessage(messageText);
 
             const botMessage = {
-                id: Date.now() + 1,
-                text: response.message,
+                id: 'bot_' + Date.now(),
+                text: response.response,
                 sender: 'bot',
-                timestamp: new Date(),
-                success: response.success
+                timestamp: new Date(response.timestamp),
+                success: !response.error
             };
 
             setMessages(prev => [...prev, botMessage]);
+
+            // Get suggested follow-up questions
+            const followUpSuggestions = gamingChatbot.getSuggestedQuestions(response.response);
+            if (followUpSuggestions.length > 0) {
+                setSuggestions(followUpSuggestions);
+            }
+
         } catch (error) {
             const errorMessage = {
-                id: Date.now() + 1,
+                id: 'error_' + Date.now(),
                 text: "Xin lỗi, tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau hoặc liên hệ support.",
                 sender: 'bot',
                 timestamp: new Date(),
@@ -86,7 +95,7 @@ const Chatbot = () => {
         handleSendMessage(suggestion);
     };
 
-    const handleCategoryClick = (category) => {
+    const handleCategoryClick = (categoryName) => {
         const categoryQuestions = {
             "Chuột Gaming": "Tư vấn chuột gaming phù hợp với nhu cầu và budget của tôi",
             "Bàn phím Gaming": "Giúp tôi chọn bàn phím gaming tốt nhất",
@@ -96,185 +105,225 @@ const Chatbot = () => {
             "Setup Gaming": "Hỗ trợ tôi setup gaming hoàn chỉnh"
         };
 
-        handleSendMessage(categoryQuestions[category.name] || `Tôi quan tâm đến ${category.name}`);
+        handleSendMessage(categoryQuestions[categoryName] || `Tôi quan tâm đến ${categoryName}`);
     };
 
     const clearChat = () => {
         setMessages([{
-            id: Date.now(),
-            text: "Cuộc trò chuyện đã được làm mới! Tôi có thể giúp gì cho bạn? 🎮",
+            id: 'welcome_' + Date.now(),
+            text: "Chào bạn! 👋 Tôi có thể giúp gì cho bạn?",
             sender: 'bot',
             timestamp: new Date()
         }]);
-        gamingChatbot.clearMemory();
+        gamingChatbot.clearHistory();
+        setSuggestions(gamingChatbot.getQuickResponses());
     };
 
-    const formatTime = (timestamp) => {
-        return new Intl.DateTimeFormat('vi-VN', {
-            hour: '2-digit',
-            minute: '2-digit'
-        }).format(timestamp);
-    };
-
-    // Hàm xử lý định dạng Markdown thành HTML
-    const formatMarkdown = (text) => {
-        if (!text) return '';
-
-        // Xử lý nhiều xuống dòng liên tiếp thành một xuống dòng duy nhất (thay vì hai như trước)
-        let formattedText = text.replace(/\n{2,}/g, '\n');
-
-        // Xử lý in đậm: **text** -> <strong>text</strong>
-        formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-        // Xử lý nghiêng: *text* -> <em>text</em>
-        formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-        // Xử lý xuống dòng: \n -> <br>
-        formattedText = formattedText.replace(/\n/g, '<br>');
-
-        // Xử lý danh sách đánh dấu (bullet lists)
-        const lines = formattedText.split('<br>');
-        let inList = false;
-        let processedLines = [];
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-
-            // Kiểm tra xem dòng có bắt đầu bằng "- " hoặc "* " không
-            if (line.trim().match(/^[-*]\s+/)) {
-                // Nếu chưa trong danh sách, bắt đầu danh sách mới
-                if (!inList) {
-                    processedLines.push('<ul>');
-                    inList = true;
-                }
-                // Chuyển dòng thành mục danh sách
-                processedLines.push('<li>' + line.trim().substring(2) + '</li>');
-            } else {
-                // Nếu đang trong danh sách và gặp dòng không phải danh sách, kết thúc danh sách
-                if (inList) {
-                    processedLines.push('</ul>');
-                    inList = false;
-                }
-                // Thêm dòng không phải danh sách vào kết quả
-                processedLines.push(line);
-            }
-        }
-
-        // Nếu kết thúc văn bản mà vẫn còn trong danh sách, đóng thẻ danh sách
-        if (inList) {
-            processedLines.push('</ul>');
-        }
-
-        formattedText = processedLines.join('<br>');
-
-        // Đảm bảo chỉ có tối đa một <br> liên tiếp
-        formattedText = formattedText.replace(/<br>\s*<br>+/g, '<br>');
-
-        return formattedText;
-    };
+    const quickCategories = [
+        { name: "Chuột Gaming", icon: "🖱️" },
+        { name: "Bàn phím Gaming", icon: "⌨️" },
+        { name: "Tai nghe Gaming", icon: "🎧" },
+        { name: "Màn hình Gaming", icon: "🖥️" },
+        { name: "Laptop Gaming", icon: "💻" },
+        { name: "Setup Gaming", icon: "🎮" }
+    ];
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 font-sans">
-            {/* Chat Toggle Button */}
+        <div className="chatbot-container">
+            {/* Chatbot Toggle Button */}
             <button
-                className={`w-12 h-12 rounded-full border-none bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl cursor-pointer shadow-lg hover:shadow-xl transform transition-all duration-300 ease-in-out flex items-center justify-center ${isOpen ? 'rotate-45' : 'hover:scale-110'}`}
                 onClick={() => setIsOpen(!isOpen)}
-                aria-label="Toggle chat"
+                className="chatbot-toggle"
+                style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    right: '20px',
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    zIndex: 1000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px',
+                    transition: 'all 0.3s ease'
+                }}
             >
-                {isOpen ? '✕' : '🎮'}
+                {isOpen ? '✕' : '💬'}
             </button>
 
             {/* Chat Window */}
             {isOpen && (
-                <div className="absolute bottom-16 right-0 w-80 h-[450px] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden animate-slideUp border border-gray-200">
+                <div
+                    className="chat-window"
+                    style={{
+                        position: 'fixed',
+                        bottom: '90px',
+                        right: '20px',
+                        width: '350px',
+                        height: '500px',
+                        backgroundColor: 'white',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                        zIndex: 999,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden'
+                    }}
+                >
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2.5 flex justify-between items-center">
+                    <div
+                        className="chat-header"
+                        style={{
+                            backgroundColor: '#3b82f6',
+                            color: 'white',
+                            padding: '16px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}
+                    >
                         <div>
-                            <h3 className="text-base font-semibold m-0">Gaming Gear Assistant</h3>
-                            <span className="text-xs opacity-90 flex items-center">
-                                <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1.5"></span>
-                                Online
-                            </span>
+                            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>
+                                Gaming Gear Assistant
+                            </h3>
+                            <p style={{ margin: 0, fontSize: '12px', opacity: 0.9 }}>
+                                Tư vấn thiết bị gaming 24/7
+                            </p>
                         </div>
-                        <div className="flex gap-1.5">
-                            <button
-                                onClick={clearChat}
-                                className="bg-white bg-opacity-20 hover:bg-opacity-30 border-none text-white p-1.5 rounded text-xs cursor-pointer transition-all"
-                                title="Clear chat"
-                            >
-                                🗑️
-                            </button>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="bg-white bg-opacity-20 hover:bg-opacity-30 border-none text-white p-1.5 rounded text-xs cursor-pointer transition-all"
-                                title="Close"
-                            >
-                                ✕
-                            </button>
-                        </div>
+                        <button
+                            onClick={clearChat}
+                            style={{
+                                background: 'rgba(255,255,255,0.2)',
+                                border: 'none',
+                                color: 'white',
+                                borderRadius: '6px',
+                                padding: '6px 10px',
+                                fontSize: '12px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            🗑️ Clear
+                        </button>
                     </div>
 
-                    {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-3 bg-gray-50 space-y-3">
+                    {/* Messages Area */}
+                    <div
+                        className="messages-container"
+                        style={{
+                            flex: 1,
+                            overflowY: 'auto',
+                            padding: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px'
+                        }}
+                    >
                         {messages.map((message) => (
                             <div
                                 key={message.id}
-                                className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'} animate-fadeIn`}
-                            >                                <div className={`max-w-[90%] p-2.5 rounded-2xl word-wrap break-words leading-snug overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent ${message.sender === 'user'
-                                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-sm'
-                                : message.success === false
-                                    ? 'bg-red-50 border border-red-200 text-red-700 rounded-bl-sm'
-                                    : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm shadow-sm'
-                                }`}
-                                dangerouslySetInnerHTML={{ __html: formatMarkdown(message.text) }}
-                                />
-                                <div className="text-xs text-gray-500 mt-0.5 px-1">
-                                    {formatTime(message.timestamp)}
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start'
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        maxWidth: '80%',
+                                        padding: '10px 14px',
+                                        borderRadius: '18px',
+                                        backgroundColor: message.sender === 'user' ? '#3b82f6' : '#f3f4f6',
+                                        color: message.sender === 'user' ? 'white' : '#374151',
+                                        fontSize: '14px',
+                                        lineHeight: '1.4',
+                                        wordWrap: 'break-word'
+                                    }}
+                                >
+                                    {message.text}
                                 </div>
                             </div>
                         ))}
 
                         {isLoading && (
-                            <div className="flex items-start animate-fadeIn">
-                                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm p-2.5 shadow-sm">
-                                    <div className="flex gap-1">
-                                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
-                                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
-                                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                                    </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                <div
+                                    style={{
+                                        padding: '10px 14px',
+                                        borderRadius: '18px',
+                                        backgroundColor: '#f3f4f6',
+                                        color: '#6b7280',
+                                        fontSize: '14px'
+                                    }}
+                                >
+                                    Đang trả lời...
                                 </div>
                             </div>
                         )}
                         <div ref={messagesEndRef} />
-                    </div>                    {/* Quick Categories - Show when few messages */}
+                    </div>
+
+                    {/* Quick Categories */}
                     {messages.length <= 1 && (
-                        <div className="p-2 bg-white border-t border-gray-200">
-                            <p className="text-xs font-medium text-gray-700 mb-1.5">Danh mục sản phẩm:</p>
-                            <div className="flex overflow-x-auto overflow-y-hidden pb-1.5 gap-1.5 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400" style={{ scrollbarWidth: 'thin' }}>
-                                {categories.map((category, index) => (
+                        <div style={{ padding: '0 16px 8px' }}>
+                            <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 8px 0' }}>
+                                Danh mục phổ biến:
+                            </p>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    gap: '6px'
+                                }}
+                            >
+                                {quickCategories.map((category) => (
                                     <button
-                                        key={index}
-                                        className="flex items-center p-1.5 text-left bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg text-xs cursor-pointer transition-all whitespace-nowrap flex-shrink-0 min-w-fit"
-                                        onClick={() => handleCategoryClick(category)}
+                                        key={category.name}
+                                        onClick={() => handleCategoryClick(category.name)}
+                                        style={{
+                                            padding: '6px 10px',
+                                            borderRadius: '12px',
+                                            border: '1px solid #e5e7eb',
+                                            backgroundColor: 'white',
+                                            fontSize: '11px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            color: '#374151'
+                                        }}
                                     >
-                                        <span className="mr-1">{category.icon}</span>
-                                        <span className="text-gray-700">{category.name}</span>
+                                        {category.icon} {category.name}
                                     </button>
                                 ))}
                             </div>
                         </div>
                     )}
 
-                    {/* Quick Suggestions */}
-                    {messages.length <= 1 && (
-                        <div className="p-2 bg-white border-t border-gray-200">
-                            <p className="text-xs font-medium text-gray-700 mb-1.5">Câu hỏi gợi ý:</p>
-                            <div className="space-y-1.5">
-                                {suggestions.slice(0, 2).map((suggestion, index) => (
+                    {/* Suggestions */}
+                    {suggestions.length > 0 && (
+                        <div style={{ padding: '0 16px 8px' }}>
+                            <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 8px 0' }}>
+                                Gợi ý:
+                            </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                {suggestions.slice(0, 3).map((suggestion, index) => (
                                     <button
                                         key={index}
-                                        className="w-full p-1.5 text-left bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg text-xs cursor-pointer transition-all text-gray-700"
                                         onClick={() => handleSuggestionClick(suggestion)}
+                                        style={{
+                                            padding: '8px 12px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #e5e7eb',
+                                            backgroundColor: '#f9fafb',
+                                            fontSize: '12px',
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                            color: '#374151',
+                                            transition: 'all 0.2s'
+                                        }}
                                     >
                                         {suggestion}
                                     </button>
@@ -283,124 +332,50 @@ const Chatbot = () => {
                         </div>
                     )}
 
-                    {/* Input */}
-                    <div className="flex p-2.5 bg-white border-t border-gray-200 gap-2 items-end">
-                        <textarea
-                            value={inputMessage}
-                            onChange={(e) => setInputMessage(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Nhập tin nhắn..."
-                            disabled={isLoading}
-                            rows="1"
-                            className="flex-1 border border-gray-300 rounded-xl px-3 py-1.5 text-sm font-inherit resize-none max-h-20 outline-none focus:border-blue-500 transition-colors disabled:bg-gray-100 disabled:text-gray-500"
-                        />
-                        <button
-                            onClick={() => handleSendMessage()}
-                            disabled={isLoading || !inputMessage.trim()}
-                            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed border-none rounded-full w-8 h-8 text-white cursor-pointer text-base transition-all duration-200 flex items-center justify-center disabled:hover:transform-none hover:scale-105"
-                        >
-                            📤
-                        </button>
+                    {/* Input Area */}
+                    <div
+                        style={{
+                            padding: '16px',
+                            borderTop: '1px solid #e5e7eb'
+                        }}
+                    >
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <input
+                                type="text"
+                                value={inputMessage}
+                                onChange={(e) => setInputMessage(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                placeholder="Nhập câu hỏi của bạn..."
+                                disabled={isLoading}
+                                style={{
+                                    flex: 1,
+                                    padding: '10px 12px',
+                                    borderRadius: '20px',
+                                    border: '1px solid #d1d5db',
+                                    fontSize: '14px',
+                                    outline: 'none'
+                                }}
+                            />
+                            <button
+                                onClick={() => handleSendMessage()}
+                                disabled={isLoading || !inputMessage.trim()}
+                                style={{
+                                    padding: '10px 16px',
+                                    borderRadius: '20px',
+                                    border: 'none',
+                                    backgroundColor: '#3b82f6',
+                                    color: 'white',
+                                    cursor: inputMessage.trim() ? 'pointer' : 'not-allowed',
+                                    opacity: inputMessage.trim() ? 1 : 0.5,
+                                    fontSize: '14px'
+                                }}
+                            >
+                                Gửi
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
-
-            <style jsx>{`
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes fadeIn {
-          from { 
-            opacity: 0; 
-            transform: translateY(10px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-        
-        .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
-        }
-        
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-in;
-        }
-          .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }        /* Custom scrollbar styles */
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 4px;
-          height: 4px;
-        }
-        
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: transparent;
-          border-radius: 2px;
-        }
-        
-        .scrollbar-thin::-webkit-scrollbar-track:hover {
-          background: #f1f5f9;
-        }
-        
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 2px;
-        }
-        
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-        
-        /* Hide scrollbar when not hovering */
-        .scrollbar-thin {
-          scrollbar-width: thin;
-          scrollbar-color: transparent transparent;
-        }
-        
-        /* Show scrollbar on hover */
-        .scrollbar-thin:hover {
-          scrollbar-color: #cbd5e1 transparent;
-        }
-
-        /* CSS cho định dạng Markdown */
-        strong {
-          font-weight: bold;
-        }
-        
-        em {
-          font-style: italic;
-        }
-        
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-          .chatbot-container {
-            bottom: 10px;
-            right: 10px;
-          }
-          
-          .chat-window {
-            width: 300px;
-            height: 400px;
-            bottom: 50px;
-          }
-        }
-      `}</style>
         </div>
     );
 };

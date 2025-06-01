@@ -607,7 +607,7 @@ exports.searchProducts = async (req, res) => {
 
 // @desc    Get search suggestions
 // @route   GET /api/products/suggestions
-// @access  Public
+// @access  Public (not used)
 exports.getSearchSuggestions = async (req, res) => {
   try {
     const { keyword } = req.query;
@@ -634,7 +634,7 @@ exports.getSearchSuggestions = async (req, res) => {
 
 // @desc    Compare products
 // @route   GET /api/products/compare
-// @access  Public
+// @access  Public (not used)
 exports.compareProducts = async (req, res) => {
   const { productIds } = req.query;
   const products = await Product.find({ _id: { $in: productIds.split(",") } });
@@ -643,10 +643,10 @@ exports.compareProducts = async (req, res) => {
 
 // @desc    Get products data for chatbot
 // @route   GET /api/products/chatbot-data
-// @access  Public
+// @access  Public (not used)
 exports.getChatbotProductData = async (req, res) => {
   try {
-    const { category, search, limit = 50 } = req.query;
+    const { category, search, limit = 70 } = req.query;
 
     let queryConditions = {};
 
