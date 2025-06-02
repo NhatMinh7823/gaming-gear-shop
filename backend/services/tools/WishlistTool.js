@@ -11,14 +11,14 @@ class WishlistTool extends StructuredTool {
     super();
     this.name = "wishlist_tool";
     this.description =
-      "Get user's wishlist to provide personalized product recommendations. Only use when user is authenticated (userId provided).";
+      "Get user's wishlist to provide personalized product recommendations. Use this tool when user asks about: wishlist, favorites, personal preferences, recommendations, what they like, their setup, advice, suggestions, or any personalized queries. Only works when user is authenticated (userId provided).";
     this.userContext = userContext;
     this.debugMode = process.env.CHATBOT_DEBUG === "true";
     this.schema = z.object({
       action: z
-        .enum(["get_wishlist", "get_recommendations"])
+        .enum(["get_wishlist", "get_recommendations", "analyze_preferences", "suggest_complementary"])
         .describe(
-          "Action to perform: get_wishlist to see items, get_recommendations for similar products"
+          "Action to perform: get_wishlist to see items, get_recommendations for similar products, analyze_preferences for detailed pattern analysis, suggest_complementary for missing setup items"
         ),
     });
   }
@@ -150,6 +150,88 @@ Bạn có thể tư vấn các sản phẩm tương tự hoặc bổ sung cho wi
 - Tổng ${wishlist.length} sản phẩm trong wishlist
 
 Gợi ý: Tư vấn các sản phẩm trong các danh mục này, từ các thương hiệu tương tự, và trong tầm giá phù hợp. Có thể đề xuất combo/bundle hoặc phụ kiện đi kèm.`;
+      }
+
+      if (action === "analyze_preferences") {
+        if (wishlist.length === 0) {
+          return `${user.name} chưa có sản phẩm nào trong wishlist để phân tích preferences. Hãy hỏi về nhu cầu để tư vấn.`;
+        }
+
+        // Deep analysis of user preferences
+        const categories = [...new Set(wishlist.map(item => item.category?.name).filter(Boolean))];
+        const brands = [...new Set(wishlist.map(item => item.brand).filter(Boolean))];
+        const priceRanges = wishlist.map(item => item.discountPrice || item.price);
+        const avgPrice = priceRanges.reduce((a, b) => a + b, 0) / priceRanges.length;
+        const totalValue = priceRanges.reduce((a, b) => a + b, 0);
+        
+        // Gaming setup analysis
+        const hasMonitor = categories.some(cat => cat.toLowerCase().includes('màn hình'));
+        const hasKeyboard = categories.some(cat => cat.toLowerCase().includes('bàn phím'));
+        const hasMouse = categories.some(cat => cat.toLowerCase().includes('chuột'));
+        const hasHeadset = categories.some(cat => cat.toLowerCase().includes('tai nghe'));
+        const hasLaptop = categories.some(cat => cat.toLowerCase().includes('laptop'));
+        
+        const setupCompleteness = [hasMonitor, hasKeyboard, hasMouse, hasHeadset, hasLaptop].filter(Boolean).length;
+        
+        return `📊 PHÂN TÍCH PREFERENCES CHI TIẾT cho ${user.name}:
+
+🎯 **Xu hướng mua sắm:**
+- Tổng giá trị wishlist: ${totalValue.toLocaleString('vi-VN')}đ
+- Giá trung bình: ${avgPrice.toLocaleString('vi-VN')}đ
+- Số danh mục quan tâm: ${categories.length}
+- Độ hoàn thiện setup: ${setupCompleteness}/5 ⭐
+
+🏷️ **Thương hiệu yêu thích:** ${brands.join(', ')}
+📂 **Danh mục quan tâm:** ${categories.join(', ')}
+
+🎮 **Phân tích Setup Gaming:**
+${hasMonitor ? '✅' : '❌'} Màn hình
+${hasKeyboard ? '✅' : '❌'} Bàn phím
+${hasMouse ? '✅' : '❌'} Chuột
+${hasHeadset ? '✅' : '❌'} Tai nghe
+${hasLaptop ? '✅' : '❌'} Laptop
+
+💡 **Insights:** ${user.name} có xu hướng ${avgPrice > 5000000 ? 'high-end' : avgPrice > 2000000 ? 'mid-range' : 'budget-friendly'}, quan tâm đến ${brands.length > 3 ? 'đa dạng thương hiệu' : 'các thương hiệu yêu thích'}.`;
+      }
+
+      if (action === "suggest_complementary") {
+        if (wishlist.length === 0) {
+          return `${user.name} chưa có sản phẩm nào trong wishlist. Hãy tư vấn các sản phẩm cơ bản cho gaming setup.`;
+        }
+
+        // Analyze what's missing for complete gaming setup
+        const categories = wishlist.map(item => item.category?.name?.toLowerCase() || '').filter(Boolean);
+        const missing = [];
+        const complementary = [];
+        
+        // Check missing essential items
+        if (!categories.some(cat => cat.includes('màn hình'))) missing.push('Màn hình gaming');
+        if (!categories.some(cat => cat.includes('bàn phím'))) missing.push('Bàn phím mechanical');
+        if (!categories.some(cat => cat.includes('chuột'))) missing.push('Chuột gaming');
+        if (!categories.some(cat => cat.includes('tai nghe'))) missing.push('Tai nghe gaming');
+        
+        // Suggest complementary items
+        if (categories.some(cat => cat.includes('chuột'))) complementary.push('Mouse pad gaming chất lượng cao');
+        if (categories.some(cat => cat.includes('bàn phím'))) complementary.push('Wrist rest cho bàn phím');
+        if (categories.some(cat => cat.includes('màn hình'))) complementary.push('Đèn LED bias lighting');
+        if (categories.some(cat => cat.includes('laptop'))) complementary.push('Đế tản nhiệt laptop', 'Dock/Hub USB-C');
+        
+        complementary.push('Ghế gaming ergonomic', 'Bàn gaming', 'Webcam cho streaming');
+        
+        return `🛒 GỢI Ý SẢN PHẨM BỔ SUNG cho ${user.name}:
+
+❌ **Còn thiếu trong setup:**
+${missing.length > 0 ? missing.map(item => `• ${item}`).join('\n') : '• Setup đã khá hoàn chỉnh!'}
+
+✨ **Phụ kiện đề xuất:**
+${complementary.slice(0, 5).map(item => `• ${item}`).join('\n')}
+
+💰 **Ưu tiên mua:**
+1. ${missing[0] || complementary[0]}
+2. ${missing[1] || complementary[1]}
+3. ${missing[2] || complementary[2]}
+
+🎯 Tư vấn dựa trên ${wishlist.length} sản phẩm hiện tại trong wishlist để tạo setup gaming hoàn hảo!`;
       }
 
       return "Invalid action specified.";

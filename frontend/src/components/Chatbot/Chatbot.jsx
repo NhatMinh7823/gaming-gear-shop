@@ -128,12 +128,12 @@ const Chatbot = () => {
     };
 
     const quickCategories = [
-        { name: "Chuột Gaming", icon: "🖱️" },
-        { name: "Bàn phím Gaming", icon: "⌨️" },
-        { name: "Tai nghe Gaming", icon: "🎧" },
-        { name: "Màn hình Gaming", icon: "🖥️" },
-        { name: "Laptop Gaming", icon: "💻" },
-        { name: "Setup Gaming", icon: "🎮" }
+        { name: "Chuột Gaming", icon: "🖱️", color: "#ef4444", desc: "DPI cao, ergonomic" },
+        { name: "Bàn phím Gaming", icon: "⌨️", color: "#3b82f6", desc: "Mechanical, RGB" },
+        { name: "Tai nghe Gaming", icon: "🎧", color: "#8b5cf6", desc: "Surround, mic clear" },
+        { name: "Màn hình Gaming", icon: "🖥️", color: "#10b981", desc: "High refresh, low lag" },
+        { name: "Laptop Gaming", icon: "💻", color: "#f59e0b", desc: "Hiệu năng mạnh" },
+        { name: "Setup Gaming", icon: "🎮", color: "#ec4899", desc: "Combo hoàn chỉnh" }
     ];
 
     return (
@@ -295,15 +295,23 @@ const Chatbot = () => {
                                         style={{
                                             padding: '6px 10px',
                                             borderRadius: '12px',
-                                            border: '1px solid #e5e7eb',
+                                            border: `2px solid ${category.color || '#e5e7eb'}`,
                                             backgroundColor: 'white',
                                             fontSize: '11px',
                                             cursor: 'pointer',
                                             transition: 'all 0.2s',
-                                            color: '#374151'
+                                            color: category.color || '#374151'
                                         }}
                                     >
-                                        {category.icon} {category.name}
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                            <span style={{ fontSize: '16px' }}>{category.icon}</span>
+                                            <span style={{ fontSize: '9px', fontWeight: 'bold' }}>{category.name}</span>
+                                            {category.desc && (
+                                                <span style={{ fontSize: '8px', opacity: 0.7, fontWeight: 'normal' }}>
+                                                    {category.desc}
+                                                </span>
+                                            )}
+                                        </div>
                                     </button>
                                 ))}
                             </div>
@@ -324,12 +332,12 @@ const Chatbot = () => {
                                         style={{
                                             padding: '8px 12px',
                                             borderRadius: '8px',
-                                            border: '1px solid #e5e7eb',
-                                            backgroundColor: '#f9fafb',
+                                            border: '1px solid #3b82f6',
+                                            backgroundColor: '#f0f9ff',
                                             fontSize: '12px',
                                             cursor: 'pointer',
                                             textAlign: 'left',
-                                            color: '#374151',
+                                            color: '#1e40af',
                                             transition: 'all 0.2s'
                                         }}
                                     >
