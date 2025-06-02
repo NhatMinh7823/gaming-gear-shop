@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import gamingChatbot from '../../services/chatbotService';
 
 const Chatbot = () => {
@@ -9,18 +10,23 @@ const Chatbot = () => {
     const [suggestions, setSuggestions] = useState([]);
     const messagesEndRef = useRef(null);
 
-    useEffect(() => {
+    // Get user info from Redux
+    const { userInfo } = useSelector((state) => state.user); useEffect(() => {
         // Load quick suggestions
         setSuggestions(gamingChatbot.getQuickResponses());
 
-        // Welcome message
+        // Welcome message with user personalization
+        const welcomeText = userInfo
+            ? `Chào ${userInfo.name}! 👋 Tôi là trợ lý AI của Gaming Gear Shop. Tôi có thể giúp bạn tư vấn về thiết bị gaming dựa trên sở thích của bạn. Bạn cần hỗ trợ gì?`
+            : "Chào bạn! 👋 Tôi là trợ lý AI của Gaming Gear Shop. Tôi có thể giúp bạn tư vấn về thiết bị gaming. Bạn cần hỗ trợ gì?";
+
         setMessages([{
             id: 'welcome_' + Date.now(),
-            text: "Chào bạn! 👋 Tôi là trợ lý AI của Gaming Gear Shop. Tôi có thể giúp bạn tư vấn về thiết bị gaming. Bạn cần hỗ trợ gì?",
+            text: welcomeText,
             sender: 'bot',
             timestamp: new Date()
         }]);
-    }, []);
+    }, [userInfo]); // Add userInfo dependency
 
     useEffect(() => {
         scrollToBottom();
@@ -49,10 +55,12 @@ const Chatbot = () => {
 
         setMessages(prev => [...prev, userMessage]);
         setInputMessage('');
-        setIsLoading(true);
+        setIsLoading(true); try {
+            console.log("🔍 Frontend - userInfo before sending:", userInfo);
+            console.log("🔍 Frontend - userInfo.id:", userInfo?.id);
+            console.log("🔍 Frontend - userInfo._id:", userInfo?._id);
 
-        try {
-            const response = await gamingChatbot.sendMessage(messageText);
+            const response = await gamingChatbot.sendMessage(messageText, userInfo);
 
             const botMessage = {
                 id: 'bot_' + Date.now(),

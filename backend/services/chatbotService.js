@@ -1,43 +1,66 @@
 const AgentManager = require("./chatbot/AgentManager");
 const ChatHistoryManager = require("./chatbot/ChatHistoryManager");
 const VectorStoreManager = require("./chatbot/VectorStoreManager");
+const UserContext = require("./chatbot/UserContext");
 const tools = require("./tools");
 const Product = require("../models/productModel");
+const User = require("../models/userModel");
+const Category = require("../models/categoryModel");
+
+// Configure LangChain logging based on environment
+const LANGCHAIN_VERBOSE = process.env.LANGCHAIN_VERBOSE === "true";
+const CHATBOT_DEBUG = process.env.CHATBOT_DEBUG === "true";
+
+// Set LangChain logging levels
+if (!LANGCHAIN_VERBOSE) {
+  // Disable verbose LangChain logging for cleaner output
+  process.env.LANGCHAIN_TRACING_V2 = "false";
+  process.env.LANGCHAIN_VERBOSE = "false";
+}
 
 class ChatbotService {
   constructor() {
     this.agentManager = new AgentManager();
     this.chatHistoryManager = new ChatHistoryManager();
     this.vectorStoreManager = VectorStoreManager.getInstance();
+    this.userContext = new UserContext();
     this.isInitialized = false;
+    this.debugMode = CHATBOT_DEBUG;
   }
 
+  log(message, ...args) {
+    if (this.debugMode) {
+      console.log(`[ChatbotService] ${message}`, ...args);
+    }
+  }
+
+  logError(message, ...args) {
+    console.error(`[ChatbotService ERROR] ${message}`, ...args);
+  }
   async initialize() {
     if (this.isInitialized) return;
 
     try {
-      console.log("Initializing chatbot service...");
+      this.log("Initializing chatbot service...");
 
       // Initialize managers
       await this.agentManager.initialize();
       await this.vectorStoreManager.initialize();
 
       // Load products to vector store
-      console.log("Loading products to vector store...");
-      await this.loadProductsToVectorStore();
-
-      // Initialize tools with dependencies
-      console.log("Initializing tools...");
-      await tools.initialize(this.vectorStoreManager);
+      this.log("Loading products to vector store...");
+      await this.loadProductsToVectorStore(); // Initialize tools with dependencies
+      this.log("Initializing tools...");
+      await tools.initialize(this.vectorStoreManager, this.userContext);
 
       // Create agent with tools
-      console.log("Creating agent...");
+      this.log("Creating agent...");
       await this.agentManager.createAgent(tools.getAllTools());
 
       this.isInitialized = true;
-      console.log("Chatbot service initialized successfully");
+      console.log("✅ Chatbot service initialized successfully");
     } catch (error) {
-      console.error("Failed to initialize chatbot service:", error);
+      this.logError("Failed to initialize chatbot service:", error);
       throw error;
     }
   }
@@ -46,7 +69,7 @@ class ChatbotService {
       // Check if database is connected
       const mongoose = require("mongoose");
       if (mongoose.connection.readyState !== 1) {
-        console.log("Waiting for database connection...");
+        this.log("Waiting for database connection...");
         await new Promise((resolve, reject) => {
           const timeout = setTimeout(() => {
             reject(new Error("Database connection timeout"));
@@ -70,13 +93,11 @@ class ChatbotService {
 
       const products = await Product.find().populate("category", "name");
       await this.vectorStoreManager.loadProducts(products);
-      console.log(`Loaded ${products.length} products to vector store`);
+      this.log(`Loaded ${products.length} products to vector store`);
     } catch (error) {
-      console.error("Error loading products to vector store:", error);
+      this.logError("Error loading products to vector store:", error);
       // Don't throw the error - allow the service to continue without products initially
-      console.log(
-        "Chatbot will initialize without product data and retry later"
-      );
+      this.log("Chatbot will initialize without product data and retry later");
     }
   }
 
@@ -85,16 +106,47 @@ class ChatbotService {
       await this.initialize();
     }
   }
-
-  async processMessage(message, sessionId = null) {
+  async processMessage(message, sessionId = null, userId = null) {
     await this.ensureInitialized();
 
     try {
-      console.log(`Processing message for session ${sessionId || "new"}`);
+      this.log(
+        `Processing message for session ${sessionId || "new"}${
+          userId ? ` (user: ${userId})` : ""
+        }`
+      );
+      this.log(`Message: "${message}"`);
+      this.log(`UserId received:`, userId);
 
-      // Get or create chat history
+      // Set user context for tools
+      if (userId) {
+        this.log(`Setting user context with userId: ${userId}`);
+        this.userContext.setUser(userId);
+
+        // Update all tools with new user context
+        await this.updateToolsUserContext();
+      } else {
+        this.log(`No userId provided, clearing user context`);
+        this.userContext.clearUser();
+
+        // Update all tools to clear user context
+        await this.updateToolsUserContext();
+      }
+
+      // Verify user context was set
+      const currentUserId = this.userContext.getUserId();
+      this.log(`UserContext current userId after setting:`, currentUserId); // Debug user context thoroughly
+      this.debugUserContext();
+
+      // Test wishlist access if user is authenticated
+      if (userId) {
+        const canAccessWishlist = await this.testWishlistAccess();
+        this.log("Can access wishlist:", canAccessWishlist);
+      }
+
+      // Get or create chat history with user context
       const { history, sessionId: actualSessionId } =
-        this.chatHistoryManager.getOrCreateChatHistory(sessionId);
+        this.chatHistoryManager.getOrCreateChatHistory(sessionId, userId);
 
       // Get agent executor from manager
       const agentExecutor = this.agentManager.getAgentExecutor();
@@ -123,16 +175,15 @@ class ChatbotService {
         sessionId: actualSessionId,
       };
     } catch (error) {
-      console.error("Error processing message with agent:", error);
+      this.logError("Error processing message with agent:", error);
 
       try {
         // Fallback to direct LLM call
-        console.log("Attempting fallback with direct LLM call");
+        this.log("Attempting fallback with direct LLM call");
         const llm = this.agentManager.getLLM();
         const response = await llm.invoke(message);
-
         const { history, sessionId: actualSessionId } =
-          this.chatHistoryManager.getOrCreateChatHistory(sessionId);
+          this.chatHistoryManager.getOrCreateChatHistory(sessionId, userId);
 
         await history.addUserMessage(message);
         await history.addAIMessage(response.content);
@@ -145,7 +196,7 @@ class ChatbotService {
           fallback: true,
         };
       } catch (fallbackError) {
-        console.error("Fallback also failed:", fallbackError);
+        this.logError("Fallback also failed:", fallbackError);
         return {
           text: "❌ Xin lỗi, có lỗi xảy ra khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.",
           sessionId: sessionId || "error",
@@ -153,7 +204,6 @@ class ChatbotService {
       }
     }
   }
-
   async getProductsData() {
     try {
       const products = await Product.find()
@@ -181,8 +231,81 @@ class ChatbotService {
         imageUrl: product.images?.[0]?.url,
       }));
     } catch (error) {
-      console.error("Error fetching products data:", error);
+      this.logError("Error fetching products data:", error);
       throw error;
+    }
+  }
+  debugUserContext() {
+    if (!this.debugMode) return;
+
+    console.log("=== UserContext Debug ===");
+    console.log("UserContext exists:", !!this.userContext);
+    console.log("Current userId:", this.userContext?.getUserId());
+    console.log("Is authenticated:", this.userContext?.isAuthenticated());
+
+    const tools = require("./tools");
+    try {
+      const allTools = tools.getAllTools();
+      const wishlistTool = allTools.find(
+        (tool) => tool.name === "wishlist_tool"
+      );
+      console.log("WishlistTool exists:", !!wishlistTool);
+      console.log(
+        "WishlistTool userContext:",
+        wishlistTool?.userContext?.getUserId()
+      );
+    } catch (error) {
+      console.log("Error getting tools:", error.message);
+    }
+    console.log("========================");
+  }
+  /**
+   * Update all tools with current user context
+   */
+  async updateToolsUserContext() {
+    try {
+      const tools = require("./tools");
+      const allTools = tools.getAllTools();
+
+      // Find WishlistTool and update its userContext
+      const wishlistTool = allTools.find(
+        (tool) => tool.name === "wishlist_tool"
+      );
+      if (wishlistTool) {
+        wishlistTool.userContext = this.userContext;
+        this.log(
+          "Updated WishlistTool userContext with:",
+          this.userContext.getUserId()
+        );
+      }
+    } catch (error) {
+      this.logError("Error updating tools user context:", error);
+    }
+  }
+  /**
+   * Test wishlist functionality with current user context
+   */
+  async testWishlistAccess() {
+    try {
+      const tools = require("./tools");
+      const allTools = tools.getAllTools();
+      const wishlistTool = allTools.find(
+        (tool) => tool.name === "wishlist_tool"
+      );
+
+      if (!wishlistTool) {
+        this.log("WishlistTool not found");
+        return false;
+      }
+
+      this.log("Testing wishlist access...");
+      const result = await wishlistTool._call({ action: "get_wishlist" });
+      this.log("Wishlist test result:", result);
+
+      return !result.includes("User not authenticated");
+    } catch (error) {
+      this.logError("Wishlist test failed:", error);
+      return false;
     }
   }
 }

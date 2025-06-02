@@ -15,7 +15,7 @@ const embeddingsConfig = {
 };
 
 const agentConfig = {
-  verbose: true,
+  verbose: process.env.LANGCHAIN_VERBOSE === "true",
   maxIterations: 3,
   earlyStoppingMethod: "generate",
 };

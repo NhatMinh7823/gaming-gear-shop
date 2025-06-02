@@ -7,36 +7,51 @@ const { pull } = require("langchain/hub");
 const { llmConfig, agentConfig } = require("../config/llmConfig");
 const { getAllTools, getToolsInfo } = require("../tools");
 
+// Configure LangChain logging
+const LANGCHAIN_VERBOSE = process.env.LANGCHAIN_VERBOSE === "true";
+
 class AgentManager {
   constructor() {
     this.llm = null;
     this.agent = null;
     this.agentExecutor = null;
     this.isInitialized = false;
+    this.debugMode = process.env.CHATBOT_DEBUG === "true";
   }
+
+  log(message, ...args) {
+    if (this.debugMode) {
+      console.log(`[AgentManager] ${message}`, ...args);
+    }
+  }
+
+  logError(message, ...args) {
+    console.error(`[AgentManager ERROR] ${message}`, ...args);
+  }
+
   async initialize() {
     if (this.isInitialized) return;
 
     try {
-      console.log("Initializing LLM...");
+      this.log("Initializing LLM...");
       this.llm = new ChatGoogleGenerativeAI(llmConfig);
 
       // Don't create agent here - it will be created when tools are available
-      console.log("LLM initialized, waiting for tools to create agent...");
+      this.log("LLM initialized, waiting for tools to create agent...");
 
       this.isInitialized = true;
-      console.log("Agent manager initialized successfully");
+      this.log("Agent manager initialized successfully");
     } catch (error) {
-      console.error("Error initializing agent manager:", error);
+      this.logError("Error initializing agent manager:", error);
 
       // Fallback initialization
       try {
         if (!this.llm) {
           this.llm = new ChatGoogleGenerativeAI(llmConfig);
-          console.log("Fallback LLM initialized successfully");
+          this.log("Fallback LLM initialized successfully");
         }
       } catch (fallbackError) {
-        console.error("Failed to initialize fallback LLM:", fallbackError);
+        this.logError("Failed to initialize fallback LLM:", fallbackError);
       }
 
       throw error;
@@ -44,7 +59,7 @@ class AgentManager {
   }
   async createAgent(tools = null) {
     try {
-      console.log("Creating structured agent...");
+      this.log("Creating structured agent...");
 
       // If no tools provided, this means we're not ready yet
       if (!tools) {
@@ -66,11 +81,11 @@ class AgentManager {
       }
 
       // Log tools information
-      console.log("Tool names:", toolsInfo.names);
-      console.log(
-        "Formatted tools:",
-        JSON.stringify(toolsInfo.descriptions, null, 2)
-      );
+      // this.log("Tool names:", toolsInfo.names);
+      // this.log(
+      //   "Formatted tools:",
+      //   JSON.stringify(toolsInfo.descriptions, null, 2)
+      // );
 
       this.agent = await createStructuredChatAgent({
         llm: this.llm,
@@ -86,10 +101,10 @@ class AgentManager {
         earlyStoppingMethod: agentConfig.earlyStoppingMethod,
       });
 
-      console.log("Structured agent created successfully");
+      this.log("Structured agent created successfully");
     } catch (error) {
-      console.error("Error creating agent:", error.message);
-      console.error("Stack trace:", error.stack);
+      this.logError("Error creating agent:", error.message);
+      this.logError("Stack trace:", error.stack);
       throw new Error(`Failed to create agent: ${error.message}`);
     }
   }
@@ -108,7 +123,7 @@ class AgentManager {
 
   async handleFallback(message, history, sessionId) {
     try {
-      console.log("Using fallback LLM...");
+      this.log("Using fallback LLM...");
       const response = await this.llm.invoke(message);
       await history.addUserMessage(message);
       await history.addAIMessage(response.content);
@@ -121,7 +136,7 @@ class AgentManager {
         fallback: true,
       };
     } catch (fallbackError) {
-      console.error("Fallback failed:", fallbackError);
+      this.logError("Fallback failed:", fallbackError);
       return {
         text: "❌ Xin lỗi, có lỗi xảy ra khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.",
         sessionId: sessionId,

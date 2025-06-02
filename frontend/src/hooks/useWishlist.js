@@ -8,6 +8,12 @@ import { getWishlist } from "../services/api";
 let isWishlistLoading = false;
 let lastGlobalFetchTime = 0;
 
+// Function to clear the wishlist cache - can be called from outside the hook
+export const clearWishlistCache = () => {
+  console.log("🧹 Clearing wishlist cache - next fetch will be fresh");
+  lastGlobalFetchTime = 0;
+};
+
 export const useWishlist = () => {
   const { userInfo } = useSelector((state) => state.user);
   const { wishlistItems } = useSelector((state) => state.wishlist);
@@ -156,9 +162,8 @@ export const useWishlist = () => {
     wishlistItems,
     dispatch,
   ]);
-
   // Return the refreshWishlist function so components can trigger manual refresh
-  return { refreshWishlist };
+  return { refreshWishlist, clearCache: clearWishlistCache };
 };
 
 export default useWishlist;

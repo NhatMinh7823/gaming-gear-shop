@@ -5,15 +5,24 @@ const ChatbotService = require("../services/chatbotService");
 // @route   POST /api/chatbot/chat
 // @access  Public
 const handleChatbotConversation = asyncHandler(async (req, res) => {
-  const { message, sessionId } = req.body;
+  const { message, sessionId, userId } = req.body;
+
+  console.log("🔍 ChatbotController received:");
+  console.log("🔍 Message:", message);
+  console.log("🔍 SessionId:", sessionId);
+  console.log("🔍 UserId:", userId);
+  console.log("🔍 Full request body:", req.body);
 
   if (!message) {
     res.status(400);
     throw new Error("Vui lòng cung cấp tin nhắn");
   }
-
   try {
-    const response = await ChatbotService.processMessage(message, sessionId);
+    const response = await ChatbotService.processMessage(
+      message,
+      sessionId,
+      userId
+    );
 
     res.json({
       success: true,

@@ -12,7 +12,7 @@ function ProductCard({ product }) {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.user);
   const { wishlistItems } = useSelector((state) => state.wishlist);
-  const { refreshWishlist } = useWishlist();
+  const { refreshWishlist, clearCache } = useWishlist();
   const [loadingWishlist, setLoadingWishlist] = useState(false);
   const [loadingCart, setLoadingCart] = useState(false);
   const handleWishlistClick = async (e) => {
@@ -22,9 +22,7 @@ function ProductCard({ product }) {
     if (!userInfo) {
       navigate('/login');
       return;
-    }
-
-    try {
+    } try {
       setLoadingWishlist(true);
       if (wishlistItems.includes(product._id)) {
         await removeFromWishlist(product._id);
@@ -33,6 +31,8 @@ function ProductCard({ product }) {
         await addToWishlist(product._id);
         toast.success('Added to wishlist');
       }
+      // Clear cache to ensure fresh data for chatbot
+      clearCache();
       // Refresh wishlist to update the UI
       await refreshWishlist(true);
     } catch (error) {
@@ -143,8 +143,8 @@ function ProductCard({ product }) {
             onClick={handleAddToCart}
             disabled={loadingCart || product.stock <= 0}
             className={`p-2 rounded-full transition-colors duration-300 ${product.stock <= 0
-                ? 'bg-gray-400/90 cursor-not-allowed'
-                : 'bg-blue-600/90 hover:bg-blue-600'
+              ? 'bg-gray-400/90 cursor-not-allowed'
+              : 'bg-blue-600/90 hover:bg-blue-600'
               }`}
             aria-label="Add to cart"
           >

@@ -6,10 +6,8 @@ class GamingChatbot {
     this.chatHistory = [];
     this.sessionId = null;
     this.isTyping = false;
-  }
-
-  // Send message to backend chatbot
-  async sendMessage(message) {
+  } // Send message to backend chatbot
+  async sendMessage(message, userInfo = null) {
     if (!message.trim()) {
       throw new Error("Message cannot be empty");
     }
@@ -17,10 +15,29 @@ class GamingChatbot {
     this.isTyping = true;
 
     try {
-      const response = await api.post("/chatbot/chat", {
+      const requestBody = {
         message: message.trim(),
         sessionId: this.sessionId,
-      });
+      }; // Add userId if user is authenticated
+      // Check for both _id and id since backend returns 'id' but some components might use '_id'
+      const userId = userInfo?._id || userInfo?.id;
+      if (userInfo && userId) {
+        requestBody.userId = userId;
+        console.log(
+          "🔍 Frontend chatbotService: Adding userId to request:",
+          userId
+        );
+        console.log("🔍 Complete userInfo object:", userInfo);
+      } else {
+        console.log(
+          "🔍 Frontend chatbotService: No userInfo or userId:",
+          userInfo
+        );
+      }
+
+      console.log("🔍 Sending request body:", requestBody);
+
+      const response = await api.post("/chatbot/chat", requestBody);
 
       if (response.data.success) {
         const {

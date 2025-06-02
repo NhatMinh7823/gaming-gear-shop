@@ -129,9 +129,8 @@ const HomePage = () => {
         <div className="h-4 bg-gray-500 rounded w-1/2"></div>
       </div>
     </div>
-  );
-  // Get the refreshWishlist method from our custom hook
-  const { refreshWishlist } = useWishlist();
+  );  // Get the refreshWishlist method from our custom hook
+  const { refreshWishlist, clearCache } = useWishlist();
 
   const handleWishlistClick = async (e, product) => {
     e.stopPropagation();
@@ -147,9 +146,7 @@ const HomePage = () => {
       setLoadingWishlistIds(prev => [...prev, product._id]);
 
       // Check if the product is already in wishlist
-      const isInWishlist = wishlistItems.includes(product._id);
-
-      if (isInWishlist) {
+      const isInWishlist = wishlistItems.includes(product._id); if (isInWishlist) {
         // Remove from wishlist
         await removeFromWishlist(product._id);
         // Update local Redux state immediately for better UX
@@ -167,6 +164,11 @@ const HomePage = () => {
           toast.success(`Đã thêm ${product.name} vào danh sách yêu thích`);
         }
       }
+
+      // Clear wishlist cache to ensure chatbot gets fresh data
+      clearCache();
+      // Refresh wishlist to update the UI with latest data
+      await refreshWishlist(true);
     } catch (error) {
       toast.error('Không thể cập nhật danh sách yêu thích');
       console.error('Wishlist error:', error);

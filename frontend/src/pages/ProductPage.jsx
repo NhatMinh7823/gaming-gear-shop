@@ -23,7 +23,7 @@ function ProductPage() {
   const [loadingWishlist, setLoadingWishlist] = useState(false);
   const { userInfo } = useSelector((state) => state.user);
   const { wishlistItems } = useSelector((state) => state.wishlist);
-  const { refreshWishlist } = useWishlist();
+  const { refreshWishlist, clearCache } = useWishlist();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -110,6 +110,8 @@ function ProductPage() {
         await addToWishlist(id);
         toast.success('Added to wishlist');
       }
+      // Clear wishlist cache to ensure chatbot gets fresh data
+      clearCache();
       // Refresh wishlist to update the UI
       await refreshWishlist(true);
     } catch (error) {

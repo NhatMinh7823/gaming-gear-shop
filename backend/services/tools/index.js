@@ -4,6 +4,7 @@ const ProductFilterTool = require("./ProductFilterTool");
 const CategoryListTool = require("./CategoryListTool");
 const ProductDetailsTool = require("./ProductDetailsTool");
 const PriceRangeTool = require("./PriceRangeTool");
+const WishlistTool = require("./WishlistTool");
 
 // Tools instances
 let toolInstances = null;
@@ -11,17 +12,31 @@ let toolInstances = null;
 /**
  * Initialize tools with dependencies
  * @param {VectorStoreManager} vectorStoreManager
+ * @param {UserContext} userContext
  */
-const initialize = async (vectorStoreManager) => {
+const initialize = async (vectorStoreManager, userContext) => {
   console.log("Initializing tools with dependencies...");
+  console.log("UserContext passed to tools:", userContext?.getUserId());
+
   toolInstances = [
     new ProductSearchTool(),
     new ProductFilterTool(),
     new CategoryListTool(),
     new ProductDetailsTool(),
     new PriceRangeTool(),
+    new WishlistTool(userContext), // Đảm bảo userContext được truyền
   ];
+
   console.log("Tools initialized successfully");
+
+  // Verify WishlistTool initialization
+  const wishlistTool = toolInstances.find(
+    (tool) => tool.name === "wishlist_tool"
+  );
+  console.log(
+    "WishlistTool userContext after init:",
+    wishlistTool?.userContext?.getUserId()
+  );
 };
 
 /**

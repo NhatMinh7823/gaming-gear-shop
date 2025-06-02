@@ -4,15 +4,16 @@ class ChatHistoryManager {
   constructor() {
     this.sessionHistories = new Map();
   }
-
   /**
    * Get or create chat history for a session
    * @param {string|null} sessionId - Session ID, will generate one if null
+   * @param {string|null} userId - User ID for personalized history
    * @returns {Object} Object containing history and sessionId
    */
-  getOrCreateChatHistory(sessionId) {
+  getOrCreateChatHistory(sessionId, userId = null) {
     if (!sessionId) {
-      sessionId = `session_${Date.now()}_${Math.random()
+      const userPrefix = userId ? `user_${userId}_` : "";
+      sessionId = `${userPrefix}session_${Date.now()}_${Math.random()
         .toString(36)
         .substr(2, 9)}`;
     }
