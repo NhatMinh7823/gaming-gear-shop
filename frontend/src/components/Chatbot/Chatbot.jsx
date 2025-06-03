@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import gamingChatbot from '../../services/chatbotService';
+import './Chatbot.css';
 
 const Chatbot = () => {
     const [messages, setMessages] = useState([]);
@@ -8,10 +9,14 @@ const Chatbot = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(true);
+    const [showQuickCategories, setShowQuickCategories] = useState(true);
     const messagesEndRef = useRef(null);
 
     // Get user info from Redux
-    const { userInfo } = useSelector((state) => state.user); useEffect(() => {
+    const { userInfo } = useSelector((state) => state.user);
+
+    useEffect(() => {
         // Load quick suggestions
         setSuggestions(gamingChatbot.getQuickResponses());
 
@@ -26,7 +31,7 @@ const Chatbot = () => {
             sender: 'bot',
             timestamp: new Date()
         }]);
-    }, [userInfo]); // Add userInfo dependency
+    }, [userInfo]);
 
     useEffect(() => {
         scrollToBottom();
@@ -55,7 +60,9 @@ const Chatbot = () => {
 
         setMessages(prev => [...prev, userMessage]);
         setInputMessage('');
-        setIsLoading(true); try {
+        setIsLoading(true);
+
+        try {
             console.log("🔍 Frontend - userInfo before sending:", userInfo);
             console.log("🔍 Frontend - userInfo.id:", userInfo?.id);
             console.log("🔍 Frontend - userInfo._id:", userInfo?._id);
@@ -72,10 +79,12 @@ const Chatbot = () => {
 
             setMessages(prev => [...prev, botMessage]);
 
-            // Get suggested follow-up questions
-            const followUpSuggestions = gamingChatbot.getSuggestedQuestions(response.response);
-            if (followUpSuggestions.length > 0) {
-                setSuggestions(followUpSuggestions);
+            // Get suggested follow-up questions if suggestions are enabled
+            if (showSuggestions) {
+                const followUpSuggestions = gamingChatbot.getSuggestedQuestions(response.response);
+                if (followUpSuggestions.length > 0) {
+                    setSuggestions(followUpSuggestions);
+                }
             }
 
         } catch (error) {
@@ -117,14 +126,31 @@ const Chatbot = () => {
     };
 
     const clearChat = () => {
+        const welcomeText = userInfo
+            ? `Chào ${userInfo.name}! 👋 Tôi có thể giúp gì cho bạn?`
+            : "Chào bạn! 👋 Tôi có thể giúp gì cho bạn?";
+        
         setMessages([{
             id: 'welcome_' + Date.now(),
-            text: "Chào bạn! 👋 Tôi có thể giúp gì cho bạn?",
+            text: welcomeText,
             sender: 'bot',
             timestamp: new Date()
         }]);
         gamingChatbot.clearHistory();
-        setSuggestions(gamingChatbot.getQuickResponses());
+        if (showSuggestions) {
+            setSuggestions(gamingChatbot.getQuickResponses());
+        }
+    };
+
+    const toggleSuggestions = () => {
+        setShowSuggestions(!showSuggestions);
+        if (!showSuggestions) {
+            // If turning on suggestions, load quick responses
+            setSuggestions(gamingChatbot.getQuickResponses());
+        } else {
+            // If turning off suggestions, clear them
+            setSuggestions([]);
+        }
     };
 
     const quickCategories = [
@@ -190,13 +216,13 @@ const Chatbot = () => {
                         style={{
                             backgroundColor: '#3b82f6',
                             color: 'white',
-                            padding: '16px',
+                            padding: '12px 16px',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center'
                         }}
                     >
-                        <div>
+                        <div style={{ flex: 1 }}>
                             <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>
                                 Gaming Gear Assistant
                             </h3>
@@ -204,20 +230,99 @@ const Chatbot = () => {
                                 Tư vấn thiết bị gaming 24/7
                             </p>
                         </div>
-                        <button
-                            onClick={clearChat}
-                            style={{
-                                background: 'rgba(255,255,255,0.2)',
-                                border: 'none',
-                                color: 'white',
-                                borderRadius: '6px',
-                                padding: '6px 10px',
-                                fontSize: '12px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            🗑️ Clear
-                        </button>
+                        
+                        {/* Control Buttons */}
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            {/* Suggestions Toggle */}
+                            <button
+                                onClick={toggleSuggestions}
+                                title={showSuggestions ? "Tắt gợi ý" : "Bật gợi ý"}
+                                className="settings-toggle"
+                                style={{
+                                    background: showSuggestions ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.1)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    color: 'white',
+                                    borderRadius: '6px',
+                                    padding: '6px 8px',
+                                    fontSize: '12px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                }}
+                            >
+                                <span style={{ fontSize: '14px' }}>
+                                    {showSuggestions ? '💡' : '🔆'}
+                                </span>
+                                <span style={{ fontSize: '10px' }}>
+                                    {showSuggestions ? 'ON' : 'OFF'}
+                                </span>
+                            </button>
+
+                            {/* Quick Categories Toggle */}
+                            <button
+                                onClick={() => setShowQuickCategories(!showQuickCategories)}
+                                title={showQuickCategories ? "Ẩn danh mục" : "Hiện danh mục"}
+                                className="settings-toggle"
+                                style={{
+                                    background: showQuickCategories ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.1)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    color: 'white',
+                                    borderRadius: '6px',
+                                    padding: '6px 8px',
+                                    fontSize: '14px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {showQuickCategories ? '📂' : '📁'}
+                            </button>
+
+                            {/* Clear Chat Button */}
+                            <button
+                                onClick={clearChat}
+                                title="Xóa cuộc trò chuyện"
+                                style={{
+                                    background: 'rgba(255,255,255,0.2)',
+                                    border: 'none',
+                                    color: 'white',
+                                    borderRadius: '6px',
+                                    padding: '6px 8px',
+                                    fontSize: '14px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Settings Status Bar */}
+                    <div
+                        className="status-bar"
+                        style={{
+                            backgroundColor: '#f8fafc',
+                            padding: '6px 16px',
+                            borderBottom: '1px solid #e2e8f0',
+                            fontSize: '11px',
+                            color: '#64748b',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}
+                    >
+                        <span>
+                            Gợi ý: <strong style={{ color: showSuggestions ? '#10b981' : '#ef4444' }}>
+                                {showSuggestions ? 'BẬT' : 'TẮT'}
+                            </strong>
+                        </span>
+                        <span>
+                            Danh mục: <strong style={{ color: showQuickCategories ? '#10b981' : '#ef4444' }}>
+                                {showQuickCategories ? 'HIỆN' : 'ẨN'}
+                            </strong>
+                        </span>
                     </div>
 
                     {/* Messages Area */}
@@ -235,6 +340,7 @@ const Chatbot = () => {
                         {messages.map((message) => (
                             <div
                                 key={message.id}
+                                className="message-item"
                                 style={{
                                     display: 'flex',
                                     justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start'
@@ -260,6 +366,7 @@ const Chatbot = () => {
                         {isLoading && (
                             <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                                 <div
+                                    className="loading-dots"
                                     style={{
                                         padding: '10px 14px',
                                         borderRadius: '18px',
@@ -276,10 +383,10 @@ const Chatbot = () => {
                     </div>
 
                     {/* Quick Categories */}
-                    {messages.length <= 1 && (
-                        <div style={{ padding: '0 16px 8px' }}>
+                    {showQuickCategories && messages.length <= 1 && (
+                        <div className="quick-categories" style={{ padding: '0 16px 8px' }}>
                             <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 8px 0' }}>
-                                Danh mục phổ biến:
+                                📂 Danh mục phổ biến:
                             </p>
                             <div
                                 style={{
@@ -292,6 +399,7 @@ const Chatbot = () => {
                                     <button
                                         key={category.name}
                                         onClick={() => handleCategoryClick(category.name)}
+                                        className="category-button"
                                         style={{
                                             padding: '6px 10px',
                                             borderRadius: '12px',
@@ -319,16 +427,32 @@ const Chatbot = () => {
                     )}
 
                     {/* Suggestions */}
-                    {suggestions.length > 0 && (
+                    {showSuggestions && suggestions.length > 0 && (
                         <div style={{ padding: '0 16px 8px' }}>
-                            <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 8px 0' }}>
-                                Gợi ý:
-                            </p>
+                            <div className="suggestion-header" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                                <span style={{ fontSize: '12px', color: '#6b7280' }}>💡 Gợi ý cho bạn:</span>
+                                <button
+                                    onClick={toggleSuggestions}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#6b7280',
+                                        fontSize: '10px',
+                                        cursor: 'pointer',
+                                        padding: '2px 4px',
+                                        borderRadius: '4px',
+                                        backgroundColor: '#f3f4f6'
+                                    }}
+                                >
+                                    ✕
+                                </button>
+                            </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                 {suggestions.slice(0, 3).map((suggestion, index) => (
                                     <button
                                         key={index}
                                         onClick={() => handleSuggestionClick(suggestion)}
+                                        className="suggestion-button"
                                         style={{
                                             padding: '8px 12px',
                                             borderRadius: '8px',
@@ -363,6 +487,7 @@ const Chatbot = () => {
                                 onKeyPress={handleKeyPress}
                                 placeholder="Nhập câu hỏi của bạn..."
                                 disabled={isLoading}
+                                className="chat-input"
                                 style={{
                                     flex: 1,
                                     padding: '10px 12px',
@@ -375,6 +500,7 @@ const Chatbot = () => {
                             <button
                                 onClick={() => handleSendMessage()}
                                 disabled={isLoading || !inputMessage.trim()}
+                                className="send-button"
                                 style={{
                                     padding: '10px 16px',
                                     borderRadius: '20px',

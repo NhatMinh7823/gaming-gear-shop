@@ -1,0 +1,348 @@
+/* Chatbot Styles */
+.chatbot-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Toggle Button Animations */
+.chatbot-toggle {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transform: scale(1);
+}
+
+.chatbot-toggle:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
+}
+
+.chatbot-toggle:active {
+  transform: scale(0.95) !important;
+}
+
+/* Chat Window Animations */
+.chat-window {
+  animation: slideInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header Button Hover Effects */
+.chat-header button {
+  transition: all 0.2s ease !important;
+}
+
+.chat-header button:hover {
+  background: rgba(255, 255, 255, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.chat-header button:active {
+  transform: translateY(0);
+}
+
+/* Messages Container Scrollbar */
+.messages-container {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Message Animations */
+.message-item {
+  animation: fadeInSlide 0.3s ease-out;
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Category Button Hover Effects */
+.category-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transform: scale(1);
+}
+
+.category-button:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border-width: 3px !important;
+}
+
+.category-button:active {
+  transform: scale(0.98) !important;
+}
+
+/* Suggestion Button Hover Effects */
+.suggestion-button {
+  transition: all 0.2s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.suggestion-button:hover {
+  background-color: #dbeafe !important;
+  border-color: #2563eb !important;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2) !important;
+}
+
+.suggestion-button:active {
+  transform: translateX(2px);
+}
+
+/* Suggestion Button Ripple Effect */
+.suggestion-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.3);
+  transition: width 0.3s, height 0.3s, top 0.3s, left 0.3s;
+  transform: translate(-50%, -50%);
+}
+
+.suggestion-button:active::before {
+  width: 100%;
+  height: 100%;
+}
+
+/* Input Focus Effects */
+.chat-input {
+  transition: all 0.2s ease !important;
+}
+
+.chat-input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Send Button Hover Effects */
+.send-button {
+  transition: all 0.2s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.send-button:not(:disabled):hover {
+  background-color: #2563eb !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+.send-button:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Loading Animation */
+.loading-dots {
+  position: relative;
+}
+
+.loading-dots::after {
+  content: '';
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background: #6b7280;
+  border-radius: 50%;
+  animation: loadingDots 1.4s infinite ease-in-out;
+}
+
+@keyframes loadingDots {
+  0%, 80%, 100% {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+/* Status Bar Transition */
+.status-bar {
+  transition: all 0.3s ease;
+}
+
+/* Settings Toggle Animation */
+.settings-toggle {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.settings-toggle:hover {
+  background: rgba(255, 255, 255, 0.4) !important;
+  transform: scale(1.05);
+}
+
+.settings-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Suggestion Header Animation */
+.suggestion-header {
+  animation: slideInDown 0.3s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Quick Categories Fade In */
+.quick-categories {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .chat-window {
+    width: calc(100vw - 40px) !important;
+    height: calc(100vh - 140px) !important;
+    max-width: 350px;
+    max-height: 500px;
+  }
+  
+  .chatbot-toggle {
+    bottom: 15px !important;
+    right: 15px !important;
+    width: 55px !important;
+    height: 55px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-window {
+    bottom: 75px !important;
+    right: 15px !important;
+  }
+  
+  .chat-header {
+    padding: 10px 12px !important;
+  }
+  
+  .chat-header h3 {
+    font-size: 14px !important;
+  }
+  
+  .chat-header p {
+    font-size: 11px !important;
+  }
+}
+
+/* Dark Mode Support (if needed) */
+@media (prefers-color-scheme: dark) {
+  .chat-window {
+    background-color: #1f2937 !important;
+    border: 1px solid #374151;
+  }
+  
+  .messages-container {
+    background-color: #1f2937 !important;
+  }
+  
+  .status-bar {
+    background-color: #111827 !important;
+    border-bottom-color: #374151 !important;
+    color: #9ca3af !important;
+  }
+  
+  .category-button {
+    background-color: #374151 !important;
+    color: white !important;
+  }
+  
+  .suggestion-button {
+    background-color: #1e40af !important;
+    color: white !important;
+    border-color: #3b82f6 !important;
+  }
+  
+  .chat-input {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: white !important;
+  }
+  
+  .chat-input::placeholder {
+    color: #9ca3af !important;
+  }
+}
+
+/* Accessibility Improvements */
+.chatbot-toggle:focus,
+.chat-header button:focus,
+.category-button:focus,
+.suggestion-button:focus,
+.chat-input:focus,
+.send-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .chatbot-toggle,
+  .chat-window,
+  .message-item,
+  .category-button,
+  .suggestion-button,
+  .chat-input,
+  .send-button,
+  .settings-toggle {
+    animation: none !important;
+    transition: none !important;
+  }
+}
