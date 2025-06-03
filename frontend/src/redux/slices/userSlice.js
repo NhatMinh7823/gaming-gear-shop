@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { clearPersistedChatbotState } from "../middleware/persistenceMiddleware";
 
 const initialState = {
   userInfo: localStorage.getItem("userInfo")
@@ -17,6 +18,8 @@ const userSlice = createSlice({
     logout: (state) => {
       state.userInfo = null;
       localStorage.removeItem("userInfo");
+      // Clear chatbot state when user logs out
+      clearPersistedChatbotState();
     },
     updateWishlist: (state, action) => {
       if (state.userInfo) {

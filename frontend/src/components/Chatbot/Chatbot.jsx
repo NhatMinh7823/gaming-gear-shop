@@ -1,39 +1,57 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import gamingChatbot from '../../services/chatbotService';
 import { formatMessageText } from '../../utils/textFormatter';
+import {
+    setWelcomeMessage,
+    addMessage,
+    setLoading,
+    toggleChatbot,
+    setSessionId,
+    clearChat,
+    setSuggestions,
+    toggleSuggestions,
+    toggleQuickCategories,
+    updateLastActivity
+} from '../../redux/slices/chatbotSlice';
 import './Chatbot.css';
 
 const Chatbot = () => {
-    const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
-    const [suggestions, setSuggestions] = useState([]);
-    const [showSuggestions, setShowSuggestions] = useState(true);
-    const [showQuickCategories, setShowQuickCategories] = useState(true);
     const messagesEndRef = useRef(null);
+    const dispatch = useDispatch();
 
-    // Get user info from Redux
+    // Get state from Redux
     const { userInfo } = useSelector((state) => state.user);
+    const {
+        messages,
+        isOpen,
+        isLoading,
+        sessionId,
+        suggestions,
+        showSuggestions,
+        showQuickCategories
+    } = useSelector((state) => state.chatbot);
 
+    // Initialize chatbot on component mount
     useEffect(() => {
-        // Load quick suggestions
-        setSuggestions(gamingChatbot.getQuickResponses());
+        // Set welcome message if no messages exist
+        if (messages.length === 0) {
+            dispatch(setWelcomeMessage({ userInfo }));
+        }
 
-        // Welcome message with user personalization
-        const welcomeText = userInfo
-            ? `Chào ${userInfo.name}! 👋 Tôi là trợ lý AI của Gaming Gear Shop. Tôi có thể giúp bạn tư vấn về thiết bị gaming dựa trên sở thích của bạn. Bạn cần hỗ trợ gì?`
-            : "Chào bạn! 👋 Tôi là trợ lý AI của Gaming Gear Shop. Tôi có thể giúp bạn tư vấn về thiết bị gaming. Bạn cần hỗ trợ gì?";
+        // Load quick suggestions if enabled
+        if (showSuggestions && suggestions.length === 0) {
+            dispatch(setSuggestions(gamingChatbot.getQuickResponses()));
+        }
 
-        setMessages([{
-            id: 'welcome_' + Date.now(),
-            text: welcomeText,
-            sender: 'bot',
-            timestamp: new Date()
-        }]);
-    }, [userInfo]);
+        // Sync session ID with service
+        if (sessionId) {
+            gamingChatbot.sessionId = sessionId;
+        }
+    }, [dispatch, userInfo, messages.length, showSuggestions, suggestions.length, sessionId]);
 
+    // Auto-scroll to bottom when messages change
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
@@ -56,12 +74,13 @@ const Chatbot = () => {
             id: 'user_' + Date.now(),
             text: messageText,
             sender: 'user',
-            timestamp: new Date()
+            timestamp: new Date().toISOString()
         };
 
-        setMessages(prev => [...prev, userMessage]);
+        // Add user message to Redux store
+        dispatch(addMessage(userMessage));
         setInputMessage('');
-        setIsLoading(true);
+        dispatch(setLoading(true));
 
         try {
             console.log("🔍 Frontend - userInfo before sending:", userInfo);
@@ -74,31 +93,40 @@ const Chatbot = () => {
                 id: 'bot_' + Date.now(),
                 text: response.response,
                 sender: 'bot',
-                timestamp: new Date(response.timestamp),
+                timestamp: response.timestamp,
                 success: !response.error
             };
 
-            setMessages(prev => [...prev, botMessage]);
+            // Add bot message to Redux store
+            dispatch(addMessage(botMessage));
+
+            // Update session ID if provided
+            if (response.sessionId && response.sessionId !== sessionId) {
+                dispatch(setSessionId(response.sessionId));
+            }
 
             // Get suggested follow-up questions if suggestions are enabled
             if (showSuggestions) {
                 const followUpSuggestions = gamingChatbot.getSuggestedQuestions(response.response);
                 if (followUpSuggestions.length > 0) {
-                    setSuggestions(followUpSuggestions);
+                    dispatch(setSuggestions(followUpSuggestions));
                 }
             }
+
+            // Update last activity
+            dispatch(updateLastActivity());
 
         } catch (error) {
             const errorMessage = {
                 id: 'error_' + Date.now(),
                 text: "Xin lỗi, tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau hoặc liên hệ support.",
                 sender: 'bot',
-                timestamp: new Date(),
+                timestamp: new Date().toISOString(),
                 success: false
             };
-            setMessages(prev => [...prev, errorMessage]);
+            dispatch(addMessage(errorMessage));
         } finally {
-            setIsLoading(false);
+            dispatch(setLoading(false));
         }
     };
 
@@ -126,32 +154,24 @@ const Chatbot = () => {
         handleSendMessage(categoryQuestions[categoryName] || `Tôi quan tâm đến ${categoryName}`);
     };
 
-    const clearChat = () => {
-        const welcomeText = userInfo
-            ? `Chào ${userInfo.name}! 👋 Tôi có thể giúp gì cho bạn?`
-            : "Chào bạn! 👋 Tôi có thể giúp gì cho bạn?";
-
-        setMessages([{
-            id: 'welcome_' + Date.now(),
-            text: welcomeText,
-            sender: 'bot',
-            timestamp: new Date()
-        }]);
+    const handleClearChat = () => {
+        dispatch(clearChat({ userInfo }));
         gamingChatbot.clearHistory();
         if (showSuggestions) {
-            setSuggestions(gamingChatbot.getQuickResponses());
+            dispatch(setSuggestions(gamingChatbot.getQuickResponses()));
         }
     };
 
-    const toggleSuggestions = () => {
-        setShowSuggestions(!showSuggestions);
+    const handleToggleSuggestions = () => {
+        dispatch(toggleSuggestions());
         if (!showSuggestions) {
             // If turning on suggestions, load quick responses
-            setSuggestions(gamingChatbot.getQuickResponses());
-        } else {
-            // If turning off suggestions, clear them
-            setSuggestions([]);
+            dispatch(setSuggestions(gamingChatbot.getQuickResponses()));
         }
+    };
+
+    const handleToggleChatbot = () => {
+        dispatch(toggleChatbot());
     };
 
     const quickCategories = [
@@ -167,7 +187,7 @@ const Chatbot = () => {
         <div className="chatbot-container">
             {/* Chatbot Toggle Button */}
             <button
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={handleToggleChatbot}
                 className="chatbot-toggle"
                 style={{
                     position: 'fixed',
@@ -236,7 +256,7 @@ const Chatbot = () => {
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                             {/* Suggestions Toggle */}
                             <button
-                                onClick={toggleSuggestions}
+                                onClick={handleToggleSuggestions}
                                 title={showSuggestions ? "Tắt gợi ý" : "Bật gợi ý"}
                                 className="settings-toggle"
                                 style={{
@@ -263,7 +283,7 @@ const Chatbot = () => {
 
                             {/* Quick Categories Toggle */}
                             <button
-                                onClick={() => setShowQuickCategories(!showQuickCategories)}
+                                onClick={() => dispatch(toggleQuickCategories())}
                                 title={showQuickCategories ? "Ẩn danh mục" : "Hiện danh mục"}
                                 className="settings-toggle"
                                 style={{
@@ -282,7 +302,7 @@ const Chatbot = () => {
 
                             {/* Clear Chat Button */}
                             <button
-                                onClick={clearChat}
+                                onClick={handleClearChat}
                                 title="Xóa cuộc trò chuyện"
                                 style={{
                                     background: 'rgba(255,255,255,0.2)',
@@ -346,18 +366,19 @@ const Chatbot = () => {
                                     display: 'flex',
                                     justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start'
                                 }}
-                            >                                <div
-                                style={{
-                                    maxWidth: '80%',
-                                    padding: '10px 14px',
-                                    borderRadius: '18px',
-                                    backgroundColor: message.sender === 'user' ? '#3b82f6' : '#f3f4f6',
-                                    color: message.sender === 'user' ? 'white' : '#374151',
-                                    fontSize: '14px',
-                                    lineHeight: '1.4',
-                                    wordWrap: 'break-word'
-                                }}
                             >
+                                <div
+                                    style={{
+                                        maxWidth: '80%',
+                                        padding: '10px 14px',
+                                        borderRadius: '18px',
+                                        backgroundColor: message.sender === 'user' ? '#3b82f6' : '#f3f4f6',
+                                        color: message.sender === 'user' ? 'white' : '#374151',
+                                        fontSize: '14px',
+                                        lineHeight: '1.4',
+                                        wordWrap: 'break-word'
+                                    }}
+                                >
                                     {message.sender === 'bot' ? formatMessageText(message.text) : message.text}
                                 </div>
                             </div>
@@ -432,7 +453,7 @@ const Chatbot = () => {
                             <div className="suggestion-header" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
                                 <span style={{ fontSize: '12px', color: '#6b7280' }}>💡 Gợi ý cho bạn:</span>
                                 <button
-                                    onClick={toggleSuggestions}
+                                    onClick={handleToggleSuggestions}
                                     style={{
                                         background: 'none',
                                         border: 'none',
