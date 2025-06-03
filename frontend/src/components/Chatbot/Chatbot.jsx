@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import gamingChatbot from '../../services/chatbotService';
+import { formatMessageText } from '../../utils/textFormatter';
 import './Chatbot.css';
 
 const Chatbot = () => {
@@ -129,7 +130,7 @@ const Chatbot = () => {
         const welcomeText = userInfo
             ? `Chào ${userInfo.name}! 👋 Tôi có thể giúp gì cho bạn?`
             : "Chào bạn! 👋 Tôi có thể giúp gì cho bạn?";
-        
+
         setMessages([{
             id: 'welcome_' + Date.now(),
             text: welcomeText,
@@ -230,7 +231,7 @@ const Chatbot = () => {
                                 Tư vấn thiết bị gaming 24/7
                             </p>
                         </div>
-                        
+
                         {/* Control Buttons */}
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                             {/* Suggestions Toggle */}
@@ -345,20 +346,19 @@ const Chatbot = () => {
                                     display: 'flex',
                                     justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start'
                                 }}
+                            >                                <div
+                                style={{
+                                    maxWidth: '80%',
+                                    padding: '10px 14px',
+                                    borderRadius: '18px',
+                                    backgroundColor: message.sender === 'user' ? '#3b82f6' : '#f3f4f6',
+                                    color: message.sender === 'user' ? 'white' : '#374151',
+                                    fontSize: '14px',
+                                    lineHeight: '1.4',
+                                    wordWrap: 'break-word'
+                                }}
                             >
-                                <div
-                                    style={{
-                                        maxWidth: '80%',
-                                        padding: '10px 14px',
-                                        borderRadius: '18px',
-                                        backgroundColor: message.sender === 'user' ? '#3b82f6' : '#f3f4f6',
-                                        color: message.sender === 'user' ? 'white' : '#374151',
-                                        fontSize: '14px',
-                                        lineHeight: '1.4',
-                                        wordWrap: 'break-word'
-                                    }}
-                                >
-                                    {message.text}
+                                    {message.sender === 'bot' ? formatMessageText(message.text) : message.text}
                                 </div>
                             </div>
                         ))}

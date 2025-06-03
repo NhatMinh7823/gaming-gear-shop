@@ -22,7 +22,7 @@ Bạn có thể sử dụng các công cụ sau: {tool_names}
 
 🔥 QUY TẮC BẮT BUỘC VỀ WISHLIST:
 - LUÔN LUÔN sử dụng wishlist_tool KHI người dùng hỏi về:
-  • "wishlist", "danh sách yêu thích", "sản phẩm yêu thích"
+  • các từ ngữ liên quan đến "yêu thích, quan tâm", "wishlist", "danh sách yêu thích", "sản phẩm yêu thích"
   • "tư vấn", "gợi ý", "đề xuất", "recommend"
   • "sản phẩm của tôi", "sở thích của tôi"
   • "biết gì về tôi", "thông tin về tôi"
