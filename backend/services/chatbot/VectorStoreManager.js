@@ -36,73 +36,88 @@ class VectorStoreManager {
   }
 
   /**
-   * Create enhanced searchable content for better brand and product recognition
+   * Create enhanced searchable content with precise category matching
    */
   createSearchableContent(product) {
-    // Create brand variations for better matching
-    const brandVariations = product.brand ? [
-      product.brand,
-      product.brand.toLowerCase(),
-      product.brand.toUpperCase(),
-      `thương hiệu ${product.brand}`,
-      `brand ${product.brand}`,
-      `sản phẩm ${product.brand}`,
-      `của ${product.brand}`,
-      `từ ${product.brand}`
-    ].join(" ") : "";
-
-    // Category variations
-    const categoryVariations = product.category?.name ? [
-      product.category.name,
-      `danh mục ${product.category.name}`,
-      `loại ${product.category.name}`,
-      `category ${product.category.name}`,
-      `thuộc nhóm ${product.category.name}`
-    ].join(" ") : "";
-
-    // Name variations
-    const nameVariations = [
-      product.name,
-      product.name.toLowerCase(),
-      `sản phẩm ${product.name}`,
-      `model ${product.name}`,
-      `màn hình ${product.name}`, // Specific for monitors
-      `gaming monitor ${product.name}`
-    ].join(" ");
-
-    // Features and specifications as searchable text
-    const featuresText = product.features?.join(" ") || "";
-    const specsText = Object.entries(product.specifications || {})
-      .map(([key, value]) => `${key} ${value} ${key}:${value}`)
-      .join(" ");
-
-    // Additional search keywords based on product type
-    const additionalKeywords = [];
-    if (product.category?.name?.toLowerCase().includes('monitor')) {
-      additionalKeywords.push('màn hình', 'monitor', 'display', 'screen');
+    // Normalize category name
+    const categoryName = product.category?.name?.toLowerCase() || "";
+    
+    // ULTRA HIGH PRIORITY - Product name and exact category matching
+    const ultraHighPriority = [];
+    ultraHighPriority.push(product.name.repeat(5)); // Product name gets highest weight
+    
+    // Category-specific EXACT keywords (repeated 4 times for very high weight)
+    if (categoryName.includes("mice") || categoryName.includes("mouse")) {
+      ultraHighPriority.push("chuột".repeat(4), "mouse".repeat(4));
+      ultraHighPriority.push("chuột gaming".repeat(3), "gaming mouse".repeat(3));
+    } else if (categoryName.includes("keyboard")) {
+      ultraHighPriority.push("bàn phím".repeat(4), "keyboard".repeat(4));
+      ultraHighPriority.push("bàn phím gaming".repeat(3), "gaming keyboard".repeat(3));
+    } else if (categoryName.includes("monitor")) {
+      ultraHighPriority.push("màn hình".repeat(4), "monitor".repeat(4));
+      ultraHighPriority.push("màn hình gaming".repeat(3), "gaming monitor".repeat(3));
+    } else if (categoryName.includes("headset")) {
+      ultraHighPriority.push("tai nghe".repeat(4), "headset".repeat(4));
+      ultraHighPriority.push("tai nghe gaming".repeat(3), "gaming headset".repeat(3));
+    } else if (categoryName.includes("laptop")) {
+      ultraHighPriority.push("laptop".repeat(4));
+      ultraHighPriority.push("laptop gaming".repeat(3), "gaming laptop".repeat(3));
+    } else if (categoryName.includes("pc") || categoryName.includes("case")) {
+      ultraHighPriority.push("pc".repeat(4), "máy tính".repeat(4));
+      if (product.name.toLowerCase().includes("case") || product.description?.toLowerCase().includes("case")) {
+        ultraHighPriority.push("case".repeat(4), "vỏ máy tính".repeat(3));
+      }
+      ultraHighPriority.push("gaming pc".repeat(3));
     }
-    if (product.name?.toLowerCase().includes('gaming')) {
-      additionalKeywords.push('gaming', 'game', 'chơi game', 'esports');
+    
+    // HIGH PRIORITY - Brand and specific product features
+    const highPriority = [];
+    if (product.brand) {
+      highPriority.push(
+        product.brand.repeat(3),
+        `${product.brand} ${categoryName}`.repeat(2)
+      );
     }
-
-    // Combine all searchable content
+    
+    // MEDIUM PRIORITY - Description and features
+    const mediumPriority = [];
+    if (product.description) {
+      mediumPriority.push(product.description);
+    }
+    
+    if (product.features && product.features.length > 0) {
+      mediumPriority.push(product.features.join(" "));
+    }
+    
+    // LOW PRIORITY - General gaming keywords (only if really relevant)
+    const lowPriority = [];
+    
+    // Only add generic "gaming" if the product name specifically mentions gaming
+    if (product.name?.toLowerCase().includes("gaming")) {
+      lowPriority.push("gaming", "game");
+    }
+    
+    // Category name
+    if (product.category?.name) {
+      lowPriority.push(product.category.name);
+    }
+    
+    // Specifications (minimal weight)
+    if (product.specifications) {
+      const specsText = Object.entries(product.specifications)
+        .map(([key, value]) => `${key} ${value}`)
+        .join(" ");
+      lowPriority.push(specsText);
+    }
+    
+    // Combine with proper weighting
     const searchableContent = [
-      nameVariations,
-      brandVariations,
-      categoryVariations,
-      product.description,
-      `Giá: ${product.price} VND`,
-      `Price: ${product.price}`,
-      featuresText,
-      specsText,
-      `Đánh giá: ${product.averageRating || "chưa có"} sao`,
-      `Rating: ${product.averageRating || "no rating"}`,
-      `${product.numReviews || 0} lượt đánh giá`,
-      `${product.numReviews || 0} reviews`,
-      product.isFeatured ? "sản phẩm nổi bật featured hot recommend" : "",
-      product.isNewArrival ? "sản phẩm mới new arrival latest" : "",
-      product.stock > 0 ? "còn hàng available in stock" : "hết hàng out of stock sold out",
-      additionalKeywords.join(" ")
+      ultraHighPriority.filter(Boolean).join(" "), // Ultra high weight
+      highPriority.filter(Boolean).join(" "),      // High weight
+      mediumPriority.filter(Boolean).join(" "),    // Medium weight
+      lowPriority.filter(Boolean).join(" "),       // Low weight
+      `Price ${product.price}`,                     // Minimal weight
+      product.stock > 0 ? "available" : "out-of-stock" // Minimal weight
     ].filter(Boolean).join(" ");
 
     return searchableContent;
