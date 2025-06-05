@@ -1,10 +1,12 @@
 // Export all tools from this module
-const ProductSearchTool = require("./ProductSearchTool");
+const { ProductSearchTool } = require("./productSearch");
 const ProductFilterTool = require("./ProductFilterTool");
 const CategoryListTool = require("./CategoryListTool");
 const ProductDetailsTool = require("./ProductDetailsTool");
 const PriceRangeTool = require("./PriceRangeTool");
-const WishlistTool = require("./WishlistTool");
+
+// Import wishlist tools from wishlist module
+const { WishlistTool, IntentDetector } = require("./wishlist");
 
 // Tools instances
 let toolInstances = null;
@@ -19,6 +21,7 @@ const initialize = async (vectorStoreManager, userContext) => {
   console.log("UserContext passed to tools:", userContext?.getUserId());
 
   toolInstances = [
+    new IntentDetector(), // Thêm IntentDetector để nhận diện intent trước
     new ProductSearchTool(),
     new ProductFilterTool(),
     new CategoryListTool(),
@@ -75,4 +78,6 @@ module.exports = {
   CategoryListTool,
   ProductDetailsTool,
   PriceRangeTool,
+  WishlistTool,
+  IntentDetector,
 };

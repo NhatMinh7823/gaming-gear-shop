@@ -1,27 +1,111 @@
 class CategoryDetector {
   /**
-   * Analyze query to detect intended category
+   * Analyze query to detect intended category with smart conflict resolution
    */
   static detectCategory(query) {
     const lowerQuery = query.toLowerCase();
     
-    // Category mapping with more comprehensive keywords
+    // Priority-based category mapping with conflict resolution
     const categoryMap = {
-      "Mice": ["chuột", "mouse", "chuột gaming", "gaming mouse", "chuot"],
-      "Keyboards": ["bàn phím", "keyboard", "bàn phím cơ", "mechanical keyboard", "bàn phím gaming", "ban phim"],
-      "Monitors": ["màn hình", "monitor", "màn hình gaming", "gaming monitor", "display", "man hinh"],
-      "Headsets": ["tai nghe", "headset", "tai nghe gaming", "gaming headset", "headphone", "tai nghe steelseries", "tai nghe razer"],
-      "Gaming Laptops": ["laptop", "laptop gaming", "gaming laptop", "máy tính xách tay"],
-      "Gaming PCs": ["máy tính", "pc", "case", "vỏ máy tính", "gaming pc", "may tinh"]
+      // HIGH PRIORITY - Specific terms first
+      "Gaming Laptops": {
+        keywords: ["laptop", "laptop gaming", "gaming laptop", "máy tính xách tay", "laptop game", "may tinh xach tay"],
+        priority: 1,
+        exclusions: ["pc", "case", "vỏ máy tính", "desktop", "main"]
+      },
+      "Gaming PCs": {
+        keywords: ["pc gaming", "gaming pc", "pc game", "máy tính bàn", "desktop", "case", "vỏ máy tính", "main", "pc desktop", "may tinh ban"],
+        priority: 1,
+        exclusions: ["laptop", "xách tay", "portable"]
+      },
+      "Mice": {
+        keywords: ["chuột", "mouse", "chuột gaming", "gaming mouse", "chuot"],
+        priority: 2,
+        exclusions: []
+      },
+      "Keyboards": {
+        keywords: ["bàn phím", "keyboard", "bàn phím cơ", "mechanical keyboard", "bàn phím gaming", "ban phim"],
+        priority: 2,
+        exclusions: []
+      },
+      "Monitors": {
+        keywords: ["màn hình", "monitor", "màn hình gaming", "gaming monitor", "display", "man hinh", "screen"],
+        priority: 2,
+        exclusions: []
+      },
+      "Headsets": {
+        keywords: ["tai nghe", "headset", "tai nghe gaming", "gaming headset", "headphone", "tai nghe steelseries", "tai nghe razer"],
+        priority: 2,
+        exclusions: []
+      }
     };
     
-    for (const [category, keywords] of Object.entries(categoryMap)) {
-      if (keywords.some(keyword => lowerQuery.includes(keyword))) {
-        return category;
+    // First pass: Find exact matches with exclusion checking
+    const matches = [];
+    
+    for (const [category, config] of Object.entries(categoryMap)) {
+      const hasKeyword = config.keywords.some(keyword => lowerQuery.includes(keyword));
+      const hasExclusion = config.exclusions.some(exclusion => lowerQuery.includes(exclusion));
+      
+      if (hasKeyword && !hasExclusion) {
+        matches.push({
+          category,
+          priority: config.priority,
+          matchStrength: this.calculateMatchStrength(lowerQuery, config.keywords)
+        });
       }
     }
     
-    return null;
+    // If no matches, try fallback with generic terms
+    if (matches.length === 0) {
+      // Generic fallback for "máy tính" - try to determine context
+      if (lowerQuery.includes("máy tính") || lowerQuery.includes("may tinh")) {
+        // Check context clues to determine if it's laptop or PC
+        const laptopClues = ["xách tay", "portable", "di động", "mang theo", "laptop"];
+        const pcClues = ["bàn", "desktop", "tower", "case", "main", "để bàn"];
+        
+        const hasLaptopClues = laptopClues.some(clue => lowerQuery.includes(clue));
+        const hasPcClues = pcClues.some(clue => lowerQuery.includes(clue));
+        
+        if (hasLaptopClues && !hasPcClues) {
+          return "Gaming Laptops";
+        } else if (hasPcClues && !hasLaptopClues) {
+          return "Gaming PCs";
+        }
+        // If ambiguous, default to PC as it's more common in gaming context
+        return "Gaming PCs";
+      }
+    }
+    
+    if (matches.length === 0) return null;
+    
+    // Sort by priority first, then by match strength
+    matches.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return a.priority - b.priority; // Lower priority number = higher priority
+      }
+      return b.matchStrength - a.matchStrength; // Higher match strength first
+    });
+    
+    return matches[0].category;
+  }
+
+  /**
+   * Calculate match strength based on keyword matches
+   */
+  static calculateMatchStrength(query, keywords) {
+    let strength = 0;
+    keywords.forEach(keyword => {
+      if (query.includes(keyword)) {
+        // Longer keywords get higher score
+        strength += keyword.length;
+        // Exact word matches get bonus
+        if (query.split(' ').includes(keyword)) {
+          strength += 5;
+        }
+      }
+    });
+    return strength;
   }
 
   /**

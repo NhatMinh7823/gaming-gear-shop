@@ -1,7 +1,7 @@
 const { StructuredTool } = require("langchain/tools");
 const { z } = require("zod");
-const User = require("../../models/userModel");
-const Product = require("../../models/productModel"); // Ensure Product model is registered
+const User = require("../../../models/userModel"); 
+
 
 /**
  * WishlistTool - Tool for accessing user's wishlist to provide personalized recommendations

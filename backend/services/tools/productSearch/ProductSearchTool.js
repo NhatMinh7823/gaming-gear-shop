@@ -18,7 +18,7 @@ const PriceSortingStrategy = require("./PriceSortingStrategy");
 class ProductSearchTool extends StructuredTool {
   schema = z.object({
     query: z.string().describe("Từ khóa tìm kiếm"),
-    limit: z.number().optional().default(5).describe("Số lượng kết quả tối đa"),
+    limit: z.number().optional().default(10).describe("Số lượng kết quả tối đa"),
   });
 
   name = "product_search";
@@ -28,7 +28,7 @@ class ProductSearchTool extends StructuredTool {
   async _call(input) {
     try {
       const query = input.query || "";
-      const limit = input.limit || 5;
+      const limit = input.limit || 10;
       
       console.log(`🔍 ProductSearchTool called with query: "${query}", limit: ${limit}`);
       
