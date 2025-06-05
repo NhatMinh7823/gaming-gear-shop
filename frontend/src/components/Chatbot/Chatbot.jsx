@@ -56,6 +56,13 @@ const Chatbot = () => {
         scrollToBottom();
     }, [messages]);
 
+    // Auto-scroll to bottom when chatbot opens
+    useEffect(() => {
+        if (isOpen) {
+            scrollToBottom();
+        }
+    }, [isOpen]);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };

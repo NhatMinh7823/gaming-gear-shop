@@ -15,12 +15,14 @@ const formatPrice = (price) => {
  * @returns {string} Formatted product string
  */
 const formatProductFromMetadata = (metadata) => {
-  const priceFormatted = formatPrice(metadata.price);
+  const effectivePrice = metadata.discountPrice || metadata.price;
+  const effectivePriceFormatted = formatPrice(effectivePrice);
+  const originalPriceFormatted = formatPrice(metadata.price);
 
   return `🎮 **${metadata.name}**
-   💰 Giá: ${priceFormatted} VND${
+   💰 Giá: ${effectivePriceFormatted} VND${
     metadata.discountPrice
-      ? ` (Giảm: ${formatPrice(metadata.discountPrice)} VND)`
+      ? ` ⚡ GIẢM TỪ ${originalPriceFormatted} VND - TIẾT KIỆM ${formatPrice(metadata.price - metadata.discountPrice)} VND`
       : ""
   }
    📁 Danh mục: ${metadata.category}
@@ -39,12 +41,14 @@ const formatProductFromMetadata = (metadata) => {
  * @returns {string} Formatted product string
  */
 const formatProductFromDB = (product) => {
-  const priceFormatted = formatPrice(product.price);
+  const effectivePrice = product.discountPrice || product.price;
+  const effectivePriceFormatted = formatPrice(effectivePrice);
+  const originalPriceFormatted = formatPrice(product.price);
 
   return `🎮 **${product.name}**
-   💰 Giá: ${priceFormatted} VND${
+   💰 Giá: ${effectivePriceFormatted} VND${
     product.discountPrice
-      ? ` (Giảm: ${formatPrice(product.discountPrice)} VND)`
+      ? ` ⚡ GIẢM TỪ ${originalPriceFormatted} VND - TIẾT KIỆM ${formatPrice(product.price - product.discountPrice)} VND`
       : ""
   }
    📁 Danh mục: ${product.category?.name || "N/A"}
