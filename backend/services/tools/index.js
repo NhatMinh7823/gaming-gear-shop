@@ -8,6 +8,9 @@ const PriceRangeTool = require("./PriceRangeTool");
 // Import wishlist tools from wishlist module
 const { WishlistTool, IntentDetector } = require("./wishlist");
 
+// Import cart tool (enhanced version)
+const CartTool = require("./cart/CartTool");
+
 // Global tools instances (for non-user-specific tools)
 let globalToolInstances = null;
 let vectorStoreManager = null;
@@ -40,8 +43,11 @@ const initialize = async (vsManager, userContext) => {
  * @returns {Array} Array of tool instances with fresh UserContext
  */
 const createFreshTools = (userContext) => {
-  console.log("🔄 Creating fresh tools with UserContext:", userContext?.getUserId());
-  
+  console.log(
+    "🔄 Creating fresh tools with UserContext:",
+    userContext?.getUserId()
+  );
+
   if (!globalToolInstances) {
     throw new Error("Global tools not initialized. Call initialize() first.");
   }
@@ -50,11 +56,20 @@ const createFreshTools = (userContext) => {
   const freshTools = [
     ...globalToolInstances, // Non-user-specific tools (reuse)
     new WishlistTool(userContext), // Fresh WishlistTool with current UserContext
+    new CartTool(userContext), // Single comprehensive cart tool (enhanced)
   ];
 
-  // Verify WishlistTool has correct UserContext
-  const wishlistTool = freshTools.find(tool => tool.name === "wishlist_tool");
-  console.log("✅ Fresh WishlistTool UserContext:", wishlistTool?.userContext?.getUserId());
+  // Verify tools have correct UserContext
+  const wishlistTool = freshTools.find((tool) => tool.name === "wishlist_tool");
+  const cartTool = freshTools.find((tool) => tool.name === "cart_tool");
+  console.log(
+    "✅ Fresh WishlistTool UserContext:",
+    wishlistTool?.userContext?.getUserId()
+  );
+  console.log(
+    "✅ Fresh CartTool UserContext:",
+    cartTool?.userContext?.getUserId()
+  );
 
   return freshTools;
 };
@@ -67,11 +82,8 @@ const getAllTools = () => {
   if (!globalToolInstances) {
     throw new Error("Tools not initialized. Call initialize() first.");
   }
-  // Return global tools + WishlistTool with null context (fallback)
-  return [
-    ...globalToolInstances,
-    new WishlistTool(null)
-  ];
+  // Return global tools + user-specific tools with null context (fallback)
+  return [...globalToolInstances, new WishlistTool(null), new CartTool(null)];
 };
 
 /**
@@ -112,4 +124,5 @@ module.exports = {
   PriceRangeTool,
   WishlistTool,
   IntentDetector,
+  CartTool,
 };
