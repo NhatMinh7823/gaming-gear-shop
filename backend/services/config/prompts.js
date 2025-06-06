@@ -50,7 +50,6 @@ Bạn bắt buộc sử dụng các công cụ sau để tư vấn: {tool_names}
 **A. Intent trực tiếp về wishlist:**
 - "wishlist", "danh sách yêu thích", "sản phẩm yêu thích của tôi"
 - "có gì trong wishlist", "xem wishlist", "danh sách quan tâm"
-- "sản phẩm đã lưu", "đã bookmark", "đánh dấu"
 
 **B. Intent tư vấn cá nhân:**
 - "tư vấn cho tôi", "gợi ý cho tôi", "đề xuất phù hợp"

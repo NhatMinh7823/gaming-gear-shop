@@ -10,8 +10,10 @@ class WishlistTool extends StructuredTool {
   constructor(userContext = null) {
     super();
     this.name = "wishlist_tool";
-    this.description =
-      "Get user's wishlist to provide personalized product recommendations. Use this tool when user asks about: wishlist, favorites, personal preferences, recommendations, what they like, their setup, advice, suggestions, or any personalized queries. Only works when user is authenticated (userId provided).";
+    
+    // Enhanced description optimized for both Gemini models
+    this.description = this.getOptimizedDescription();
+    
     this.userContext = userContext;
     this.debugMode = process.env.CHATBOT_DEBUG === "true";
     this.schema = z.object({
@@ -21,6 +23,57 @@ class WishlistTool extends StructuredTool {
           "Action to perform: get_wishlist to see items, get_recommendations for similar products, analyze_preferences for detailed pattern analysis, suggest_complementary for missing setup items"
         ),
     });
+  }
+
+  /**
+   * Get optimized description based on current model
+   */
+  getOptimizedDescription() {
+    // Get current model from config
+    const llmConfig = require("../../config/llmConfig");
+    const currentModel = llmConfig.llmConfig.model;
+    
+    // Base description
+    const baseDescription = "WISHLIST ACCESS TOOL - Get user's saved products to provide personalized recommendations.";
+    
+    // Enhanced keywords for better tool selection
+    const enhancedKeywords = [
+      // Personal context keywords
+      "PERSONAL", "USER'S", "MY", "THEIR", "INDIVIDUAL", "CUSTOMIZED",
+      // Wishlist specific
+      "WISHLIST", "FAVORITES", "SAVED", "LIKED", "BOOKMARKED", "WANT",
+      // Recommendation context  
+      "RECOMMEND", "SUGGEST", "ADVICE", "GUIDANCE", "PROPOSAL",
+      // Setup and preferences
+      "SETUP", "PREFERENCES", "TASTE", "STYLE", "CHOICE",
+      // Completion context
+      "COMPLETE", "FINISH", "MISSING", "ADD", "COMPLEMENT", "ENHANCE",
+      // Vietnamese equivalents
+      "TƯ VẤN", "GỢI Ý", "ĐỀ XUẤT", "HOÀN THIỆN", "BỔ SUNG", "THIẾU"
+    ];
+
+    // Model-specific optimizations
+    if (currentModel?.includes("gemini-2.5")) {
+      // For Gemini-2.5: More explicit and structured description
+      return `${baseDescription}
+
+🎯 USE THIS TOOL WHEN:
+- User asks for PERSONALIZED recommendations
+- User mentions "tôi", "mình", "của tôi", "cho tôi"  
+- User wants to COMPLETE/FINISH their setup
+- User asks what products to ADD/COMPLEMENT
+- User needs advice based on their PREFERENCES
+- User asks about their CURRENT setup or gear
+- Questions about "hoàn thiện", "bổ sung", "thiếu gì"
+- ANY request requiring PERSONAL CONTEXT
+
+🔍 KEYWORDS: ${enhancedKeywords.slice(0, 15).join(", ")}
+
+⚡ ALWAYS check user authentication first. Only works when userId is available.`;
+    } else {
+      // For Gemini-1.5 and others: Original optimized description
+      return `${baseDescription} Use when user asks about: wishlist, favorites, personal preferences, recommendations, what they like, their setup, advice, suggestions, completing setup, missing items, or any personalized queries. Keywords: ${enhancedKeywords.slice(0, 10).join(", ")}. Only works when user is authenticated (userId provided).`;
+    }
   }
 
   log(message, ...args) {
@@ -38,6 +91,7 @@ class WishlistTool extends StructuredTool {
       this.log("🔍 WishlistTool._call started");
       this.log("🔍 Action:", action);
       this.log("🔍 UserContext exists:", !!this.userContext);
+      this.log("🔍 Tool instance created at:", new Date().toISOString());
 
       if (this.userContext) {
         this.log(
@@ -48,6 +102,10 @@ class WishlistTool extends StructuredTool {
           "🔍 Current userId in userContext:",
           this.userContext.currentUserId
         );
+        this.log(
+          "🔍 UserContext instance check:",
+          this.userContext.constructor.name
+        );
       }
 
       // Get userId from context
@@ -56,10 +114,17 @@ class WishlistTool extends StructuredTool {
       this.log("🔍 WishlistTool called with action:", action);
       this.log("🔍 UserContext exists:", !!this.userContext);
       this.log("🔍 UserId from context:", userId);
+      this.log("🔍 UserContext isAuthenticated():", this.userContext?.isAuthenticated());
 
       if (!userId) {
         this.log("❌ WishlistTool: No userId found in context");
-        return "User not authenticated. Cannot access wishlist. Ask user to login for personalized recommendations.";
+        this.log("❌ UserContext debug info:", {
+          exists: !!this.userContext,
+          currentUserId: this.userContext?.currentUserId,
+          getUserId: this.userContext?.getUserId(),
+          isAuthenticated: this.userContext?.isAuthenticated()
+        });
+        return "I need a user ID to access the wishlist and provide personalized recommendations. Please provide your user ID or log in.";
       }
 
       // Find user and populate wishlist

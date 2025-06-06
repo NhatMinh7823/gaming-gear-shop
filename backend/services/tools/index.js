@@ -8,49 +8,79 @@ const PriceRangeTool = require("./PriceRangeTool");
 // Import wishlist tools from wishlist module
 const { WishlistTool, IntentDetector } = require("./wishlist");
 
-// Tools instances
-let toolInstances = null;
+// Global tools instances (for non-user-specific tools)
+let globalToolInstances = null;
+let vectorStoreManager = null;
 
 /**
- * Initialize tools with dependencies
- * @param {VectorStoreManager} vectorStoreManager
- * @param {UserContext} userContext
+ * Initialize global tools and dependencies
+ * @param {VectorStoreManager} vsManager
+ * @param {UserContext} userContext - Initial userContext (will be replaced dynamically)
  */
-const initialize = async (vectorStoreManager, userContext) => {
-  console.log("Initializing tools with dependencies...");
-  console.log("UserContext passed to tools:", userContext?.getUserId());
+const initialize = async (vsManager, userContext) => {
+  console.log("Initializing global tools...");
+  vectorStoreManager = vsManager;
 
-  toolInstances = [
-    new IntentDetector(), // Thêm IntentDetector để nhận diện intent trước
+  // Initialize non-user-specific tools once
+  globalToolInstances = [
+    new IntentDetector(),
     new ProductSearchTool(),
     new ProductFilterTool(),
     new CategoryListTool(),
     new ProductDetailsTool(),
     new PriceRangeTool(),
-    new WishlistTool(userContext), // Đảm bảo userContext được truyền
   ];
 
-  console.log("Tools initialized successfully");
-
-  // Verify WishlistTool initialization
-  const wishlistTool = toolInstances.find(
-    (tool) => tool.name === "wishlist_tool"
-  );
-  console.log(
-    "WishlistTool userContext after init:",
-    wishlistTool?.userContext?.getUserId()
-  );
+  console.log("Global tools initialized successfully");
 };
 
 /**
- * Get all tools as instances
+ * Create fresh tools with current UserContext
+ * @param {UserContext} userContext - Current user context
+ * @returns {Array} Array of tool instances with fresh UserContext
+ */
+const createFreshTools = (userContext) => {
+  console.log("🔄 Creating fresh tools with UserContext:", userContext?.getUserId());
+  
+  if (!globalToolInstances) {
+    throw new Error("Global tools not initialized. Call initialize() first.");
+  }
+
+  // Create fresh tool set with current UserContext
+  const freshTools = [
+    ...globalToolInstances, // Non-user-specific tools (reuse)
+    new WishlistTool(userContext), // Fresh WishlistTool with current UserContext
+  ];
+
+  // Verify WishlistTool has correct UserContext
+  const wishlistTool = freshTools.find(tool => tool.name === "wishlist_tool");
+  console.log("✅ Fresh WishlistTool UserContext:", wishlistTool?.userContext?.getUserId());
+
+  return freshTools;
+};
+
+/**
+ * Get all tools as instances (legacy - for backward compatibility)
  * @returns {Array} Array of tool instances
  */
 const getAllTools = () => {
-  if (!toolInstances) {
+  if (!globalToolInstances) {
     throw new Error("Tools not initialized. Call initialize() first.");
   }
-  return toolInstances;
+  // Return global tools + WishlistTool with null context (fallback)
+  return [
+    ...globalToolInstances,
+    new WishlistTool(null)
+  ];
+};
+
+/**
+ * Get tools with specific UserContext (recommended)
+ * @param {UserContext} userContext - Current user context
+ * @returns {Array} Array of tool instances with correct UserContext
+ */
+const getToolsWithContext = (userContext) => {
+  return createFreshTools(userContext);
 };
 
 /**
@@ -72,6 +102,8 @@ const getToolsInfo = () => {
 module.exports = {
   initialize,
   getAllTools,
+  getToolsWithContext,
+  createFreshTools,
   getToolsInfo,
   ProductSearchTool,
   ProductFilterTool,

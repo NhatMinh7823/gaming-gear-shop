@@ -109,6 +109,50 @@ class AgentManager {
     }
   }
 
+  /**
+   * Update agent with fresh tools (for dynamic user context)
+   * @param {Array} freshTools - Fresh tools with updated UserContext
+   */
+  async updateAgentTools(freshTools) {
+    try {
+      this.log("🔄 Updating agent with fresh tools...");
+
+      if (!Array.isArray(freshTools) || freshTools.length === 0) {
+        throw new Error("Fresh tools array is undefined or empty.");
+      }
+
+      // Validate each tool
+      for (const tool of freshTools) {
+        if (!tool.name || !tool.description) {
+          throw new Error(`Invalid fresh tool detected: ${JSON.stringify(tool)}`);
+        }
+      }
+
+      // Create new agent with fresh tools
+      this.agent = await createStructuredChatAgent({
+        llm: this.llm,
+        tools: freshTools,
+        prompt: await pull("hwchase17/structured-chat-agent"),
+      });
+
+      this.agentExecutor = new AgentExecutor({
+        agent: this.agent,
+        tools: freshTools,
+        verbose: agentConfig.verbose,
+        maxIterations: agentConfig.maxIterations,
+        earlyStoppingMethod: agentConfig.earlyStoppingMethod,
+      });
+
+      // Verify WishlistTool was updated
+      const wishlistTool = freshTools.find(tool => tool.name === "wishlist_tool");
+      this.log("✅ Agent updated with fresh WishlistTool UserContext:", wishlistTool?.userContext?.getUserId());
+
+    } catch (error) {
+      this.logError("Error updating agent tools:", error.message);
+      throw new Error(`Failed to update agent tools: ${error.message}`);
+    }
+  }
+
   async executeAgent(input) {
     if (!this.isInitialized) {
       await this.initialize();

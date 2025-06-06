@@ -3,7 +3,6 @@ const { z } = require("zod");
 const mongoose = require("mongoose");
 const Product = require("../../models/productModel");
 const { formatPrice } = require("../config/utils");
-const db = require("../../config/db"); // Import the database connection
 
 class ProductDetailsTool extends StructuredTool {
   schema = z.object({

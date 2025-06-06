@@ -9,11 +9,41 @@ class IntentDetector extends StructuredTool {
   constructor() {
     super();
     this.name = "intent_detector";
-    this.description = "Phát hiện intent của người dùng về wishlist và tư vấn cá nhân bằng AI classifier nâng cao";
+    this.description = this.getOptimizedDescription();
     this.classifier = new WishlistIntentClassifier();
     this.schema = z.object({
       message: z.string().describe("Tin nhắn của người dùng cần phân tích intent"),
     });
+  }
+
+  /**
+   * Get optimized description based on current model
+   */
+  getOptimizedDescription() {
+    try {
+      const llmConfig = require("../../config/llmConfig");
+      const currentModel = llmConfig.llmConfig.model;
+      
+      if (currentModel?.includes("gemini-2.5")) {
+        // More explicit description for Gemini-2.5
+        return `INTENT ANALYSIS TOOL - Detects if user needs PERSONALIZED recommendations or WISHLIST access.
+
+🎯 USE THIS TOOL TO ANALYZE:
+- Messages with personal pronouns: "tôi", "mình", "của tôi", "cho tôi"
+- Requests for personalized advice or recommendations
+- Questions about completing/finishing user's setup
+- Queries about missing items or complementary products
+- Any message requiring access to user's personal data
+
+🔍 DETECT PATTERNS: personal context + advice/recommendation requests
+⚡ CRITICAL: Run this BEFORE other tools when personal context is detected.`;
+      } else {
+        // Original description for Gemini-1.5 and others
+        return "Phát hiện intent của người dùng về wishlist và tư vấn cá nhân bằng AI classifier nâng cao";
+      }
+    } catch (error) {
+      return "Phát hiện intent của người dùng về wishlist và tư vấn cá nhân bằng AI classifier nâng cao";
+    }
   }
 
   /**

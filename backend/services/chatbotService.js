@@ -3,6 +3,7 @@ const ChatHistoryManager = require("./chatbot/ChatHistoryManager");
 const VectorStoreManager = require("./chatbot/VectorStoreManager");
 const UserContext = require("./chatbot/UserContext");
 const tools = require("./tools");
+const { getToolsWithContext } = require("./tools");
 const Product = require("../models/productModel");
 const User = require("../models/userModel");
 const Category = require("../models/categoryModel");
@@ -118,19 +119,19 @@ class ChatbotService {
       this.log(`Message: "${message}"`);
       this.log(`UserId received:`, userId);
 
-      // Set user context for tools
+      // Set user context and create fresh tools
       if (userId) {
         this.log(`Setting user context with userId: ${userId}`);
         this.userContext.setUser(userId);
 
-        // Update all tools with new user context
-        await this.updateToolsUserContext();
+        // Create fresh tools with current UserContext and update agent
+        await this.createFreshToolsAndUpdateAgent();
       } else {
         this.log(`No userId provided, clearing user context`);
         this.userContext.clearUser();
 
-        // Update all tools to clear user context
-        await this.updateToolsUserContext();
+        // Create fresh tools with cleared UserContext and update agent
+        await this.createFreshToolsAndUpdateAgent();
       }
 
       // Verify user context was set
@@ -260,9 +261,38 @@ class ChatbotService {
     console.log("========================");
   }
   /**
-   * Update all tools with current user context
+   * Create fresh tools with current UserContext and update agent
+   * This ensures that each request gets tools with the correct UserContext
    */
-  async updateToolsUserContext() {
+  async createFreshToolsAndUpdateAgent() {
+    try {
+      this.log("🔄 Creating fresh tools and updating agent...");
+      
+      // Get fresh tools with current UserContext
+      const freshTools = getToolsWithContext(this.userContext);
+      
+      // Update agent with fresh tools
+      await this.agentManager.updateAgentTools(freshTools);
+      
+      this.log("✅ Successfully updated agent with fresh tools");
+      
+      // Verify the update worked
+      const wishlistTool = freshTools.find(tool => tool.name === "wishlist_tool");
+      this.log("Fresh WishlistTool UserContext verification:", wishlistTool?.userContext?.getUserId());
+      
+    } catch (error) {
+      this.logError("Error creating fresh tools and updating agent:", error);
+      
+      // Fallback to old method if new approach fails
+      this.log("⚠️  Falling back to legacy tool update method");
+      await this.updateToolsUserContextLegacy();
+    }
+  }
+
+  /**
+   * Legacy method - Update all tools with current user context (fallback)
+   */
+  async updateToolsUserContextLegacy() {
     try {
       const tools = require("./tools");
       const allTools = tools.getAllTools();
@@ -274,31 +304,38 @@ class ChatbotService {
       if (wishlistTool) {
         wishlistTool.userContext = this.userContext;
         this.log(
-          "Updated WishlistTool userContext with:",
+          "Legacy: Updated WishlistTool userContext with:",
           this.userContext.getUserId()
         );
       }
     } catch (error) {
-      this.logError("Error updating tools user context:", error);
+      this.logError("Error in legacy tools user context update:", error);
     }
   }
+
   /**
    * Test wishlist functionality with current user context
    */
   async testWishlistAccess() {
     try {
-      const tools = require("./tools");
-      const allTools = tools.getAllTools();
-      const wishlistTool = allTools.find(
+      // Get the current agent's tools to test the actual tools being used
+      const agentExecutor = this.agentManager.getAgentExecutor();
+      
+      if (!agentExecutor || !agentExecutor.tools) {
+        this.log("No agent executor or tools available for testing");
+        return false;
+      }
+
+      const wishlistTool = agentExecutor.tools.find(
         (tool) => tool.name === "wishlist_tool"
       );
 
       if (!wishlistTool) {
-        this.log("WishlistTool not found");
+        this.log("WishlistTool not found in current agent");
         return false;
       }
 
-      this.log("Testing wishlist access...");
+      this.log("Testing wishlist access with current agent tools...");
       const result = await wishlistTool._call({ action: "get_wishlist" });
       this.log("Wishlist test result:", result);
 
