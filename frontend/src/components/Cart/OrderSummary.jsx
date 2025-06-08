@@ -1,14 +1,25 @@
 import React from 'react';
 
-const OrderSummary = ({ cartItems, totalPrice, discountAmount }) => {
-  const SHIPPING_PRICE = 15000;
+const OrderSummary = ({ 
+  cartItems, 
+  totalPrice, 
+  shippingFee = 0,
+  discountAmount = 0,
+  couponCode = null,
+  isFreeship = false 
+}) => {
   const TAX_PRICE = 10000;
-  const finalTotal = totalPrice + SHIPPING_PRICE + TAX_PRICE - discountAmount;
+  const finalShippingFee = isFreeship ? 0 : shippingFee;
+  const finalTotal = totalPrice + finalShippingFee + TAX_PRICE - discountAmount;
 
   return (
     <div className="bg-gray-800 p-6 rounded-xl shadow-sm sticky top-24">
-      <h2 className="text-xl font-semibold text-gray-100 mb-4 pb-3 border-b border-gray-700">Order Summary</h2>
+      <h2 className="text-xl font-semibold text-gray-100 mb-4 pb-3 border-b border-gray-700">
+        Tóm tắt đơn hàng
+      </h2>
+      
       <div className="space-y-4">
+        {/* Cart Items */}
         {cartItems.map((item) => (
           <div key={item._id} className="flex items-center py-2">
             <img
@@ -18,7 +29,7 @@ const OrderSummary = ({ cartItems, totalPrice, discountAmount }) => {
             />
             <div className="flex-1">
               <p className="text-sm text-gray-100 font-medium">{item.name}</p>
-              <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
+              <p className="text-xs text-gray-400">Số lượng: {item.quantity}</p>
             </div>
             <span className="text-sm text-gray-100 font-medium">
               {new Intl.NumberFormat('vi-VN', {
@@ -28,9 +39,12 @@ const OrderSummary = ({ cartItems, totalPrice, discountAmount }) => {
             </span>
           </div>
         ))}
+
+        {/* Summary */}
         <div className="border-t pt-4 space-y-2">
+          {/* Subtotal */}
           <div className="flex justify-between text-sm text-gray-400">
-            <span>Subtotal</span>
+            <span>Tạm tính</span>
             <span>
               {new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
@@ -38,17 +52,39 @@ const OrderSummary = ({ cartItems, totalPrice, discountAmount }) => {
               }).format(totalPrice)}
             </span>
           </div>
+
+          {/* Shipping */}
           <div className="flex justify-between text-sm text-gray-400">
-            <span>Shipping</span>
-            <span>
-              {new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND'
-              }).format(SHIPPING_PRICE)}
-            </span>
+            <span>Phí vận chuyển</span>
+            <div className="text-right">
+              {isFreeship && shippingFee > 0 ? (
+                <>
+                  <span className="line-through text-gray-500">
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND'
+                    }).format(shippingFee)}
+                  </span>
+                  <div className="text-green-500 font-medium">MIỄN PHÍ</div>
+                </>
+              ) : (
+                <span>
+                  {shippingFee > 0 ? (
+                    new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND'
+                    }).format(shippingFee)
+                  ) : (
+                    'Đang tính...'
+                  )}
+                </span>
+              )}
+            </div>
           </div>
+
+          {/* Tax */}
           <div className="flex justify-between text-sm text-gray-400">
-            <span>Tax</span>
+            <span>Thuế</span>
             <span>
               {new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
@@ -56,9 +92,11 @@ const OrderSummary = ({ cartItems, totalPrice, discountAmount }) => {
               }).format(TAX_PRICE)}
             </span>
           </div>
+
+          {/* Discount */}
           {discountAmount > 0 && (
             <div className="flex justify-between text-sm text-green-600">
-              <span>Discount</span>
+              <span>Giảm giá {couponCode && `(${couponCode})`}</span>
               <span>
                 -{new Intl.NumberFormat('vi-VN', {
                   style: 'currency',
@@ -67,9 +105,24 @@ const OrderSummary = ({ cartItems, totalPrice, discountAmount }) => {
               </span>
             </div>
           )}
+
+          {/* Freeship Badge */}
+          {isFreeship && shippingFee > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-green-500">🚚 Miễn phí vận chuyển</span>
+              <span className="text-green-500 font-medium">
+                -{new Intl.NumberFormat('vi-VN', {
+                  style: 'currency',
+                  currency: 'VND'
+                }).format(shippingFee)}
+              </span>
+            </div>
+          )}
+
+          {/* Total */}
           <div className="pt-2 border-t">
-            <div className="flex justify-between font-semibold text-gray-100">
-              <span>Total</span>
+            <div className="flex justify-between font-semibold text-lg text-gray-100">
+              <span>Tổng cộng</span>
               <span>
                 {new Intl.NumberFormat('vi-VN', {
                   style: 'currency',

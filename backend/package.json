@@ -10,6 +10,7 @@
   "dependencies": {
     "@langchain/google-genai": "^0.2.10",
     "@langchain/mongodb": "^0.1.0",
+    "axios": "^1.9.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",

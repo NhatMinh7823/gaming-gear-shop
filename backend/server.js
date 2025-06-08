@@ -12,6 +12,13 @@ dotenv.config();
 // Connect to MongoDB
 connectDB();
 
+// Initialize GHN warehouse configuration
+const ghnService = require('./services/ghnService');
+ghnService.initializeWarehouse().catch(error => {
+  console.error('Failed to initialize GHN warehouse:', error.message);
+  console.log('GHN API will use fallback shipping fees');
+});
+
 // Initialize Express app
 const app = express();
 
@@ -51,6 +58,7 @@ const reviewRoutes = require("./routes/reviewRoutes");
 const vnpayRoutes = require("./routes/vnpayRoutes");
 const chatbotRoutes = require("./routes/chatbotRoutes");
 const couponRoutes = require("./routes/couponRoutes");
+const ghnRoutes = require("./routes/ghnRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 // Use routes
@@ -63,6 +71,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/payment", vnpayRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/ghn", ghnRoutes);
 
 app.use("/api/vnpay", vnpayRoutes);
 

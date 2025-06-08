@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
-import { createOrder, clearCart, markCouponAsUsed } from '../services/api';
+import { createOrder, clearCart, markCouponAsUsed, getUserAddress } from '../services/api';
 import { clearCart as clearCartAction } from '../redux/slices/cartSlice';
+import { isAddressComplete } from '../utils/shippingCalculator';
 
 export const useCheckout = () => {
   const { cartItems, totalPrice } = useSelector((state) => state.cart);
@@ -11,27 +12,54 @@ export const useCheckout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [shippingAddress, setShippingAddress] = useState({
-    street: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    country: 'Vietnam'
-  });
+  const [shippingAddress, setShippingAddress] = useState({});
   const [paymentMethod, setPaymentMethod] = useState('VNPay');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
   const [errors, setErrors] = useState({});
+  const [shippingFee, setShippingFee] = useState(0);
+  const [isFreeship, setIsFreeship] = useState(false);
+  const [isLoadingAddress, setIsLoadingAddress] = useState(false);
 
-  const SHIPPING_PRICE = 15000;
   const TAX_PRICE = 10000;
+
+  // Tự động tải địa chỉ mặc định của user khi hook được khởi tạo
+  useEffect(() => {
+    const loadDefaultAddress = async () => {
+      if (!userInfo || !userInfo.token) return;
+
+      setIsLoadingAddress(true);
+      try {
+        const response = await getUserAddress();
+        
+        if (response.data.success && response.data.address?.isComplete) {
+          setShippingAddress(response.data.address);
+          console.log('✅ Đã tự động điền địa chỉ mặc định:', response.data.address);
+        } else {
+          console.log('ℹ️ Chưa có địa chỉ mặc định, cần người dùng nhập');
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải địa chỉ mặc định:', error);
+        // Không hiển thị toast error ở đây để tránh làm phiền user
+      } finally {
+        setIsLoadingAddress(false);
+      }
+    };
+
+    loadDefaultAddress();
+  }, [userInfo]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setShippingAddress(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name === 'shippingAddress') {
+      setShippingAddress(value);
+    } else {
+      setShippingAddress(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
 
     if (errors[name]) {
       setErrors(prev => ({
@@ -41,18 +69,24 @@ export const useCheckout = () => {
     }
   };
 
+  const handleShippingFeeChange = (fee) => {
+    setShippingFee(fee);
+  };
+
+  const handleFreeshipChange = (isFreeshipActive) => {
+    setIsFreeship(isFreeshipActive);
+  };
+
   const validateShippingForm = () => {
     const newErrors = {};
-    const required = ['street', 'city', 'state', 'postalCode'];
 
-    required.forEach(field => {
-      if (!shippingAddress[field].trim()) {
-        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
-      }
-    });
+    // Validate new address structure
+    if (!isAddressComplete(shippingAddress)) {
+      newErrors.shippingAddress = 'Vui lòng điền đầy đủ thông tin địa chỉ giao hàng';
+    }
 
-    if (shippingAddress.postalCode && !/^\d{5,6}$/.test(shippingAddress.postalCode)) {
-      newErrors.postalCode = 'Postal code must be 5-6 digits';
+    if (!shippingAddress.street?.trim()) {
+      newErrors.shippingAddress = 'Vui lòng nhập địa chỉ chi tiết';
     }
 
     setErrors(newErrors);
@@ -86,9 +120,17 @@ export const useCheckout = () => {
       return;
     }
 
+    // Validate address before checkout
+    if (!validateShippingForm()) {
+      toast.error('Vui lòng kiểm tra thông tin địa chỉ giao hàng');
+      return;
+    }
+
     setIsCheckingOut(true);
     try {
-      const finalTotal = totalPrice + SHIPPING_PRICE + TAX_PRICE - discountAmount;
+      // Calculate final shipping fee (0 if freeship coupon applied)
+      const finalShippingFee = isFreeship ? 0 : shippingFee;
+      const finalTotal = totalPrice + finalShippingFee + TAX_PRICE - discountAmount;
 
       const orderData = {
         orderItems: cartItems.map(item => ({
@@ -101,7 +143,7 @@ export const useCheckout = () => {
         shippingAddress,
         paymentMethod,
         taxPrice: TAX_PRICE,
-        shippingPrice: SHIPPING_PRICE,
+        shippingPrice: finalShippingFee,
         totalPrice: finalTotal,
         couponCode: appliedCoupon?.code,
         discountAmount
@@ -117,9 +159,10 @@ export const useCheckout = () => {
       await clearCart();
       dispatch(clearCartAction());
       navigate(`/order/${data.order._id}`);
-      toast.success('Order placed successfully');
+      toast.success('Đặt hàng thành công!');
     } catch (error) {
-      toast.error('Error placing order');
+      console.error('Checkout error:', error);
+      toast.error('Lỗi khi đặt hàng. Vui lòng thử lại!');
     } finally {
       setIsCheckingOut(false);
     }
@@ -127,12 +170,17 @@ export const useCheckout = () => {
 
   return {
     shippingAddress,
+    shippingFee,
+    isFreeship,
     paymentMethod,
     setPaymentMethod,
     isCheckingOut,
     activeStep,
     errors,
+    isLoadingAddress,
     handleInputChange,
+    handleShippingFeeChange,
+    handleFreeshipChange,
     handleNextStep,
     handlePreviousStep,
     handleCheckout

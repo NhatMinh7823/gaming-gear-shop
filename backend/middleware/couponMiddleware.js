@@ -35,8 +35,8 @@ exports.validateCoupon = async (req, res, next) => {
       },
       'FREESHIP': { 
         code: 'FREESHIP', 
-        discountAmount: 15000, 
-        type: 'fixed',
+        discountAmount: 0, 
+        type: 'freeship',
         description: 'Miễn phí vận chuyển'
       }
     };
@@ -51,15 +51,18 @@ exports.validateCoupon = async (req, res, next) => {
         discountAmount = (totalPrice * coupon.discountPercent) / 100;
       } else if (coupon.type === 'fixed') {
         discountAmount = coupon.discountAmount;
+      } else if (coupon.type === 'freeship') {
+        discountAmount = 0; // No subtotal discount for freeship
       }
 
       // Thêm thông tin coupon vào request
       req.couponData = {
         code: coupon.code,
         discountPercent: coupon.discountPercent || 0,
-        discountAmount: discountAmount,
+        discountAmount: discountAmount || 0,
         type: coupon.type,
-        isFixed: true
+        isFixed: true,
+        shippingDiscount: coupon.type === 'freeship'
       };
 
       return next();

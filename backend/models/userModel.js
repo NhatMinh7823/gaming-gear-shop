@@ -35,11 +35,48 @@ const userSchema = new mongoose.Schema({
     trim: true,
   },
   address: {
-    street: String,
-    city: String,
-    state: String,
-    postalCode: String,
-    country: String,
+    street: {
+      type: String,
+      trim: true
+    },
+    ward: {
+      code: {
+        type: String,
+        required: function() { return !!this.address.ward.name; }
+      },
+      name: {
+        type: String,
+        trim: true
+      }
+    },
+    district: {
+      id: {
+        type: Number,
+        required: function() { return !!this.address.district.name; }
+      },
+      name: {
+        type: String,
+        trim: true
+      }
+    },
+    province: {
+      id: {
+        type: Number,
+        required: function() { return !!this.address.province.name; }
+      },
+      name: {
+        type: String,
+        trim: true
+      }
+    },
+    isDefault: {
+      type: Boolean,
+      default: true
+    },
+    isComplete: {
+      type: Boolean,
+      default: false
+    }
   },
   wishlist: [
     {

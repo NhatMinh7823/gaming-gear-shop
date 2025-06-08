@@ -65,16 +65,36 @@ export const useCart = () => {
     }
   };
 
-  const handleApplyCoupon = async () => {
+  const handleApplyCoupon = async (onFreeshipChange) => {
     if (!couponCode.trim()) {
       toast.error('Vui lòng nhập mã giảm giá');
       return;
     }
 
     try {
-      // Sử dụng couponMiddleware - gửi cả couponCode và totalPrice
+      const upperCode = couponCode.toUpperCase();
+      
+      // Handle freeship coupon on frontend
+      if (upperCode === 'FREESHIP') {
+        setAppliedCoupon({
+          code: 'FREESHIP',
+          discount: 0,
+          type: 'freeship'
+        });
+        setDiscountAmount(0);
+        
+        // Notify parent component about freeship status
+        if (onFreeshipChange) {
+          onFreeshipChange(true);
+        }
+        
+        toast.success('🚚 Mã miễn phí vận chuyển đã được áp dụng!');
+        return;
+      }
+
+      // Handle other coupons via API
       const { data } = await applyCoupon({
-        couponCode: couponCode.toUpperCase(),
+        couponCode: upperCode,
         totalPrice
       });
 
@@ -85,6 +105,12 @@ export const useCart = () => {
           discount: data.couponData.discountPercent || data.couponData.discountAmount,
           type: data.couponData.type
         });
+        
+        // Reset freeship if a different coupon is applied
+        if (onFreeshipChange) {
+          onFreeshipChange(false);
+        }
+        
         toast.success(`Mã giảm giá ${data.couponData.code} đã được áp dụng!`);
       }
     } catch (error) {

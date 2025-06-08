@@ -22,10 +22,18 @@ const orderSchema = new mongoose.Schema({
   ],
   shippingAddress: {
     street: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
-    postalCode: { type: String, required: true },
-    country: { type: String, required: true },
+    ward: {
+      code: { type: String, required: true },
+      name: { type: String, required: true }
+    },
+    district: {
+      id: { type: Number, required: true },
+      name: { type: String, required: true }
+    },
+    province: {
+      id: { type: Number, required: true },
+      name: { type: String, required: true }
+    }
   },
   paymentMethod: {
     type: String,
@@ -59,6 +67,28 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true,
     default: 0.0,
+  },
+  shippingDetails: {
+    ghnFee: {
+      type: Number,
+      default: 0
+    },
+    originalFee: {
+      type: Number,
+      default: 0
+    },
+    discountedFee: {
+      type: Number,
+      default: 0
+    },
+    serviceType: {
+      type: String,
+      default: 'standard'
+    },
+    estimatedDays: {
+      type: Number,
+      default: 3
+    }
   },
   couponDiscount: {
     type: Number,

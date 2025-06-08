@@ -18,6 +18,8 @@ const {
   generateCoupon,
   applyCoupon,
   markCouponAsUsed,
+  updateAddress,
+  getUserAddress,
 } = require("../controllers/userController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -35,6 +37,8 @@ router.delete("/wishlist/:productId", protect, removeFromWishlist);
 router.get("/wishlist", protect, getWishlist);
 router.post("/generate-coupon", protect, generateCoupon);
 router.post("/mark-coupon-used", protect, markCouponAsUsed);
+router.put("/address", protect, updateAddress);
+router.get("/address", protect, getUserAddress);
 
 // Admin routes
 router.get("/", protect, authorize("admin"), getAllUsers);

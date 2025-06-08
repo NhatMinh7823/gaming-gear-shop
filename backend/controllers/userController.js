@@ -591,3 +591,72 @@ exports.deleteUser = async (req, res) => {
     });
   }
 };
+
+// @desc    Update user address
+// @route   PUT /api/users/address
+// @access  Private
+exports.updateAddress = async (req, res) => {
+  try {
+    const { street, ward, district, province, isDefault } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update address
+    user.address = {
+      street: street || '',
+      ward: {
+        code: ward.code,
+        name: ward.name
+      },
+      district: {
+        id: district.id,
+        name: district.name
+      },
+      province: {
+        id: province.id,
+        name: province.name
+      },
+      isDefault: isDefault !== undefined ? isDefault : true,
+      isComplete: !!(street && ward.code && district.id && province.id)
+    };
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Address updated successfully',
+      address: user.address
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error updating address',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Get user address
+// @route   GET /api/users/address
+// @access  Private
+exports.getUserAddress = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('address');
+    res.status(200).json({
+      success: true,
+      address: user.address
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching address',
+      error: error.message
+    });
+  }
+};

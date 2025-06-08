@@ -70,6 +70,16 @@ export const removeFromWishlist = async (productId) => {
 export const getWishlist = async () => {
   return await api.get("/users/wishlist");
 };
+// Address APIs
+export const getUserAddress = () => api.get("/users/address");
+export const updateUserAddress = (addressData) => api.put("/users/address", addressData);
+
+// GHN APIs
+export const getProvinces = () => api.get("/ghn/provinces");
+export const getDistricts = (provinceId) => api.get(`/ghn/districts/${provinceId}`);
+export const getWards = (districtId) => api.get(`/ghn/wards/${districtId}`);
+export const calculateShippingFee = (shippingData) => api.post("/ghn/calculate-fee", shippingData);
+
 // Coupon APIs
 export const generateCoupon = () => api.post("/users/generate-coupon");
 export const applyCoupon = (couponData) => api.post("/coupons/apply", couponData);

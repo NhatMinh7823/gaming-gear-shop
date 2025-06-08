@@ -73,11 +73,22 @@ const PaymentMethod = ({ paymentMethod, onPaymentMethodChange, shippingAddress }
             <h3 className="font-medium text-gray-100 mb-2 text-sm uppercase tracking-wider">
               Shipping Information
             </h3>
-            <div className="bg-green-800 p-3 rounded-lg">
-              <p className="text-gray-200">
-                {shippingAddress.street}, {shippingAddress.city}, {shippingAddress.state},{' '}
-                {shippingAddress.postalCode}, {shippingAddress.country}
-              </p>
+            <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+              <div className="space-y-2">
+                {shippingAddress.street && (
+                  <p className="text-gray-200 font-medium">📍 {shippingAddress.street}</p>
+                )}
+                <p className="text-gray-300 text-sm">
+                  {[
+                    shippingAddress.ward?.name,
+                    shippingAddress.district?.name,
+                    shippingAddress.province?.name
+                  ].filter(Boolean).join(', ')}
+                </p>
+                {!shippingAddress.street && (
+                  <p className="text-gray-400 italic">Chưa có thông tin địa chỉ giao hàng</p>
+                )}
+              </div>
             </div>
           </div>
         </div>

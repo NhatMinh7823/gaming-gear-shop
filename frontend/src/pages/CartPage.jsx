@@ -34,12 +34,17 @@ function CartPage() {
 
   const {
     shippingAddress,
+    shippingFee,
+    isFreeship,
     paymentMethod,
     setPaymentMethod,
     isCheckingOut,
     activeStep,
     errors,
+    isLoadingAddress,
     handleInputChange,
+    handleShippingFeeChange,
+    handleFreeshipChange,
     handleNextStep,
     handlePreviousStep,
     handleCheckout
@@ -68,7 +73,7 @@ function CartPage() {
                     onEmptyCart={handleEmptyCart}
                     couponCode={couponCode}
                     setCouponCode={setCouponCode}
-                    onApplyCoupon={handleApplyCoupon}
+                    onApplyCoupon={() => handleApplyCoupon(handleFreeshipChange)}
                     appliedCoupon={appliedCoupon}
                     onRemoveCoupon={removeCoupon}
                   />
@@ -84,7 +89,10 @@ function CartPage() {
                   <OrderSummary
                     cartItems={cartItems}
                     totalPrice={totalPrice}
+                    shippingFee={shippingFee}
                     discountAmount={discountAmount}
+                    couponCode={appliedCoupon?.code}
+                    isFreeship={isFreeship}
                   />
                 </div>
               </div>
@@ -96,7 +104,10 @@ function CartPage() {
                   <ShippingForm
                     shippingAddress={shippingAddress}
                     onInputChange={handleInputChange}
+                    onShippingFeeChange={handleShippingFeeChange}
                     errors={errors}
+                    cartItems={cartItems}
+                    isLoadingAddress={isLoadingAddress}
                   />
                   <NavigationButtons
                     activeStep={activeStep}
@@ -110,7 +121,10 @@ function CartPage() {
                   <OrderSummary
                     cartItems={cartItems}
                     totalPrice={totalPrice}
+                    shippingFee={shippingFee}
                     discountAmount={discountAmount}
+                    couponCode={appliedCoupon?.code}
+                    isFreeship={isFreeship}
                   />
                 </div>
               </div>
@@ -136,7 +150,10 @@ function CartPage() {
                   <OrderSummary
                     cartItems={cartItems}
                     totalPrice={totalPrice}
+                    shippingFee={shippingFee}
                     discountAmount={discountAmount}
+                    couponCode={appliedCoupon?.code}
+                    isFreeship={isFreeship}
                   />
                 </div>
               </div>
