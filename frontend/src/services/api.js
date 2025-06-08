@@ -72,7 +72,7 @@ export const getWishlist = async () => {
 };
 // Coupon APIs
 export const generateCoupon = () => api.post("/users/generate-coupon");
-export const applyCoupon = (code) => api.post("/users/apply-coupon", { code });
+export const applyCoupon = (couponData) => api.post("/coupons/apply", couponData);
 export const markCouponAsUsed = (code, orderId) =>
   api.post("/users/mark-coupon-used", { code, orderId });
 

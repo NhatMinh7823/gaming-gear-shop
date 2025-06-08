@@ -50,6 +50,7 @@ const cartRoutes = require("./routes/cartRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const vnpayRoutes = require("./routes/vnpayRoutes");
 const chatbotRoutes = require("./routes/chatbotRoutes");
+const couponRoutes = require("./routes/couponRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 // Use routes
@@ -61,18 +62,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/payment", vnpayRoutes);
 app.use("/api/chatbot", chatbotRoutes);
-
-// Ghi log chi tiết cho trường hợp VNPay
-// app.use("/api/vnpay", (req, res, next) => {
-//   console.log("------- VNPay Request Log -------");
-//   console.log("Time:", new Date().toISOString());
-//   console.log("Method:", req.method);
-//   console.log("URL:", req.url);
-//   console.log("Query:", JSON.stringify(req.query));
-//   console.log("Body:", JSON.stringify(req.body));
-//   console.log("---------------------------------");
-//   next();
-// });
+app.use("/api/coupons", couponRoutes);
 
 app.use("/api/vnpay", vnpayRoutes);
 

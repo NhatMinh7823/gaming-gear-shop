@@ -17,8 +17,56 @@ exports.validateCoupon = async (req, res, next) => {
       return next();
     }
 
-    // Tìm người dùng có mã coupon
-    const user = await User.findOne({ "coupon.code": couponCode });
+    const upperCode = couponCode.toUpperCase();
+
+    // Kiểm tra mã cố định trước
+    const fixedCoupons = {
+      'WELCOME10': { 
+        code: 'WELCOME10', 
+        discountPercent: 10, 
+        type: 'percentage',
+        description: 'Giảm 10% cho đơn hàng'
+      },
+      'SAVE20': { 
+        code: 'SAVE20', 
+        discountPercent: 20, 
+        type: 'percentage',
+        description: 'Giảm 20% cho đơn hàng'
+      },
+      'FREESHIP': { 
+        code: 'FREESHIP', 
+        discountAmount: 15000, 
+        type: 'fixed',
+        description: 'Miễn phí vận chuyển'
+      }
+    };
+
+    // Nếu là mã cố định, xử lý ngay
+    if (fixedCoupons[upperCode]) {
+      const coupon = fixedCoupons[upperCode];
+      const { totalPrice = 0 } = req.body;
+      
+      let discountAmount;
+      if (coupon.type === 'percentage') {
+        discountAmount = (totalPrice * coupon.discountPercent) / 100;
+      } else if (coupon.type === 'fixed') {
+        discountAmount = coupon.discountAmount;
+      }
+
+      // Thêm thông tin coupon vào request
+      req.couponData = {
+        code: coupon.code,
+        discountPercent: coupon.discountPercent || 0,
+        discountAmount: discountAmount,
+        type: coupon.type,
+        isFixed: true
+      };
+
+      return next();
+    }
+
+    // Nếu không phải mã cố định, tìm trong database
+    const user = await User.findOne({ "coupon.code": upperCode });
 
     // Không tìm thấy coupon
     if (!user) {
@@ -56,6 +104,7 @@ exports.validateCoupon = async (req, res, next) => {
       discountPercent,
       discountAmount,
       userId: user._id,
+      isFixed: false
     };
 
     next();

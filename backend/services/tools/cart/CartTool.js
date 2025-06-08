@@ -105,7 +105,7 @@ class CartTool extends StructuredTool {
 - "Tìm [sản phẩm] và thêm vào giỏ"
 - "Mua [số lượng] [sản phẩm] [tiêu chí]"
 - "Chọn và mua [sản phẩm] rẻ nhất"
-- User specifies quantities: "Mua 3 cái", "Lấy đôi"
+- User specifies quantities: "Mua 3 cái", "Lấy 1 đôi"
 - Standard cart operations (view, remove, clear)
 
 🔍 KEYWORDS: ${enhancedKeywords.slice(0, 15).join(", ")}
@@ -114,9 +114,7 @@ class CartTool extends StructuredTool {
   }
 
   log(message, ...args) {
-    if (this.debugMode) {
-      console.log(`[CartTool] ${message}`, ...args);
-    }
+    console.log(`[CartTool] ${message}`, ...args);
   }
 
   logError(message, ...args) {
