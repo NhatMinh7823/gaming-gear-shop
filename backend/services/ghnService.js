@@ -107,7 +107,7 @@ class GHNService {
       // Fallback to default shipping fee
       return {
         success: false,
-        fallbackFee: 15000,
+        fallbackFee: 29000,
         error: error.message
       };
     }

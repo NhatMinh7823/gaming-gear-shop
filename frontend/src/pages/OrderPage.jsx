@@ -364,11 +364,11 @@ function OrderPage() {
                   )}
                   <div className="mt-3 p-3 bg-gray-800 rounded border border-gray-600">
                     <p className="text-gray-300 whitespace-pre-line">
-                      {order.shippingAddress.street},
+                      {order.shippingAddress.street}
                       <br />
-                      {order.shippingAddress.city}, {order.shippingAddress.state}
+                      {order.shippingAddress.ward?.name}, {order.shippingAddress.district?.name}
                       <br />
-                      {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+                      {order.shippingAddress.province?.name}
                     </p>
                   </div>
                 </div>

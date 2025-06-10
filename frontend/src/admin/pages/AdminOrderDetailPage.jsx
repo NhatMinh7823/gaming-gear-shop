@@ -165,7 +165,9 @@ const AdminOrderDetailPage = () => {
 
             <div className="mt-4">
               <h3 className="text-md font-semibold text-gray-700 mb-1">Shipping Address:</h3>
-              <p>{order.shippingAddress.street}, {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}, {order.shippingAddress.country}</p>
+              <p>{order.shippingAddress.street}</p>
+              <p>{order.shippingAddress.ward?.name}, {order.shippingAddress.district?.name}</p>
+              <p>{order.shippingAddress.province?.name}</p>
             </div>
 
             <div className="mt-6 space-y-4">
