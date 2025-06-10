@@ -59,6 +59,7 @@ const vnpayRoutes = require("./routes/vnpayRoutes");
 const chatbotRoutes = require("./routes/chatbotRoutes");
 const couponRoutes = require("./routes/couponRoutes");
 const ghnRoutes = require("./routes/ghnRoutes");
+const specificationRoutes = require("./routes/specificationRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 // Use routes
@@ -72,6 +73,7 @@ app.use("/api/payment", vnpayRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/ghn", ghnRoutes);
+app.use("/api/specifications", specificationRoutes);
 
 app.use("/api/vnpay", vnpayRoutes);
 

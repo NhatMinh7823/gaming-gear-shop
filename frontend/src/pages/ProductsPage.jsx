@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { setProducts as setProductAction } from '../redux/slices/productSlice';
 import { toast } from 'react-toastify';
 import { getProducts, searchProducts, getCategories, getSearchSuggestions } from '../services/api';
+import specificationService from '../services/specificationService';
 import ProductCard from '../components/ProductCard';
 import {
   FaSearch, FaFilter, FaSlidersH, FaTimes, FaSort, FaBox, FaTags,
@@ -60,39 +61,85 @@ function ProductsPage() {
         setLoading(true);
         const params = Object.fromEntries(searchParams);
         const page = params.page || currentPage;
-        const limit = 12; // Increased from 10 to 12 for better grid layout
-        const sortParam = params.sort || sort || '-createdAt';
-        const categoryParam = params.category || category;
-        const minPriceParam = params.minPrice || minPrice;
-        const maxPriceParam = params.maxPrice || maxPrice;
-        const brandParam = params.brand || brand;
-        const stockStatusParam = params.stockStatus || stockStatus;  // Thêm tham số tình trạng tồn kho
+        const limit = 12;
+        
+        // Check if we have specification-related parameters
+        const hasSpecificationParams = Object.keys(params).some(key => 
+          key.startsWith('spec_') || key === 'performanceTier' || key === 'useCase' || key === 'advanced'
+        );
 
         let data;
-        if (params.keyword) {
+        
+        if (hasSpecificationParams) {
+          // Use specification filtering API
+          setIsSearching(false);
+          
+          // Build specifications object from spec_ parameters
+          const specifications = {};
+          Object.entries(params).forEach(([key, value]) => {
+            if (key.startsWith('spec_')) {
+              const specKey = key.replace('spec_', '');
+              specifications[specKey] = value;
+            }
+          });
+
+          // Build price range object
+          const priceRange = {};
+          if (params.minPrice) priceRange.min = parseInt(params.minPrice);
+          if (params.maxPrice) priceRange.max = parseInt(params.maxPrice);
+
+          const filterParams = {
+            category: params.category || category,
+            performanceTier: params.performanceTier,
+            useCase: params.useCase,
+            specifications,
+            priceRange: Object.keys(priceRange).length > 0 ? priceRange : undefined,
+            sortBy: params.sort || sort || 'name',
+            sortOrder: (params.sort || sort)?.startsWith('-') ? 'desc' : 'asc',
+            page: parseInt(page),
+            limit
+          };
+
+          // Clean up sortBy to remove '-' prefix
+          if (filterParams.sortBy.startsWith('-')) {
+            filterParams.sortBy = filterParams.sortBy.substring(1);
+          }
+
+          const response = await specificationService.filterBySpecifications(filterParams);
+          data = {
+            products: response.data.products,
+            totalPages: response.data.totalPages,
+            currentPage: response.data.currentPage,
+            totalProducts: response.data.totalProducts
+          };
+          
+        } else if (params.keyword) {
+          // Use search API
           setIsSearching(true);
           const response = await searchProducts(params.keyword, {
             page,
             limit,
-            sort: sortParam,
-            category: categoryParam,
-            minPrice: minPriceParam,
-            maxPrice: maxPriceParam,
-            brand: brandParam,
-            stockStatus: stockStatusParam,  // Thêm tham số tình trạng tồn kho
+            sort: params.sort || sort || '-createdAt',
+            category: params.category || category,
+            minPrice: params.minPrice || minPrice,
+            maxPrice: params.maxPrice || maxPrice,
+            brand: params.brand || brand,
+            stockStatus: params.stockStatus || stockStatus,
           });
           data = response.data;
+          
         } else {
+          // Use regular products API
           setIsSearching(false);
           const response = await getProducts({
             page,
             limit,
-            sort: sortParam,
-            category: categoryParam,
-            minPrice: minPriceParam,
-            maxPrice: maxPriceParam,
-            brand: brandParam,
-            stockStatus: stockStatusParam,  // Thêm tham số tình trạng tồn kho
+            sort: params.sort || sort || '-createdAt',
+            category: params.category || category,
+            minPrice: params.minPrice || minPrice,
+            maxPrice: params.maxPrice || maxPrice,
+            brand: params.brand || brand,
+            stockStatus: params.stockStatus || stockStatus,
           });
           data = response.data;
         }
@@ -233,6 +280,11 @@ function ProductsPage() {
     setSearchParams({ page: 1 });
   };
 
+  // Đếm specification filters
+  const specificationFilters = Object.keys(Object.fromEntries(searchParams)).filter(key => 
+    key.startsWith('spec_') || key === 'performanceTier' || key === 'useCase'
+  );
+
   const filterCount = [
     minPrice !== '',
     maxPrice !== '',
@@ -240,15 +292,16 @@ function ProductsPage() {
     category !== '',
     sort !== '' && sort !== '-createdAt',
     searchParams.has('keyword'),
-    stockStatus !== ''  // Thêm tình trạng tồn kho vào đếm bộ lọc
+    stockStatus !== '',
+    ...specificationFilters.map(() => true) // Đếm mỗi specification filter
   ].filter(Boolean).length;
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price);
-  };
+  // const formatPrice = (price) => {
+  //   return new Intl.NumberFormat('vi-VN', {
+  //     style: 'currency',
+  //     currency: 'VND'
+  //   }).format(price);
+  // };
 
   return (
     <div className="container mx-auto py-8 px-4 bg-gray-900">
@@ -528,6 +581,24 @@ function ProductsPage() {
                       Stock
                     </span>
                   )}
+                  {searchParams.get('performanceTier') && (
+                    <span className="inline-flex items-center gap-1 bg-indigo-600/20 text-indigo-300 px-1.5 py-0.5 rounded text-xs">
+                      <FaCheckCircle className="w-2 h-2" />
+                      {searchParams.get('performanceTier')}
+                    </span>
+                  )}
+                  {searchParams.get('useCase') && (
+                    <span className="inline-flex items-center gap-1 bg-pink-600/20 text-pink-300 px-1.5 py-0.5 rounded text-xs">
+                      <FaCheckCircle className="w-2 h-2" />
+                      {searchParams.get('useCase')}
+                    </span>
+                  )}
+                  {specificationFilters.filter(key => key.startsWith('spec_')).map(key => (
+                    <span key={key} className="inline-flex items-center gap-1 bg-violet-600/20 text-violet-300 px-1.5 py-0.5 rounded text-xs">
+                      <FaCheckCircle className="w-2 h-2" />
+                      {key.replace('spec_', '')}: {searchParams.get(key)}
+                    </span>
+                  ))}
                 </div>
               </div>
             )}

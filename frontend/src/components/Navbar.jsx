@@ -14,13 +14,16 @@ import {
   FiUserPlus,
   FiX
 } from 'react-icons/fi';
+import ProductDropdown from './ProductDropdown/ProductDropdown';
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
   const { userInfo } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const menuRef = useRef(null);
+  const dropdownTimeoutRef = useRef(null);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -62,6 +65,39 @@ function Navbar() {
   const handleNavLinkClick = () => {
     setIsOpen(false);
   };
+
+  // Product dropdown handlers
+  const handleProductMouseEnter = () => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+    }
+    setShowProductDropdown(true);
+  };
+
+  const handleProductMouseLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setShowProductDropdown(false);
+    }, 150); // Small delay to allow moving to dropdown
+  };
+
+  const handleDropdownMouseEnter = () => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+    }
+  };
+
+  const handleDropdownMouseLeave = () => {
+    setShowProductDropdown(false);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (dropdownTimeoutRef.current) {
+        clearTimeout(dropdownTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-gray-800 rounded-b-xl py-0 px-4 md:px-10 shadow-[0_0_40px_rgba(0,0,0,0.3)] w-full font-['Open_Sans',sans-serif] z-50">
@@ -115,17 +151,28 @@ function Navbar() {
           </div>
           
           <ul className="flex flex-col md:flex-row md:space-x-6 p-4 md:p-0">
-            <li className="mb-4 md:mb-0">
+            <li className="mb-4 md:mb-0 relative">
               <Link
                 to="/products"
                 className="flex items-center md:flex-col md:items-center md:justify-center md:w-14 md:h-14 text-white md:text-indigo-400 hover:text-indigo-400 md:hover:bg-indigo-600 md:hover:rounded-[1.75rem] md:hover:text-white transition-all duration-250 relative group py-2"
                 onClick={handleNavLinkClick}
+                onMouseEnter={handleProductMouseEnter}
+                onMouseLeave={handleProductMouseLeave}
               >
                 <FiShoppingBag className="w-6 h-6 mr-3 md:mr-0" />
                 <span className="md:absolute md:top-full md:mt-2 md:opacity-0 md:group-hover:opacity-100 md:group-hover:translate-y-0 md:translate-y-[-1rem] md:bg-gray-700 md:text-gray-100 md:p-2 md:rounded-[1.75rem] md:shadow-md md:pointer-events-none md:transition-all md:duration-250">
                   Products
                 </span>
               </Link>
+              
+              {/* Product Dropdown - only show on desktop */}
+              <div className="hidden md:block">
+                <ProductDropdown
+                  isVisible={showProductDropdown}
+                  onMouseEnter={handleDropdownMouseEnter}
+                  onMouseLeave={handleDropdownMouseLeave}
+                />
+              </div>
             </li>
             <li className="mb-4 md:mb-0">
               <Link

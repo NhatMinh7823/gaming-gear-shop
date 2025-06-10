@@ -151,6 +151,27 @@ const orderSchema = new mongoose.Schema({
   notes: {
     type: String,
   },
+  
+  // Chatbot order fields
+  chatbotOrder: {
+    type: Boolean,
+    default: false
+  },
+  conversationId: {
+    type: String,
+    required: false
+  },
+  orderSource: {
+    type: String,
+    enum: ['web', 'chatbot', 'mobile'],
+    default: 'web'
+  },
+  chatbotMetadata: {
+    intentConfidence: Number,
+    conversationLength: Number,
+    onboardingShown: Boolean,
+    paymentMethodChanges: Number
+  }
 });
 
 module.exports = mongoose.model("Order", orderSchema);

@@ -11,6 +11,9 @@ const { WishlistTool, IntentDetector } = require("./wishlist");
 // Import cart tool (enhanced version)
 const CartTool = require("./cart/CartTool");
 
+// Import order tool
+const OrderTool = require("./order/OrderTool");
+
 // Global tools instances (for non-user-specific tools)
 let globalToolInstances = null;
 let vectorStoreManager = null;
@@ -57,11 +60,13 @@ const createFreshTools = (userContext) => {
     ...globalToolInstances, // Non-user-specific tools (reuse)
     new WishlistTool(userContext), // Fresh WishlistTool with current UserContext
     new CartTool(userContext), // Single comprehensive cart tool (enhanced)
+    new OrderTool(userContext), // Fresh OrderTool with current UserContext
   ];
 
   // Verify tools have correct UserContext
   const wishlistTool = freshTools.find((tool) => tool.name === "wishlist_tool");
   const cartTool = freshTools.find((tool) => tool.name === "cart_tool");
+  const orderTool = freshTools.find((tool) => tool.name === "order_tool");
   console.log(
     "✅ Fresh WishlistTool UserContext:",
     wishlistTool?.userContext?.getUserId()
@@ -69,6 +74,10 @@ const createFreshTools = (userContext) => {
   console.log(
     "✅ Fresh CartTool UserContext:",
     cartTool?.userContext?.getUserId()
+  );
+  console.log(
+    "✅ Fresh OrderTool UserContext:",
+    orderTool?.userContext?.getUserId()
   );
 
   return freshTools;
@@ -83,7 +92,7 @@ const getAllTools = () => {
     throw new Error("Tools not initialized. Call initialize() first.");
   }
   // Return global tools + user-specific tools with null context (fallback)
-  return [...globalToolInstances, new WishlistTool(null), new CartTool(null)];
+  return [...globalToolInstances, new WishlistTool(null), new CartTool(null), new OrderTool(null)];
 };
 
 /**
@@ -125,4 +134,5 @@ module.exports = {
   WishlistTool,
   IntentDetector,
   CartTool,
+  OrderTool,
 };

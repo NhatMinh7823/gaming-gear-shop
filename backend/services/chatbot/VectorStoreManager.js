@@ -50,9 +50,13 @@ class VectorStoreManager {
     if (categoryName.includes("mice") || categoryName.includes("mouse")) {
       ultraHighPriority.push("chuột".repeat(4), "mouse".repeat(4));
       ultraHighPriority.push("chuột gaming".repeat(3), "gaming mouse".repeat(3));
+      // Thêm từ khóa phân biệt để tránh nhầm lẫn với laptop
+      ultraHighPriority.push("không phải laptop".repeat(2), "not laptop".repeat(2));
     } else if (categoryName.includes("keyboard")) {
       ultraHighPriority.push("bàn phím".repeat(4), "keyboard".repeat(4));
       ultraHighPriority.push("bàn phím gaming".repeat(3), "gaming keyboard".repeat(3));
+      // Thêm từ khóa phân biệt để tránh nhầm lẫn với laptop
+      ultraHighPriority.push("không phải laptop".repeat(2), "not laptop".repeat(2));
     } else if (categoryName.includes("monitor")) {
       ultraHighPriority.push("màn hình".repeat(4), "monitor".repeat(4));
       ultraHighPriority.push("màn hình gaming".repeat(3), "gaming monitor".repeat(3));

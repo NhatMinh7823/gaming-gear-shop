@@ -116,6 +116,29 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  
+  // Chatbot preferences for order management
+  chatbotPreferences: {
+    hasSeenOnboarding: {
+      type: Boolean,
+      default: false
+    },
+    preferredPaymentMethod: {
+      type: String,
+      enum: ['COD', 'VNPay'],
+      default: "VNPay"
+    },
+    defaultShippingAddress: {
+      type: String,
+      default: null
+    },
+    orderNotificationSettings: {
+      chatbotUpdates: {
+        type: Boolean,
+        default: true
+      }
+    }
+  }
 });
 
 // Encrypt password using bcrypt

@@ -21,12 +21,12 @@ class CategoryDetector {
       "Mice": {
         keywords: ["chuột", "mouse", "chuột gaming", "gaming mouse", "chuot"],
         priority: 2,
-        exclusions: []
+        exclusions: ["laptop", "máy tính xách tay", "notebook"]
       },
       "Keyboards": {
         keywords: ["bàn phím", "keyboard", "bàn phím cơ", "mechanical keyboard", "bàn phím gaming", "ban phim"],
         priority: 2,
-        exclusions: []
+        exclusions: ["laptop", "máy tính xách tay", "notebook"]
       },
       "Monitors": {
         keywords: ["màn hình", "monitor", "màn hình gaming", "gaming monitor", "display", "man hinh", "screen"],

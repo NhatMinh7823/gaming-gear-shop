@@ -2,6 +2,8 @@ const AgentManager = require("./chatbot/AgentManager");
 const ChatHistoryManager = require("./chatbot/ChatHistoryManager");
 const VectorStoreManager = require("./chatbot/VectorStoreManager");
 const UserContext = require("./chatbot/UserContext");
+const OrderFlowManager = require("./chatbot/OrderFlowManager");
+const OrderIntentDetector = require("./chatbot/OrderIntentDetector");
 const tools = require("./tools");
 const { getToolsWithContext } = require("./tools");
 const Product = require("../models/productModel");
@@ -25,6 +27,7 @@ class ChatbotService {
     this.chatHistoryManager = new ChatHistoryManager();
     this.vectorStoreManager = VectorStoreManager.getInstance();
     this.userContext = new UserContext();
+    this.orderFlowManager = null; // Will be initialized with userContext
     this.isInitialized = false;
     this.debugMode = CHATBOT_DEBUG;
   }
@@ -134,6 +137,12 @@ class ChatbotService {
         await this.createFreshToolsAndUpdateAgent();
       }
 
+      // Initialize OrderFlowManager with current userContext
+      if (!this.orderFlowManager || this.orderFlowManager.userContext !== this.userContext) {
+        this.orderFlowManager = new OrderFlowManager(this.userContext);
+        this.log("🔄 OrderFlowManager initialized with current userContext");
+      }
+
       // Verify user context was set
       const currentUserId = this.userContext.getUserId();
       this.log(`UserContext current userId after setting:`, currentUserId); // Debug user context thoroughly
@@ -148,6 +157,30 @@ class ChatbotService {
       // Get or create chat history with user context
       const { history, sessionId: actualSessionId } =
         this.chatHistoryManager.getOrCreateChatHistory(sessionId, userId);
+
+      // Check for order flow first (before agent processing)
+      if (this.orderFlowManager) {
+        this.log("🛒 Checking for order flow...");
+        const orderFlowResult = await this.orderFlowManager.handleOrderFlow(
+          message, 
+          actualSessionId
+        );
+
+        if (orderFlowResult) {
+          this.log("✅ Order flow handled the message");
+          
+          // Save to conversation history
+          await history.addUserMessage(message);
+          await history.addAIMessage(orderFlowResult.message);
+
+          return {
+            text: orderFlowResult.message,
+            sessionId: actualSessionId,
+            orderFlow: orderFlowResult.orderFlow || false,
+            ...orderFlowResult
+          };
+        }
+      }
 
       // Get agent executor from manager
       const agentExecutor = this.agentManager.getAgentExecutor();
