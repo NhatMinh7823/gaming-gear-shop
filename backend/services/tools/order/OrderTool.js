@@ -111,7 +111,10 @@ class OrderTool extends StructuredTool {
         };
       }
 
-      console.log(`[OrderTool] Action: ${action} for user: ${userId}`);
+      // Only log in debug mode
+      if (process.env.CHATBOT_DEBUG === "true") {
+        console.log(`[OrderTool] Action: ${action} for user: ${userId}`);
+      }
 
       // Create and execute step handler
       const stepHandler = this.stepFactory.createStepHandler(action);

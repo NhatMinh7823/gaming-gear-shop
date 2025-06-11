@@ -114,7 +114,9 @@ class CartTool extends StructuredTool {
   }
 
   log(message, ...args) {
-    console.log(`[CartTool] ${message}`, ...args);
+    if (this.debugMode) {
+      console.log(`[CartTool] ${message}`, ...args);
+    }
   }
 
   logError(message, ...args) {

@@ -52,8 +52,7 @@ class IntentDetector extends StructuredTool {
   detectDirectWishlistKeywords(message) {
     const directKeywords = [
       'wishlist', 'danh sách yêu thích', 'sản phẩm yêu thích',
-      'quan tâm', 'đã lưu', 'bookmark', 'đánh dấu',
-      'favorite', 'liked', 'saved'
+      'quan tâm',
     ];
     
     return directKeywords.some(keyword => 
@@ -67,7 +66,7 @@ class IntentDetector extends StructuredTool {
   detectPersonalAdviceIntent(message) {
     const personalPronouns = ['tôi', 'mình', 'của tôi', 'cho tôi', 'với tôi'];
     const adviceKeywords = [
-      'tư vấn', 'gợi ý', 'đề xuất', 'recommend', 'suggest',
+      'tư vấn', 'gợi ý', 'đề xuất', 
       'nên mua', 'nên chọn', 'phù hợp', 'suitable', 'match'
     ];
     
@@ -106,9 +105,9 @@ class IntentDetector extends StructuredTool {
    */
   detectComparisonIntent(message) {
     const comparisonKeywords = [
-      'so với', 'compare', 'so sánh', 'upgrade', 'nâng cấp',
-      'thay thế', 'replace', 'better than', 'tốt hơn',
-      'khác gì', 'difference', 'vs', 'versus'
+      'so với', 'so sánh', 'nâng cấp',
+      'thay thế', 'tốt hơn',
+      'khác gì', 'difference', 'vs'
     ];
     
     const hasComparison = comparisonKeywords.some(keyword =>

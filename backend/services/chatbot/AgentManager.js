@@ -4,7 +4,7 @@ const {
   AgentExecutor,
 } = require("langchain/agents");
 const { pull } = require("langchain/hub");
-const { llmConfig, agentConfig } = require("../config/llmConfig");
+const { llmConfig, agentConfig, executionStrategy } = require("../config/llmConfig");
 const { getAllTools, getToolsInfo } = require("../tools");
 
 // Configure LangChain logging
@@ -96,12 +96,25 @@ class AgentManager {
       this.agentExecutor = new AgentExecutor({
         agent: this.agent,
         tools: agentTools,
+        
+        // 🚀 MULTI-STEP WORKFLOW CONFIGURATION
         verbose: agentConfig.verbose,
-        maxIterations: agentConfig.maxIterations,
-        earlyStoppingMethod: agentConfig.earlyStoppingMethod,
+        maxIterations: agentConfig.maxIterations, // Now 15
+        earlyStoppingMethod: agentConfig.earlyStoppingMethod, // Now "force"
+        
+        // 🆕 CẤU HÌNH MỚI
+        returnIntermediateSteps: agentConfig.returnIntermediateSteps,
+        maxExecutionTime: agentConfig.maxExecutionTime,
+        handleParsingErrors: agentConfig.handleParsingErrors,
+        
+        // 📊 MONITORING
+        callbackManager: this.createWorkflowCallbackManager(),
       });
 
-      this.log("Structured agent created successfully");
+      this.log("Multi-step workflow agent created successfully");
+      
+      // Verify workflow capabilities
+      await this.verifyWorkflowCapabilities();
     } catch (error) {
       this.logError("Error creating agent:", error.message);
       this.logError("Stack trace:", error.stack);
@@ -197,6 +210,110 @@ class AgentManager {
 
   getAgentExecutor() {
     return this.agentExecutor;
+  }
+
+  /**
+   * Create callback manager for workflow monitoring
+   */
+  createWorkflowCallbackManager() {
+    return {
+      onToolStart: (tool, input) => {
+        this.log(`🔧 Starting tool: ${tool.name}`, input);
+      },
+      onToolEnd: (tool, output) => {
+        this.log(`✅ Tool completed: ${tool.name}`, { outputLength: output?.length });
+      },
+      onToolError: (tool, error) => {
+        this.logError(`❌ Tool error: ${tool.name}`, error.message);
+      },
+      onAgentAction: (action) => {
+        this.log(`🤖 Agent action: ${action.tool}`, action.toolInput);
+      },
+      onAgentFinish: (finish) => {
+        this.log(`🏁 Agent finished:`, { outputLength: finish.output?.length });
+      }
+    };
+  }
+
+  /**
+   * Verify workflow capabilities
+   */
+  async verifyWorkflowCapabilities() {
+    try {
+      const capabilities = {
+        maxIterations: this.agentExecutor.maxIterations,
+        earlyStoppingMethod: this.agentExecutor.earlyStoppingMethod,
+        toolCount: this.agentExecutor.tools?.length || 0,
+        workflowReady: this.agentExecutor.maxIterations >= 10
+      };
+      
+      this.log("✅ Workflow capabilities verified:", capabilities);
+      
+      if (!capabilities.workflowReady) {
+        this.logError("⚠️ Workflow may not work properly with low maxIterations");
+      }
+      
+      return capabilities;
+    } catch (error) {
+      this.logError("Failed to verify workflow capabilities:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Update updateAgentTools method to also use new configuration
+   */
+  async updateAgentToolsWithWorkflow(freshTools) {
+    try {
+      this.log("🔄 Updating agent with fresh tools and workflow support...");
+
+      if (!Array.isArray(freshTools) || freshTools.length === 0) {
+        throw new Error("Fresh tools array is undefined or empty.");
+      }
+
+      // Validate each tool
+      for (const tool of freshTools) {
+        if (!tool.name || !tool.description) {
+          throw new Error(`Invalid fresh tool detected: ${JSON.stringify(tool)}`);
+        }
+      }
+
+      // Create new agent with fresh tools
+      this.agent = await createStructuredChatAgent({
+        llm: this.llm,
+        tools: freshTools,
+        prompt: await pull("hwchase17/structured-chat-agent"),
+      });
+
+      this.agentExecutor = new AgentExecutor({
+        agent: this.agent,
+        tools: freshTools,
+        
+        // 🚀 MULTI-STEP WORKFLOW CONFIGURATION
+        verbose: agentConfig.verbose,
+        maxIterations: agentConfig.maxIterations,
+        earlyStoppingMethod: agentConfig.earlyStoppingMethod,
+        
+        // 🆕 CẤU HÌNH MỚI
+        returnIntermediateSteps: agentConfig.returnIntermediateSteps,
+        maxExecutionTime: agentConfig.maxExecutionTime,
+        handleParsingErrors: agentConfig.handleParsingErrors,
+        
+        // 📊 MONITORING
+        callbackManager: this.createWorkflowCallbackManager(),
+      });
+
+      // Verify WishlistTool was updated
+      const wishlistTool = freshTools.find(tool => tool.name === "wishlist_tool");
+      this.log("✅ Agent updated with fresh WishlistTool UserContext:", wishlistTool?.userContext?.getUserId());
+
+      // Verify workflow capabilities
+      await this.verifyWorkflowCapabilities();
+
+    } catch (error) {
+      this.logError("Error updating agent tools with workflow:", error.message);
+      throw new Error(`Failed to update agent tools with workflow: ${error.message}`);
+    }
   }
 }
 

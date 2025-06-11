@@ -88,42 +88,10 @@ class WishlistTool extends StructuredTool {
 
   async _call({ action }) {
     try {
-      this.log("🔍 WishlistTool._call started");
-      this.log("🔍 Action:", action);
-      this.log("🔍 UserContext exists:", !!this.userContext);
-      this.log("🔍 Tool instance created at:", new Date().toISOString());
-
-      if (this.userContext) {
-        this.log(
-          "🔍 UserContext methods:",
-          Object.getOwnPropertyNames(Object.getPrototypeOf(this.userContext))
-        );
-        this.log(
-          "🔍 Current userId in userContext:",
-          this.userContext.currentUserId
-        );
-        this.log(
-          "🔍 UserContext instance check:",
-          this.userContext.constructor.name
-        );
-      }
-
       // Get userId from context
       const userId = this.userContext ? this.userContext.getUserId() : null;
 
-      this.log("🔍 WishlistTool called with action:", action);
-      this.log("🔍 UserContext exists:", !!this.userContext);
-      this.log("🔍 UserId from context:", userId);
-      this.log("🔍 UserContext isAuthenticated():", this.userContext?.isAuthenticated());
-
       if (!userId) {
-        this.log("❌ WishlistTool: No userId found in context");
-        this.log("❌ UserContext debug info:", {
-          exists: !!this.userContext,
-          currentUserId: this.userContext?.currentUserId,
-          getUserId: this.userContext?.getUserId(),
-          isAuthenticated: this.userContext?.isAuthenticated()
-        });
         return "I need a user ID to access the wishlist and provide personalized recommendations. Please provide your user ID or log in.";
       }
 

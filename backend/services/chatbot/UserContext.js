@@ -12,13 +12,8 @@ class UserContext {
    * @param {Object} userInfo - Optional user information
    */
   setUser(userId, userInfo = null) {
-    console.log("🔧 UserContext.setUser called with:", { userId, userInfo });
     this.currentUserId = userId;
     this.currentUserInfo = userInfo;
-    console.log(
-      "✅ UserContext.setUser completed. Current userId:",
-      this.currentUserId
-    );
   }
 
   /**
@@ -26,10 +21,6 @@ class UserContext {
    * @returns {string|null} Current user ID
    */
   getUserId() {
-    console.log(
-      "🔍 UserContext.getUserId called. Current userId:",
-      this.currentUserId
-    );
     return this.currentUserId;
   }
 

@@ -46,11 +46,6 @@ const initialize = async (vsManager, userContext) => {
  * @returns {Array} Array of tool instances with fresh UserContext
  */
 const createFreshTools = (userContext) => {
-  console.log(
-    "🔄 Creating fresh tools with UserContext:",
-    userContext?.getUserId()
-  );
-
   if (!globalToolInstances) {
     throw new Error("Global tools not initialized. Call initialize() first.");
   }
@@ -62,23 +57,6 @@ const createFreshTools = (userContext) => {
     new CartTool(userContext), // Single comprehensive cart tool (enhanced)
     new OrderTool(userContext), // Fresh OrderTool with current UserContext
   ];
-
-  // Verify tools have correct UserContext
-  const wishlistTool = freshTools.find((tool) => tool.name === "wishlist_tool");
-  const cartTool = freshTools.find((tool) => tool.name === "cart_tool");
-  const orderTool = freshTools.find((tool) => tool.name === "order_tool");
-  console.log(
-    "✅ Fresh WishlistTool UserContext:",
-    wishlistTool?.userContext?.getUserId()
-  );
-  console.log(
-    "✅ Fresh CartTool UserContext:",
-    cartTool?.userContext?.getUserId()
-  );
-  console.log(
-    "✅ Fresh OrderTool UserContext:",
-    orderTool?.userContext?.getUserId()
-  );
 
   return freshTools;
 };
