@@ -1,5 +1,6 @@
 const { StructuredTool } = require("langchain/tools");
 const { z } = require("zod");
+const mongoose = require("mongoose");
 const Cart = require("../../../models/cartModel");
 const Product = require("../../../models/productModel");
 const ProductSelectionHelper = require("./ProductSelectionHelper");
@@ -307,34 +308,68 @@ class CartTool extends StructuredTool {
    * Apply intelligent selection logic based on criteria and query analysis
    */
   applySelectionLogic(query, searchResults, selectionCriteria) {
+    this.log("🎯 applySelectionLogic - Raw search results:", searchResults.length);
+    
+    // Log first result for debugging
+    if (searchResults.length > 0) {
+      this.log("🔍 First search result metadata:", searchResults[0].metadata);
+    }
+
     // Convert search results to format expected by ProductSelectionHelper
-    const formattedResults = searchResults.map((result) => ({
-      metadata: {
-        id: result.metadata.id,
-        name: result.metadata.name,
-        price: result.metadata.price,
-        discountPrice: result.metadata.discountPrice,
-        brand: result.metadata.brand,
-        averageRating: result.metadata.averageRating,
-        numReviews: result.metadata.numReviews,
-        features: result.metadata.features,
-        description: result.metadata.description,
-      },
-    }));
+    const formattedResults = searchResults.map((result, index) => {
+      const productId = result.metadata.id;
+      const productName = result.metadata.name;
+      
+      // Validate product ID
+      if (!productId) {
+        this.logError(`Missing product ID for result ${index}: ${productName}`);
+      } else if (!this.isValidObjectId(productId)) {
+        this.logError(`Invalid product ID format for result ${index}: "${productId}" (${productName})`);
+      } else {
+        this.log(`✅ Valid product ID for result ${index}: ${productId} (${productName})`);
+      }
+
+      return {
+        metadata: {
+          id: productId,
+          name: productName,
+          price: result.metadata.price,
+          discountPrice: result.metadata.discountPrice,
+          brand: result.metadata.brand,
+          averageRating: result.metadata.averageRating,
+          numReviews: result.metadata.numReviews,
+          features: result.metadata.features,
+          description: result.metadata.description,
+        },
+      };
+    });
+
+    this.log("🎯 Formatted results count:", formattedResults.length);
 
     // Handle explicit selection criteria
     if (selectionCriteria) {
+      this.log("🎯 Using explicit selection criteria:", selectionCriteria);
       const criteriaResult = this.handleExplicitCriteria(
         formattedResults,
         selectionCriteria
       );
       if (criteriaResult.success) {
+        this.log("✅ Criteria selection successful:", criteriaResult.product.name, "ID:", criteriaResult.product.id);
         return criteriaResult;
       }
     }
 
     // Use ProductSelectionHelper for intelligent selection
-    return ProductSelectionHelper.selectBestProduct(query, formattedResults);
+    this.log("🤖 Using ProductSelectionHelper for intelligent selection");
+    const selectionResult = ProductSelectionHelper.selectBestProduct(query, formattedResults);
+    
+    if (selectionResult.success) {
+      this.log("✅ ProductSelectionHelper selection successful:", selectionResult.product.name, "ID:", selectionResult.product.id);
+    } else {
+      this.logError("❌ ProductSelectionHelper selection failed:", selectionResult.message);
+    }
+    
+    return selectionResult;
   }
 
   /**
@@ -411,16 +446,65 @@ class CartTool extends StructuredTool {
   }
 
   /**
-   * Add product to cart by ID
+   * Validate that a value is a valid MongoDB ObjectId
+   */
+  isValidObjectId(id) {
+    if (!id || typeof id !== 'string') {
+      return false;
+    }
+    return mongoose.Types.ObjectId.isValid(id) && (String(new mongoose.Types.ObjectId(id)) === id);
+  }
+
+  /**
+   * Add product to cart by ID with enhanced validation and error handling
    */
   async addToCartById(userId, productId, quantity) {
-    const product = await Product.findById(productId);
+    try {
+      this.log("🔍 addToCartById called with:", { productId, quantity });
+      
+      // Validate productId
+      if (!productId) {
+        this.logError("No productId provided to addToCartById");
+        return `❌ Không có ID sản phẩm để thêm vào giỏ hàng.`;
+      }
 
-    if (!product) {
-      return `❌ Không tìm thấy sản phẩm với ID: ${productId}`;
+      // Check if productId is actually a product name (common error)
+      if (!this.isValidObjectId(productId)) {
+        this.logError(`Invalid ObjectId format: "${productId}" - attempting to find by name instead`);
+        
+        // Try to find product by name as fallback
+        const productByName = await Product.findOne({
+          name: { $regex: new RegExp(productId, "i") }
+        });
+
+        if (productByName) {
+          this.log(`✅ Found product by name fallback: ${productByName.name} (${productByName._id})`);
+          return await this.addToCart(userId, productByName._id.toString(), productByName.name, quantity);
+        } else {
+          return `❌ Không tìm thấy sản phẩm với tên hoặc ID: "${productId}". Vui lòng kiểm tra lại thông tin sản phẩm.`;
+        }
+      }
+
+      // Validate ObjectId and find product
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        this.logError(`Product not found with valid ObjectId: ${productId}`);
+        return `❌ Không tìm thấy sản phẩm với ID: ${productId}`;
+      }
+
+      this.log(`✅ Found product: ${product.name} (${product._id})`);
+      return await this.addToCart(userId, productId, product.name, quantity);
+    } catch (error) {
+      this.logError("Error in addToCartById:", error);
+      
+      // If it's a CastError, provide a more helpful message
+      if (error.name === 'CastError') {
+        return `❌ ID sản phẩm không hợp lệ: "${productId}". Vui lòng thử tìm kiếm sản phẩm bằng tên thay vì ID.`;
+      }
+      
+      return `❌ Lỗi khi thêm sản phẩm vào giỏ hàng: ${error.message}`;
     }
-
-    return await this.addToCart(userId, productId, product.name, quantity);
   }
 
   /**
@@ -428,10 +512,22 @@ class CartTool extends StructuredTool {
    */
   async addToCart(userId, productId, productName, quantity) {
     try {
+      this.log("🔍 addToCart called with:", { productId, productName, quantity });
+      
       let product = null;
 
       if (productId) {
-        product = await Product.findById(productId);
+        // Validate productId before using it
+        if (!this.isValidObjectId(productId)) {
+          this.logError(`Invalid ObjectId in addToCart: "${productId}" - treating as product name`);
+          // If productId is not a valid ObjectId, treat it as a product name
+          product = await Product.findOne({
+            name: { $regex: new RegExp(productId, "i") },
+          });
+        } else {
+          // Valid ObjectId, proceed with findById
+          product = await Product.findById(productId);
+        }
       } else if (productName) {
         product = await Product.findOne({
           name: { $regex: new RegExp(productName, "i") },
