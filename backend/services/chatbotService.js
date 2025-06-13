@@ -257,8 +257,16 @@ class ChatbotService {
       const hasOrderKeywordInOriginal = /đặt hàng|đặt mua|order|purchase|mua ngay|đặt đơn/i.test(originalMessage);
       
       // 🚨 SMART AUTO-INJECTION: Only inject when user originally wanted to order
+      // 🛠️ FIXED: Expanded exclusion to include ALL cart operations
+      const isCartOnlyRequest = /^(xem|kiểm tra|check|show|xóa|xoá|remove|clear|delete|bỏ|lấy ra|loại bỏ)\s*(giỏ hàng|cart|sản phẩm|toàn bộ|khỏi giỏ|ra khỏi)/i.test(originalMessage.trim());
+      
+      // Additional check for cart operation keywords anywhere in message
+      const hasCartOperationKeywords = /xóa|xoá|remove|clear|delete|bỏ ra|lấy ra|loại bỏ|xóa khỏi|bỏ khỏi/.test(originalMessage.toLowerCase());
+      
       const needsAutoOrderInjection = 
         hasOrderKeywordInOriginal &&        // Original message had "đặt hàng"
+        !isCartOnlyRequest &&               // NOT cart-only operation
+        !hasCartOperationKeywords &&        // NOT contains cart operation keywords
         hasCartTool &&                      // cart_tool executed successfully
         !hasOrderTool &&                   // order_tool didn't execute
         isPurchaseWorkflow &&               // Is purchase workflow

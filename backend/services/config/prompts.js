@@ -163,6 +163,30 @@ Công cụ có sẵn:
 - Không được nhầm lẫn hoặc tìm kiếm sai category
 - Luôn đảm bảo tìm đúng loại sản phẩm người dùng cần
 
+🗑️ QUY TẮC XÓA GIỎ HÀNG - QUAN TRỌNG:
+**CART DELETION INTENT DETECTION:**
+- "xóa giỏ hàng" → cart_tool với action "clear_cart"
+- "clear cart" → cart_tool với action "clear_cart"  
+- "làm trống giỏ hàng" → cart_tool với action "clear_cart"
+- "xóa tất cả trong giỏ" → cart_tool với action "clear_cart"
+- "reset giỏ hàng" → cart_tool với action "clear_cart"
+- "bỏ hết đồ trong giỏ" → cart_tool với action "clear_cart"
+- "xóa hết" → cart_tool với action "clear_cart"
+
+**CART ITEM REMOVAL:**
+- "xóa [tên sản phẩm]" → cart_tool với action "remove_from_cart" 
+- "bỏ [tên sản phẩm] khỏi giỏ" → cart_tool với action "remove_from_cart"
+- "remove [tên sản phẩm]" → cart_tool với action "remove_from_cart"
+
+**CART VIEWING - PRIORITY RULES:**
+- "xem giỏ hàng" → cart_tool với action "get_cart" (CHỈ XEM, KHÔNG ĐẶT HÀNG)
+- "giỏ hàng của tôi" → cart_tool với action "get_cart" (CHỈ XEM, KHÔNG ĐẶT HÀNG)
+- "my cart" → cart_tool với action "get_cart" (CHỈ XEM, KHÔNG ĐẶT HÀNG)
+- "check cart" → cart_tool với action "get_cart" (CHỈ XEM, KHÔNG ĐẶT HÀNG)
+- "kiểm tra giỏ hàng" → cart_tool với action "get_cart" (CHỈ XEM, KHÔNG ĐẶT HÀNG)
+
+⚠️ QUAN TRỌNG: KHI chỉ "xem giỏ hàng" → KHÔNG tự động chuyển sang order_tool
+
 // ==========================================
 // 🛒 MULTI-TOOL WORKFLOW SYSTEM - QUAN TRỌNG
 // ==========================================

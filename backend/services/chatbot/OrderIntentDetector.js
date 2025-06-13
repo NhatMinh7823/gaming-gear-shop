@@ -2,9 +2,23 @@
 /**
  * Order Intent Detection for Chatbot
  * Detects when user wants to place an order and determines confidence level
+ * 🛠️ FIXED: Enhanced cart operation detection to prevent false order intent triggers
  */
 class OrderIntentDetector {
   
+  // 🛠️ CART OPERATION KEYWORDS - PRIORITY CHECK
+  static CART_OPERATION_KEYWORDS = [
+    'xóa', 'xoá', 'remove', 'delete', 'clear', 'xóa khỏi',
+    'bỏ ra', 'lấy ra', 'loại bỏ', 'bỏ khỏi', 'xóa sản phẩm',
+    'xóa toàn bộ', 'xóa tất cả', 'clear cart', 'empty cart'
+  ];
+
+  // 🛠️ CART VIEW KEYWORDS
+  static CART_VIEW_KEYWORDS = [
+    'xem giỏ hàng', 'kiểm tra giỏ', 'check cart', 'show cart',
+    'giỏ hàng của tôi', 'my cart', 'view cart'
+  ];
+
   // Primary order keywords (high confidence)
   static PRIMARY_ORDER_KEYWORDS = [
     'đặt hàng', 'đặt mua', 'đặt', 'mua hàng', 'mua ngay', 'mua', 'order', 
@@ -18,10 +32,9 @@ class OrderIntentDetector {
     'địa chỉ giao hàng', 'giao về', 'giao đến'
   ];
 
-  // Contextual phrases that indicate order intent
+  // 🛠️ REFINED: Contextual phrases - removed "giỏ hàng" to prevent conflicts
   static CONTEXTUAL_PHRASES = [
-    'trong giỏ', 'giỏ hàng', 'cart', 'tất cả sản phẩm',
-    'hoàn tất', 'xác nhận', 'confirm', 'tiếp tục',
+    'tất cả sản phẩm', 'hoàn tất', 'xác nhận', 'confirm', 'tiếp tục',
     'proceed', 'next step', 'bước tiếp theo'
   ];
 
@@ -58,6 +71,16 @@ class OrderIntentDetector {
 
     const normalizedMessage = this.normalizeMessage(message);
     const words = normalizedMessage.split(/\s+/);
+
+    // 🛠️ PRIORITY CHECK: Exclude cart operations FIRST
+    if (this.isCartOperation(normalizedMessage)) {
+      return this.createIntentResult('NO_ORDER', 0.0, false, 'Cart operation detected - excluding from order intent');
+    }
+
+    // 🛠️ PRIORITY CHECK: Exclude cart view operations
+    if (this.isCartViewOperation(normalizedMessage)) {
+      return this.createIntentResult('NO_ORDER', 0.0, false, 'Cart view operation detected - excluding from order intent');
+    }
 
     // Check for direct order intent
     const directIntent = this.checkDirectOrderIntent(normalizedMessage, words);
@@ -453,6 +476,24 @@ class OrderIntentDetector {
     }
 
     return { action: 'NO_ACTION', message: null };
+  }
+
+  /**
+   * 🛠️ NEW: Check if message is a cart operation (remove, delete, clear)
+   */
+  static isCartOperation(normalizedMessage) {
+    return this.CART_OPERATION_KEYWORDS.some(keyword => 
+      normalizedMessage.includes(keyword)
+    );
+  }
+
+  /**
+   * 🛠️ NEW: Check if message is a cart view operation (view, check, show)
+   */
+  static isCartViewOperation(normalizedMessage) {
+    return this.CART_VIEW_KEYWORDS.some(keyword => 
+      normalizedMessage.includes(keyword)
+    );
   }
 
   /**
