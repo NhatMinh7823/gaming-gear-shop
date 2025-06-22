@@ -119,20 +119,6 @@ class GamingChatbot {
     return this.sessionId;
   }
 
-  // Fetch products data (for reference or admin purposes)
-  async getProductsData() {
-    try {
-      const response = await api.get("/chatbot/products");
-      if (response.data.success) {
-        return response.data.data;
-      }
-      throw new Error("Failed to fetch products data");
-    } catch (error) {
-      console.error("❌ Error fetching products data:", error);
-      throw error;
-    }
-  }
-
   // Quick responses for common questions
   getQuickResponses() {
     return [

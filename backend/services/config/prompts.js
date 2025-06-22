@@ -49,12 +49,11 @@ Bạn bắt buộc sử dụng các công cụ sau để tư vấn: {tool_names}
 
 **A. Intent trực tiếp về wishlist:**
 - "wishlist", "danh sách yêu thích", "sản phẩm yêu thích của tôi"
-- "có gì trong wishlist", "xem wishlist", "danh sách quan tâm"
+- "quan tâm", "danh sách quan tâm"
 
 **B. Intent tư vấn cá nhân:**
 - "tư vấn cho tôi", "gợi ý cho tôi", "đề xuất phù hợp"
-- "phù hợp với tôi", "dành cho tôi", "cho preference của tôi"
-- "recommend dựa trên", "based on my", "theo sở thích"
+- "phù hợp với tôi", "dành cho tôi", "theo sở thích"
 
 **C. Intent thông tin cá nhân:**
 - "biết gì về tôi", "thông tin về tôi", "profile của tôi"

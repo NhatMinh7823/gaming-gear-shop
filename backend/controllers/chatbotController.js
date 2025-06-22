@@ -39,42 +39,6 @@ const handleChatbotConversation = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get detailed product information for chatbot
-// @route   GET /api/chatbot/products
-// @access  Public (not used)
-const getProductsForChatbot = asyncHandler(async (req, res) => {
-  try {
-    const products = await ChatbotService.getProductsData();
-
-    res.json({
-      success: true,
-      data: products.map((product) => ({
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        discountPrice: product.discountPrice || null,
-        brand: product.brand || "N/A",
-        category: product.category || "N/A",
-        inStock: product.inStock,
-        specifications: product.specifications || {},
-        features: product.features || [],
-        averageRating: product.averageRating || 0,
-        numReviews: product.numReviews || 0,
-        isFeatured: product.isFeatured || false,
-        isNewArrival: product.isNewArrival || false,
-        imageUrl: product.imageUrl || "",
-      })),
-      total: products.length,
-    });
-  } catch (error) {
-    console.error("Error fetching products for chatbot:", error.message);
-    res.status(500);
-    throw new Error("Không thể lấy dữ liệu sản phẩm. Vui lòng thử lại sau.");
-  }
-});
-
 module.exports = {
   handleChatbotConversation,
-  getProductsForChatbot,
 };
