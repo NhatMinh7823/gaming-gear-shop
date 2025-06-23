@@ -85,7 +85,7 @@ class WorkflowStateManager {
       
       category_browse: [
         { name: 'list_categories', tool: 'category_list_tool', description: 'Liệt kê danh mục', required: true },
-        { name: 'filter_products', tool: 'product_filter_tool', description: 'Lọc sản phẩm', required: false },
+        { name: 'search_products', tool: 'ai_product_search', description: 'Tìm kiếm sản phẩm AI', required: false },
         { name: 'add_to_cart', tool: 'cart_tool', description: 'Thêm vào giỏ hàng', required: false },
         { name: 'initiate_order', tool: 'order_tool', description: 'Khởi tạo đặt hàng', required: false }
       ]

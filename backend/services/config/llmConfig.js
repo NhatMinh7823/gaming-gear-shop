@@ -4,7 +4,9 @@ if (!process.env.GEMINI_API_KEY) {
 }
 
 const llmConfig = {
-  model: "gemini-1.5-flash", // tốt nhất có thể đọc sản phẩm-wishlist, nhận diện bản thân
+  // model: "gemini-2.5-flash-lite-preview-06-17", // chậm vì có reasioning
+  // model: "gemini-1.5-flash", nhanh, hiểu yêu cầu, không thông minh
+  model: "gemini-2.0-flash", // Nhanh, hiểu yêu cầu, thông minh hơn
   apiKey: process.env.GEMINI_API_KEY,
   temperature: 0.7,
   maxTokens: 4096, // Tăng để handle longer conversations

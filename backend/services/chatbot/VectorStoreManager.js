@@ -1,13 +1,16 @@
 const { GoogleGenerativeAIEmbeddings } = require("@langchain/google-genai");
-const { MemoryVectorStore } = require("langchain/vectorstores/memory");
+const { FaissStore } = require("@langchain/community/vectorstores/faiss");
 const Product = require("../../models/productModel");
 const { embeddingsConfig } = require("../config/llmConfig");
+const path = require("path");
+const fs = require("fs");
 
 class VectorStoreManager {
   constructor() {
     this.embeddings = null;
     this.vectorStore = null;
     this.isInitialized = false;
+    this.vectorStorePath = path.join(__dirname, "../../data/vector_store");
   }
 
   static getInstance() {
@@ -24,13 +27,29 @@ class VectorStoreManager {
       console.log("Initializing embeddings...");
       this.embeddings = new GoogleGenerativeAIEmbeddings(embeddingsConfig);
 
-      console.log("Initializing vector store...");
-      this.vectorStore = new MemoryVectorStore(this.embeddings);
+      console.log("Initializing FAISS vector store...");
+      
+      // Ensure directory exists
+      const dir = path.dirname(this.vectorStorePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      // Try to load existing vector store
+      if (fs.existsSync(this.vectorStorePath)) {
+        console.log("📂 Loading existing FAISS vector store...");
+        this.vectorStore = await FaissStore.load(this.vectorStorePath, this.embeddings);
+        console.log("✅ Loaded existing FAISS vector store");
+      } else {
+        console.log("🆕 Creating new FAISS vector store...");
+        this.vectorStore = new FaissStore(this.embeddings, {});
+        console.log("✅ Created new FAISS vector store");
+      }
 
       this.isInitialized = true;
-      console.log("Vector store initialized successfully");
+      console.log("FAISS vector store initialized successfully");
     } catch (error) {
-      console.error("Error initializing vector store:", error);
+      console.error("Error initializing FAISS vector store:", error);
       throw error;
     }
   }
@@ -133,7 +152,25 @@ class VectorStoreManager {
         await this.initialize();
       }
 
-      console.log(`Loading ${products.length} products to vector store...`);
+      // Always reload to ensure data consistency between database and vector store
+      const currentCount = await this.getProductCount();
+      
+      if (currentCount > 0) {
+        console.log(`🔄 FAISS store has ${currentCount} products, but database has ${products.length} products`);
+        
+        // If counts don't match, we need to rebuild the vector store
+        if (currentCount !== products.length) {
+          console.log(`📊 Rebuilding vector store to sync with current database (${currentCount} -> ${products.length})`);
+          
+          // Create a fresh vector store
+          this.vectorStore = new FaissStore(this.embeddings, {});
+        } else {
+          console.log(`✅ FAISS store already has ${currentCount} products loaded, skipping reload`);
+          return;
+        }
+      }
+
+      console.log(`Loading ${products.length} products to FAISS vector store...`);
       
       const documents = products.map((product) => ({
         pageContent: this.createSearchableContent(product),
@@ -157,7 +194,11 @@ class VectorStoreManager {
 
       if (documents.length > 0) {
         await this.vectorStore.addDocuments(documents);
-        console.log(`✅ Successfully loaded ${documents.length} products to vector store`);
+        
+        // Save to disk only when we actually added new documents
+        await this.saveVectorStore();
+        
+        console.log(`✅ Successfully loaded ${documents.length} products to FAISS vector store`);
         
         // Log some brand information for debugging
         const brands = [...new Set(products.map(p => p.brand).filter(Boolean))];
@@ -202,7 +243,11 @@ class VectorStoreManager {
 
       if (documents.length > 0) {
         await this.vectorStore.addDocuments(documents);
-        console.log(`✅ Successfully loaded ${documents.length} products to vector store`);
+        
+        // Save to disk
+        await this.saveVectorStore();
+        
+        console.log(`✅ Successfully loaded ${documents.length} products to FAISS vector store`);
         
         // Log detailed brand information for debugging
         const brands = [...new Set(products.map(p => p.brand).filter(Boolean))];
@@ -260,8 +305,59 @@ class VectorStoreManager {
     return results;
   }
 
+  async saveVectorStore() {
+    try {
+      if (this.vectorStore) {
+        await this.vectorStore.save(this.vectorStorePath);
+        console.log("💾 FAISS vector store saved to disk");
+      }
+    } catch (error) {
+      console.error("Error saving vector store:", error);
+      throw error;
+    }
+  }
+
+  async getProductCount() {
+    if (!this.vectorStore) return 0;
+
+    try {
+      // For FAISS, try to get count through similarity search
+      const results = await this.vectorStore.similaritySearch("", 1000);
+      return results.length;
+    } catch (error) {
+      return 0;
+    }
+  }
+
   getVectorStore() {
     return this.vectorStore;
+  }
+
+  /**
+   * Force rebuild vector store by clearing existing data
+   */
+  async forceRebuildVectorStore() {
+    try {
+      console.log("🔄 Force rebuilding vector store...");
+      
+      // Create a fresh vector store
+      this.vectorStore = new FaissStore(this.embeddings, {});
+      
+      // Delete existing files
+      if (fs.existsSync(this.vectorStorePath)) {
+        const files = fs.readdirSync(this.vectorStorePath);
+        for (const file of files) {
+          const filePath = path.join(this.vectorStorePath, file);
+          fs.unlinkSync(filePath);
+        }
+        console.log("🗑️ Deleted old vector store files");
+      }
+      
+      console.log("✅ Vector store reset completed");
+    } catch (error) {
+      console.error("Error rebuilding vector store:", error);
+      throw error;
+    }
   }
 
   // Debug method to check loaded products

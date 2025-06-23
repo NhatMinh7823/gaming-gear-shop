@@ -2,6 +2,7 @@ guideDoc/
 .vscode/
 #uploads
 uploads/
+backend/data/
 # Logs
 logs
 *.log

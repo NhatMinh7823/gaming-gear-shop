@@ -1,8 +1,8 @@
 const { StructuredTool } = require("@langchain/core/tools");
 const { z } = require("zod");
 const mongoose = require("mongoose");
-const Product = require("../../models/productModel");
-const { formatPrice } = require("../config/utils");
+const Product = require("../../../models/productModel");
+const { formatPrice } = require("../../config/utils");
 
 class ProductDetailsTool extends StructuredTool {
   schema = z.object({
@@ -36,7 +36,7 @@ class ProductDetailsTool extends StructuredTool {
 
       // If not found by ID or not a valid ID, try by name
       if (!product) {
-        console.log(`Searching product by name: ${productQuery}`);
+        console.log(`Searching product by name used: ${productQuery}`);
         product = await this._findByName(productQuery);
       }
 

@@ -896,10 +896,10 @@ ${autoOrderResult.message}`;
           stepData.categoriesListed = true;
         } else if (
           workflow.currentStep === 1 &&
-          toolsUsed.includes("product_filter_tool")
+          toolsUsed.includes("ai_product_search")
         ) {
           shouldAdvance = true;
-          stepData.productsFiltered = true;
+          stepData.productsSearched = true;
         } else if (
           workflow.currentStep === 2 &&
           toolsUsed.includes("cart_tool")

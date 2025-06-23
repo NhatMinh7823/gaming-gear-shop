@@ -1,15 +1,12 @@
 // Export all tools from this module
-const { ProductSearchTool } = require("./productSearch");
-const ProductFilterTool = require("./ProductFilterTool");
-const CategoryListTool = require("./CategoryListTool");
-const ProductDetailsTool = require("./ProductDetailsTool");
-const PriceRangeTool = require("./PriceRangeTool");
+const { ProductSearchTool, ProductDetailsTool, CategoryListTool } = require("./productSearch");
 
-// Import wishlist tools from wishlist module
-const { WishlistTool, IntentDetector } = require("./wishlist");
+// Import AI-driven wishlist tool directly
+const AISmartWishlistTool = require("./wishlist/AISmartWishlistTool");
 
-// Import cart tool (enhanced version)
-const CartTool = require("./cart/CartTool");
+// Import cart tools - NEW AI-driven version only
+const AISmartCartTool = require("./cart/AISmartCartTool");
+// const CartTool = require("./cart/CartTool"); // Legacy version removed
 
 // Import order tool
 const OrderTool = require("./order/OrderTool");
@@ -29,12 +26,9 @@ const initialize = async (vsManager, userContext) => {
 
   // Initialize non-user-specific tools once
   globalToolInstances = [
-    new IntentDetector(),
     new ProductSearchTool(),
-    new ProductFilterTool(),
     new CategoryListTool(),
     new ProductDetailsTool(),
-    new PriceRangeTool(),
   ];
 
   console.log("Global tools initialized successfully");
@@ -53,8 +47,9 @@ const createFreshTools = (userContext) => {
   // Create fresh tool set with current UserContext
   const freshTools = [
     ...globalToolInstances, // Non-user-specific tools (reuse)
-    new WishlistTool(userContext), // Fresh WishlistTool with current UserContext
-    new CartTool(userContext), // Single comprehensive cart tool (enhanced)
+    new AISmartWishlistTool(userContext), // AI-driven wishlist tool with current UserContext
+    new AISmartCartTool(userContext), // NEW: AI-driven cart tool with current UserContext
+    // new CartTool(userContext), // Legacy cart tool - commented out for migration
     new OrderTool(userContext), // Fresh OrderTool with current UserContext
   ];
 
@@ -70,7 +65,7 @@ const getAllTools = () => {
     throw new Error("Tools not initialized. Call initialize() first.");
   }
   // Return global tools + user-specific tools with null context (fallback)
-  return [...globalToolInstances, new WishlistTool(null), new CartTool(null), new OrderTool(null)];
+  return [...globalToolInstances, new AISmartWishlistTool(null), new OrderTool(null)];
 };
 
 /**
@@ -105,12 +100,9 @@ module.exports = {
   createFreshTools,
   getToolsInfo,
   ProductSearchTool,
-  ProductFilterTool,
   CategoryListTool,
   ProductDetailsTool,
-  PriceRangeTool,
-  WishlistTool,
-  IntentDetector,
-  CartTool,
+  AISmartWishlistTool,
+  AISmartCartTool, // AI-driven cart tool
   OrderTool,
 };

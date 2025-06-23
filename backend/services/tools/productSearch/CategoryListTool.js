@@ -1,6 +1,6 @@
 const { StructuredTool } = require("@langchain/core/tools");
 const { z } = require("zod");
-const Category = require("../../models/categoryModel");
+const Category = require("../../../models/categoryModel");
 
 class CategoryListTool extends StructuredTool {
   schema = z.object({});
@@ -10,6 +10,7 @@ class CategoryListTool extends StructuredTool {
 
   async _call() {
     try {
+      console.log("Fetching category list...");
       const categories = await Category.find().select("name description");
 
       if (categories.length === 0) {
