@@ -28,12 +28,12 @@ const CartItems = ({
   return (
     <div className="bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-100">Shopping Cart ({cartItems.length} items)</h2>
+        <h2 className="text-xl font-semibold text-gray-100">Giỏ hàng ({cartItems.length} sản phẩm)</h2>
         <button
           onClick={onEmptyCart}
           className="text-red-600 hover:text-red-700 text-sm font-medium"
         >
-          Empty Cart
+          Xóa tất cả
         </button>
       </div>
 
@@ -103,14 +103,14 @@ const CartItems = ({
             type="text"
             value={couponCode}
             onChange={(e) => setCouponCode(e.target.value)}
-            placeholder="Enter coupon code"
+            placeholder="Nhập mã giảm giá"
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-gray-200"
           />
           <button
             onClick={onApplyCoupon}
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
           >
-            Apply
+            Áp dụng
           </button>
         </div>
 
@@ -119,14 +119,14 @@ const CartItems = ({
             <div className="flex items-center">
               <FaCheck className="text-green-500 mr-2" />
               <span className="text-sm text-green-400">
-                Coupon {appliedCoupon.code} applied - {appliedCoupon.type === 'percentage' ? `${appliedCoupon.discount}% off` : `${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appliedCoupon.discount)} off`}
+                Đã áp dụng mã {appliedCoupon.code} - {appliedCoupon.type === 'percentage' ? `Giảm ${appliedCoupon.discount}%` : `Giảm ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appliedCoupon.discount)}`}
               </span>
             </div>
             <button
               onClick={onRemoveCoupon}
               className="text-sm text-gray-400 hover:text-gray-700"
             >
-              Remove
+              Gỡ bỏ
             </button>
           </div>
         )}

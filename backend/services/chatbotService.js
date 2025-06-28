@@ -120,9 +120,7 @@ class ChatbotService {
    */
   async processMessage(message, sessionId = null, userId = null) {
     await this.ensureInitialized();
-
     const startTime = Date.now();
-
     try {
       this.log(
         `Processing message for session ${sessionId || "new"}${
@@ -136,14 +134,10 @@ class ChatbotService {
       if (userId) {
         this.log(`Setting user context with userId: ${userId}`);
         this.userContext.setUser(userId);
-
-        // Create fresh tools with current UserContext and update agent
         await this.createFreshToolsAndUpdateAgent();
       } else {
         this.log(`No userId provided, clearing user context`);
         this.userContext.clearUser();
-
-        // Create fresh tools with cleared UserContext and update agent
         await this.createFreshToolsAndUpdateAgent();
       }
 
@@ -162,19 +156,18 @@ class ChatbotService {
 
       // 🎯 WORKFLOW DETECTION AND MANAGEMENT
       const workflowIntent = this.detectWorkflowIntent(message);
-      const existingWorkflow =
+      let workflow =
         this.workflowStateManager.getWorkflowState(actualSessionId);
-
+      
       this.log(`📊 Workflow analysis:`, {
         detectedIntent: workflowIntent,
-        hasExistingWorkflow: !!existingWorkflow,
-        existingType: existingWorkflow?.type,
+        hasExistingWorkflow: !!workflow,
+        existingType: workflow?.type,
       });
 
       // 🚀 WORKFLOW INITIALIZATION
-      if (workflowIntent && !existingWorkflow) {
-        // Start new workflow
-        const workflow = this.workflowStateManager.initWorkflow(
+      if (workflowIntent && !workflow) {
+        workflow = this.workflowStateManager.initWorkflow(
           actualSessionId,
           workflowIntent,
           {
@@ -184,12 +177,11 @@ class ChatbotService {
         );
         this.log(`🎯 Started new ${workflowIntent} workflow`);
       } else if (
-        existingWorkflow &&
+        workflow &&
         this.workflowStateManager.shouldContinueWorkflow(actualSessionId)
       ) {
-        // Continue existing workflow
         this.log(
-          `🔄 Continuing ${existingWorkflow.type} workflow at step ${existingWorkflow.currentStep}`
+          `🔄 Continuing ${workflow.type} workflow at step ${workflow.currentStep}`
         );
       }
 
@@ -206,14 +198,9 @@ class ChatbotService {
           message,
           actualSessionId
         );
-
         if (orderFlowResult) {
-          this.log("✅ Order flow handled the message");
-
-          // Save to conversation history
           await history.addUserMessage(message);
           await history.addAIMessage(orderFlowResult.message);
-
           return {
             text: orderFlowResult.message,
             sessionId: actualSessionId,
@@ -227,19 +214,16 @@ class ChatbotService {
 
       // Get agent executor from manager
       const agentExecutor = this.agentManager.getAgentExecutor();
-
       if (!agentExecutor) {
         throw new Error("Agent executor not available");
       }
-
-      // Get previous messages
       const previousMessages = await history.getMessages();
 
-      // 🤖 ENHANCED AGENT PROCESSING with workflow context
-      const workflowContext = existingWorkflow
+      // Lấy context workflow từ WorkflowStateManager
+      const workflowContext = workflow
         ? {
-            currentWorkflow: existingWorkflow.type,
-            currentStep: existingWorkflow.currentStep,
+            currentWorkflow: workflow.type,
+            currentStep: workflow.currentStep,
             stepInfo:
               this.workflowStateManager.getCurrentStepInfo(actualSessionId),
             shouldContinue:
@@ -251,7 +235,7 @@ class ChatbotService {
       const result = await agentExecutor.invoke({
         input: message,
         chat_history: previousMessages,
-        workflow_context: workflowContext, // 🎯 Add workflow context
+        workflow_context: workflowContext,
         session_id: actualSessionId,
       });
       const agentDuration = Date.now() - agentStartTime;
@@ -260,202 +244,57 @@ class ChatbotService {
       await history.addUserMessage(message);
       await history.addAIMessage(result.output);
 
-      // 📈 UPDATE WORKFLOW STATE AND ANALYTICS
+      // Lấy danh sách tool đã dùng
       const toolsUsed =
         result.intermediateSteps
           ?.map((step) => step.action?.tool)
           .filter(Boolean) || [];
 
-      // 🔗 TOOL CHAINING VALIDATION AND ENFORCEMENT
-      const hasCartTool = toolsUsed.includes("cart_tool");
-      const hasOrderTool = toolsUsed.includes("order_tool");
-      const isPurchaseWorkflow =
-        workflowIntent === "purchase" || existingWorkflow?.type === "purchase";
-
-      // 🎯 CONDITIONAL AUTO-INJECTION LOGIC
-      const originalMessage = message; // Store original user message
-      const hasOrderKeywordInOriginal =
-        /đặt hàng|đặt mua|order|purchase|mua ngay|đặt đơn/i.test(
-          originalMessage
-        );
-
-      // 🚨 SMART AUTO-INJECTION: Only inject when user originally wanted to order
-      // 🛠️ FIXED: Expanded exclusion to include ALL cart operations
-      const isCartOnlyRequest =
-        /^(xem|kiểm tra|check|show|xóa|xoá|remove|clear|delete|bỏ|lấy ra|loại bỏ)\s*(giỏ hàng|cart|sản phẩm|toàn bộ|khỏi giỏ|ra khỏi)/i.test(
-          originalMessage.trim()
-        );
-
-      // Additional check for cart operation keywords anywhere in message
-      const hasCartOperationKeywords =
-        /xóa|xoá|remove|clear|delete|bỏ ra|lấy ra|loại bỏ|xóa khỏi|bỏ khỏi/.test(
-          originalMessage.toLowerCase()
-        );
-
-      const needsAutoOrderInjection =
-        hasOrderKeywordInOriginal && // Original message had "đặt hàng"
-        !isCartOnlyRequest && // NOT cart-only operation
-        !hasCartOperationKeywords && // NOT contains cart operation keywords        hasCartTool &&                      // cart_tool executed successfully
-        !hasOrderTool && // order_tool didn't execute
-        isPurchaseWorkflow && // Is purchase workflow
-        !(result.output && String(result.output).includes("Error")) && // No errors in cart process
-        !(result.output && String(result.output).includes("thất bại")) && // No failures
-        userId && // User authenticated
-        actualSessionId; // Valid session
-
-      if (needsAutoOrderInjection) {
-        this.log(
-          `🎯 AUTO-INJECTION TRIGGERED for original message: "${originalMessage}"`
-        );
-        this.log(
-          `📊 Conditions met: orderKeyword=${hasOrderKeywordInOriginal}, cartTool=${hasCartTool}, orderTool=${hasOrderTool}`
-        );
-
-        try {
-          // 🤖 AUTO-INJECT: Simulate user saying "đặt hàng"
-          this.log(`🚀 Auto-injecting "đặt hàng" command...`);
-
-          // Add the auto-injected message to conversation history for context
-          await history.addUserMessage("đặt hàng");
-
-          // Execute OrderFlow with the auto-injected command
-          const autoOrderResult = await this.orderFlowManager.handleOrderFlow(
-            "đặt hàng",
-            actualSessionId
-          );
-
-          if (autoOrderResult && autoOrderResult.success !== false) {
-            this.log(`✅ Auto-injection successful! OrderFlow initiated.`);
-
-            // 🎉 MERGE RESPONSES: Create seamless user experience
-            const mergedResponse = `${result.output}
-
-🎉 **Đang tự động khởi tạo đơn hàng theo yêu cầu của bạn...**
-
-${autoOrderResult.message}`;
-
-            // Save the merged response to chat history
-            await history.addAIMessage(mergedResponse);
-
-            // Return complete merged response
-            return {
-              text: mergedResponse,
-              sessionId: actualSessionId,
-
-              // 🆕 AUTO-INJECTION METADATA
-              autoCompleted: true,
-              originalCommand: originalMessage,
-              autoInjectedCommand: "đặt hàng",
-              autoInjectionSuccess: true,
-
-              // Preserve original workflow data
-              intermediateSteps: result.intermediateSteps || [],
-              toolsUsed: toolsUsed,
-              workflowComplete: true, // Mark as complete due to auto-injection
-
-              // Include OrderFlow data
-              orderFlow: autoOrderResult.orderFlow || true,
-              ...autoOrderResult,
-
-              // Performance metrics
-              executionTime: Date.now() - startTime,
-              agentExecutionTime: agentDuration,
-              iterationsUsed: result.intermediateSteps?.length || 0,
-
-              // Analytics
-              analytics: {
-                workflowIntent: workflowIntent,
-                hasActiveWorkflow: !!existingWorkflow,
-                toolsExecuted: toolsUsed.length,
-                autoInjectionTriggered: true,
-                workflowProgress: 100, // Complete due to auto-injection
-              },
-            };
-          } else {
-            this.logError(`❌ Auto-injection failed: OrderFlow returned error`);
-            this.log(`OrderFlow result:`, autoOrderResult);
-          }
-        } catch (autoInjectionError) {
-          this.logError(`❌ Auto-injection error:`, autoInjectionError);
-        }
-      }
-
-      // 🚨 FALLBACK: Log incomplete workflow (for cases where auto-injection didn't trigger)
-      const needsOrderToolContinuation =
-        isPurchaseWorkflow &&
-        hasCartTool &&
-        !hasOrderTool &&
-        !needsAutoOrderInjection;
-
-      if (needsOrderToolContinuation) {
-        this.log(
-          `🚨 WORKFLOW INCOMPLETE: cart_tool executed but missing order_tool`
-        );
-        this.log(`📊 Tools used: ${toolsUsed.join(", ")}`);
-        this.log(
-          `🔄 Workflow type: ${workflowIntent || existingWorkflow?.type}`
-        );
-        this.log(
-          `💡 Auto-injection not triggered: original message didn't contain order keywords`
-        );
-
-        // Log warning for debugging
-        this.logError(
-          `WORKFLOW INCOMPLETE: workflow stopped after cart_tool. Original message: "${originalMessage}"`
-        );
-      }
-
-      // Update workflow state based on result
-      if (existingWorkflow || workflowIntent) {
+      // --- Sử dụng WorkflowStateManager để quản lý tiến trình, bước, trạng thái ---
+      // Cập nhật tiến trình workflow dựa trên kết quả agent
+      if (workflow || workflowIntent) {
         this.updateWorkflowBasedOnResult(actualSessionId, result, toolsUsed);
+        workflow = this.workflowStateManager.getWorkflowState(actualSessionId);
       }
+
+      // Lấy thông tin workflow analytics từ WorkflowStateManager
+      const workflowAnalytics =
+        this.workflowStateManager.getWorkflowAnalytics(actualSessionId);
+      const workflowComplete = workflowAnalytics
+        ? workflowAnalytics.status === "completed"
+        : false;
+      const workflowProgress = workflowAnalytics
+        ? workflowAnalytics.progress
+        : null;
 
       const totalDuration = Date.now() - startTime;
 
-      // 📊 Enhanced response with comprehensive workflow information
       return {
         text:
           result.output ||
           "Xin lỗi, tôi không thể xử lý yêu cầu của bạn lúc này.",
         sessionId: actualSessionId,
-
-        // 🎯 Multi-tool workflow information
         intermediateSteps: result.intermediateSteps || [],
         toolsUsed: toolsUsed,
-        workflowComplete: this.isWorkflowComplete(result.intermediateSteps),
-
-        // 🆕 WORKFLOW STATE INFO
-        workflow:
-          this.workflowStateManager.getWorkflowAnalytics(actualSessionId),
-
-        // 📈 Performance metrics
+        workflowComplete: workflowComplete,
+        workflow: workflowAnalytics,
         executionTime: totalDuration,
         agentExecutionTime: agentDuration,
         iterationsUsed: result.intermediateSteps?.length || 0,
-
-        // 🆕 ANALYTICS INFO
         analytics: {
           workflowIntent: workflowIntent,
-          hasActiveWorkflow: !!existingWorkflow,
+          hasActiveWorkflow: !!workflow,
           toolsExecuted: toolsUsed.length,
-          workflowProgress: existingWorkflow
-            ? Math.round(
-                (existingWorkflow.currentStep / existingWorkflow.steps.length) *
-                  100
-              )
-            : null,
+          workflowProgress: workflowProgress,
         },
       };
     } catch (error) {
       this.logError("Error processing message with agent:", error);
-
       // Track workflow error if applicable
-      const existingWorkflow =
-        this.workflowStateManager.getWorkflowState(sessionId);
-      if (existingWorkflow) {
+      const workflow = this.workflowStateManager.getWorkflowState(sessionId);
+      if (workflow) {
         this.workflowStateManager.errorWorkflow(sessionId, error);
       }
-
       try {
         // Fallback to direct LLM call
         this.log("Attempting fallback with direct LLM call");
@@ -463,10 +302,8 @@ ${autoOrderResult.message}`;
         const response = await llm.invoke(message);
         const { history, sessionId: actualSessionId } =
           this.chatHistoryManager.getOrCreateChatHistory(sessionId, userId);
-
         await history.addUserMessage(message);
         await history.addAIMessage(response.content);
-
         return {
           text:
             response.content ||
@@ -484,61 +321,6 @@ ${autoOrderResult.message}`;
         };
       }
     }
-  }
-  async getProductsData() {
-    try {
-      const products = await Product.find()
-        .populate("category", "name")
-        .select(
-          "name description price discountPrice brand stock specifications features averageRating numReviews isFeatured isNewArrival images"
-        )
-        .limit(70);
-
-      return products.map((product) => ({
-        id: product._id,
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        discountPrice: product.discountPrice,
-        brand: product.brand,
-        category: product.category?.name,
-        inStock: product.stock > 0,
-        specifications: product.specifications,
-        features: product.features,
-        averageRating: product.averageRating,
-        numReviews: product.numReviews,
-        isFeatured: product.isFeatured,
-        isNewArrival: product.isNewArrival,
-        imageUrl: product.images?.[0]?.url,
-      }));
-    } catch (error) {
-      this.logError("Error fetching products data:", error);
-      throw error;
-    }
-  }
-  debugUserContext() {
-    if (!this.debugMode) return;
-
-    console.log("=== UserContext Debug ===");
-    console.log("UserContext exists:", !!this.userContext);
-    console.log("Current userId:", this.userContext?.getUserId());
-    console.log("Is authenticated:", this.userContext?.isAuthenticated());
-
-    const tools = require("./tools");
-    try {
-      const allTools = tools.getAllTools();
-      const wishlistTool = allTools.find(
-        (tool) => tool.name === "wishlist_tool"
-      );
-      console.log("WishlistTool exists:", !!wishlistTool);
-      console.log(
-        "WishlistTool userContext:",
-        wishlistTool?.userContext?.getUserId()
-      );
-    } catch (error) {
-      console.log("Error getting tools:", error.message);
-    }
-    console.log("========================");
   }
   /**
    * Create fresh tools with current UserContext and update agent
@@ -598,38 +380,6 @@ ${autoOrderResult.message}`;
   }
 
   /**
-   * Test wishlist functionality with current user context
-   */
-  async testWishlistAccess() {
-    try {
-      // Get the current agent's tools to test the actual tools being used
-      const agentExecutor = this.agentManager.getAgentExecutor();
-
-      if (!agentExecutor || !agentExecutor.tools) {
-        this.log("No agent executor or tools available for testing");
-        return false;
-      }
-
-      const wishlistTool = agentExecutor.tools.find(
-        (tool) => tool.name === "wishlist_tool"
-      );
-
-      if (!wishlistTool) {
-        this.log("WishlistTool not found in current agent");
-        return false;
-      }
-      this.log("Testing wishlist access with current agent tools...");
-      const result = await wishlistTool._call({ action: "get_wishlist" });
-      this.log("Wishlist test result:", result);
-
-      return !(result && String(result).includes("User not authenticated"));
-    } catch (error) {
-      this.logError("Wishlist test failed:", error);
-      return false;
-    }
-  }
-
-  /**
    * Detect workflow intent from message
    */
   detectWorkflowIntent(message) {
@@ -663,10 +413,7 @@ ${autoOrderResult.message}`;
     ];
 
     // Category browse patterns
-    const categoryBrowsePatterns = [
-      /xem.*danh mục/,
-      /loại.*sản phẩm/,
-    ];
+    const categoryBrowsePatterns = [/xem.*danh mục/, /loại.*sản phẩm/];
 
     // Search patterns (basic intent)
     const searchPatterns = [
@@ -780,8 +527,6 @@ ${autoOrderResult.message}`;
       "game",
       "chơi game",
       "sản phẩm",
-      "device",
-      "gear",
     ];
 
     return productKeywords.some((keyword) => message.includes(keyword));
@@ -931,7 +676,6 @@ ${autoOrderResult.message}`;
           totalSteps: workflow.currentStep,
         }
       );
-
     }
 
     // Handle user cancellation patterns
@@ -988,32 +732,6 @@ ${autoOrderResult.message}`;
       hasSearchAndCart ||
       hasCategoryBrowse
     );
-  }
-
-  /**
-   * Get workflow analytics dashboard data
-   */
-  getWorkflowDashboard() {
-    return {
-      activeWorkflows: this.workflowStateManager.getActiveWorkflows(),
-      workflowsSummary: this.workflowStateManager.getWorkflowsSummary(),
-      timestamp: Date.now(),
-    };
-  }
-
-  /**
-   * Get workflow state for specific session
-   */
-  getSessionWorkflow(sessionId) {
-    return this.workflowStateManager.getWorkflowAnalytics(sessionId);
-  }
-
-  /**
-   * Reset workflow analytics (for testing/debugging)
-   */
-  resetWorkflowAnalytics() {
-    this.workflowStateManager.clearAllWorkflows();
-    this.log("📊 Workflow analytics reset completed");
   }
 }
 

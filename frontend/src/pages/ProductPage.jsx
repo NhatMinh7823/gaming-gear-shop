@@ -40,7 +40,7 @@ function ProductPage() {
         const { data } = await getProductById(id);
         setProduct(data.product);
       } catch (err) {
-        const errorMessage = err.response?.data?.message || 'Error fetching product details.';
+        const errorMessage = err.response?.data?.message || 'Lỗi khi tải chi tiết sản phẩm.';
         toast.error(errorMessage);
         setError(errorMessage);
       } finally {
@@ -58,9 +58,9 @@ function ProductPage() {
     try {
       const { data } = await addCartItem({ productId: id, quantity });
       dispatch(setCart(data.cart));
-      toast.success('Added to cart');
+      toast.success('Đã thêm vào giỏ hàng');
     } catch (error) {
-      toast.error('Error adding to cart');
+      toast.error('Lỗi khi thêm vào giỏ hàng');
     }
   };
 
@@ -71,27 +71,27 @@ function ProductPage() {
       return;
     }
     if (rating < 1 || rating > 5) {
-      toast.error('Please select a rating between 1 and 5');
+      toast.error('Vui lòng chọn số sao từ 1 đến 5');
       return;
     }
     if (!title.trim()) {
-      toast.error('Please provide a review title');
+      toast.error('Vui lòng nhập tiêu đề đánh giá');
       return;
     }
     if (!comment.trim()) {
-      toast.error('Please provide a review comment');
+      toast.error('Vui lòng nhập nội dung đánh giá');
       return;
     }
     try {
       await createReview({ productId: id, rating, title, comment });
-      toast.success('Review submitted');
+      toast.success('Gửi đánh giá thành công');
       setRating(0);
       setTitle('');
       setComment('');
       const { data } = await getProductById(id);
       setProduct(data.product);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error submitting review');
+      toast.error(error.response?.data?.message || 'Lỗi khi gửi đánh giá');
     }
   };
 
@@ -105,17 +105,17 @@ function ProductPage() {
       setLoadingWishlist(true);
       if (wishlistItems.includes(id)) {
         await removeFromWishlist(id);
-        toast.success('Removed from wishlist');
+        toast.success('Đã xóa khỏi danh sách yêu thích');
       } else {
         await addToWishlist(id);
-        toast.success('Added to wishlist');
+        toast.success('Đã thêm vào danh sách yêu thích');
       }
       // Clear wishlist cache to ensure chatbot gets fresh data
       clearCache();
       // Refresh wishlist to update the UI
       await refreshWishlist(true);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error updating wishlist');
+      toast.error(error.response?.data?.message || 'Lỗi khi cập nhật danh sách yêu thích');
     } finally {
       setLoadingWishlist(false);
     }
@@ -151,7 +151,7 @@ function ProductPage() {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="flex items-center gap-3">
           <FaSpinner className="animate-spin text-blue-400 text-3xl" />
-          <span className="text-gray-300 text-lg">Loading product details...</span>
+          <span className="text-gray-300 text-lg">Đang tải chi tiết sản phẩm...</span>
         </div>
       </div>
     );
@@ -162,10 +162,10 @@ function ProductPage() {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <FaExclamationCircle className="text-red-500 text-5xl mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-100 mb-2">Error Loading Product</h2>
+          <h2 className="text-2xl font-semibold text-gray-100 mb-2">Lỗi khi tải sản phẩm</h2>
           <p className="text-gray-300 mb-4">{error}</p>
           <Link to="/products" className="text-blue-400 hover:text-blue-300 flex items-center justify-center gap-2">
-            <FaArrowLeft /> Back to Products
+            <FaArrowLeft /> Quay lại sản phẩm
           </Link>
         </div>
       </div>
@@ -177,10 +177,10 @@ function ProductPage() {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <FaExclamationCircle className="text-gray-400 text-5xl mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-100 mb-2">Product Not Found</h2>
-          <p className="text-gray-300 mb-4">This product may have been removed or is no longer available.</p>
+          <h2 className="text-2xl font-semibold text-gray-100 mb-2">Sản phẩm không tồn tại</h2>
+          <p className="text-gray-300 mb-4">Sản phẩm này có thể đã bị xóa hoặc không còn khả dụng.</p>
           <Link to="/products" className="text-blue-400 hover:text-blue-300 flex items-center justify-center gap-2">
-            <FaArrowLeft /> Back to Products
+            <FaArrowLeft /> Quay lại sản phẩm
           </Link>
         </div>
       </div>
@@ -206,7 +206,7 @@ function ProductPage() {
           className="inline-flex items-center gap-2 text-gray-300 hover:text-gray-100 mb-6 transition-colors"
         >
           <FaArrowLeft />
-          <span>Back to Products</span>
+          <span>Quay lại sản phẩm</span>
         </Link>
 
         <div className="bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
@@ -239,7 +239,7 @@ function ProductPage() {
                       ? 'bg-red-500/10 hover:bg-red-500/20'
                       : 'bg-gray-700 hover:bg-gray-600'
                       } transition-colors duration-300`}
-                    aria-label={wishlistItems.includes(id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                    aria-label={wishlistItems.includes(id) ? 'Xóa khỏi danh sách yêu thích' : 'Thêm vào danh sách yêu thích'}
                   >
                     {loadingWishlist ? (
                       <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
@@ -256,7 +256,7 @@ function ProductPage() {
                     {renderStars(product.averageRating || 0)}
                   </div>
                   <span className="text-gray-400">
-                    ({product.numReviews} reviews)
+                    ({product.numReviews} đánh giá)
                   </span>
                 </div>
 
@@ -286,7 +286,7 @@ function ProductPage() {
 
               <div className="space-y-6 mt-auto">
                 <div className="flex items-center gap-4">
-                  <span className="font-medium text-gray-300">Quantity:</span>
+                  <span className="font-medium text-gray-300">Số lượng:</span>
                   <div className="flex items-center border-2 border-gray-600 rounded-lg bg-gray-700">
                     <button
                       onClick={() => quantity > 1 && setQuantity(quantity - 1)}
@@ -326,7 +326,7 @@ function ProductPage() {
                   disabled={product.stock <= 0}
                 >
                   <FaShoppingCart />
-                  <span>{product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}</span>
+                  <span>{product.stock <= 0 ? 'Hết hàng' : 'Thêm vào giỏ'}</span>
                 </button>
               </div>
             </div>
@@ -374,14 +374,14 @@ function ProductPage() {
 
         {/* Reviews Section */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-100 mb-6">Customer Reviews</h2>
+          <h2 className="text-2xl font-bold text-gray-100 mb-6">Bình luận - đánh giá</h2>
 
           {userInfo && (
             <div className="bg-gray-800 rounded-xl shadow-md p-6 mb-8">
-              <h3 className="text-lg font-semibold text-gray-100 mb-4">Write a Review</h3>
+              <h3 className="text-lg font-semibold text-gray-100 mb-4">Viết bình luận</h3>
               <form onSubmit={handleReviewSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Rating</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Đánh giá</label>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((r) => (
                       <button
@@ -401,26 +401,26 @@ function ProductPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Tiêu đề</label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="w-full border border-gray-600 rounded-lg px-4 py-2 bg-gray-700 text-gray-200
                              focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Summary of your experience"
+                    placeholder="Tóm tắt về trải nghiệm của bạn"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Review</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Bình luận</label>
                   <textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     className="w-full border border-gray-600 rounded-lg px-4 py-2 bg-gray-700 text-gray-200
                              focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     rows="4"
-                    placeholder="Share your experience with this product"
+                    placeholder="Chia sẻ trải nghiệm của bạn với sản phẩm này"
                   />
                 </div>
 
@@ -429,7 +429,7 @@ function ProductPage() {
                   className="w-full md:w-auto bg-blue-600 text-white px-6 py-2 rounded-lg 
                            hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                 >
-                  Submit Review
+                  Gửi đánh giá
                 </button>
               </form>
             </div>
@@ -449,7 +449,7 @@ function ProductPage() {
                     {review.isVerifiedPurchase && (
                       <div className="flex items-center gap-1 text-green-400 bg-green-900 px-3 py-1 rounded-full">
                         <FaCheck className="text-sm" />
-                        <span className="text-sm font-medium">Verified Purchase</span>
+                        <span className="text-sm font-medium">Đã mua hàng</span>
                       </div>
                     )}
                   </div>
@@ -462,7 +462,7 @@ function ProductPage() {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                <p className="text-gray-400 text-lg">No reviews yet. Be the first to review this product!</p>
+                <p className="text-gray-400 text-lg">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá sản phẩm này!</p>
               </div>
             )}
           </div>

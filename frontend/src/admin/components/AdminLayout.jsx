@@ -8,7 +8,7 @@ const AdminLayout = () => {
       <aside className="w-64 bg-gray-800 text-white p-6">
         <div className="mb-8">
           <Link to="/admin" className="text-2xl font-semibold hover:text-gray-300">
-            Admin Panel
+            Bảng điều khiển quản trị
           </Link>
         </div>
         <nav>
@@ -18,7 +18,7 @@ const AdminLayout = () => {
                 to="/admin/dashboard"
                 className="block py-2 px-4 rounded hover:bg-gray-700"
               >
-                Dashboard
+                Tổng quan
               </Link>
             </li>
             <li className="mb-4">
@@ -26,7 +26,7 @@ const AdminLayout = () => {
                 to="/admin/products"
                 className="block py-2 px-4 rounded hover:bg-gray-700"
               >
-                Manage Products
+                Quản lý sản phẩm
               </Link>
             </li>
             <li className="mb-4">
@@ -34,7 +34,7 @@ const AdminLayout = () => {
                 to="/admin/orders"
                 className="block py-2 px-4 rounded hover:bg-gray-700"
               >
-                Manage Orders
+                Quản lý đơn hàng
               </Link>
             </li>
             <li className="mb-4">
@@ -42,7 +42,7 @@ const AdminLayout = () => {
                 to="/admin/users"
                 className="block py-2 px-4 rounded hover:bg-gray-700"
               >
-                Manage Users
+                Quản lý người dùng
               </Link>
             </li>
             <li className="mb-4">
@@ -50,7 +50,7 @@ const AdminLayout = () => {
                 to="/admin/categories"
                 className="block py-2 px-4 rounded hover:bg-gray-700"
               >
-                Manage Categories
+                Quản lý danh mục
               </Link>
             </li>
             {/* Add more admin links here as needed */}

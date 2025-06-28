@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api'; // Import api instance
 import { Line } from 'react-chartjs-2';
+import { formatChartLabels, getChartOptions } from '../../utils/chartUtils';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -94,42 +95,71 @@ const StatCard = ({ title, value, change, trend, icon, iconBgColor, valueColor, 
 );
 
 const DashboardPage = () => {
-  const [statsHistory, setStatsHistory] = useState({
-    totalUsers: [],
-    totalOrders: [],
-    totalRevenue: [],
-    paidOrders: [],
-    paidRevenue: [],
-    deliveredOrders: [],
+  const [dashboardData, setDashboardData] = useState({
+    current: {
+      totalUsers: 0,
+      totalOrders: 0,
+      totalRevenue: 0,
+      paidOrders: 0,
+      paidRevenue: 0,
+      deliveredOrders: 0,
+      statusStats: {},
+    },
+    history: {
+      totalUsers: [],
+      totalOrders: [],
+      totalRevenue: [],
+      paidOrders: [],
+      paidRevenue: [],
+      deliveredOrders: [],
+    },
+    changes: {},
+    metadata: {
+      hasRealData: false,
+      period: '30 days'
+    }
   });
 
-  // Helper function to calculate percentage change
-  const calculateChange = (current, history) => {
-    if (!history || history.length < 2) return "0%";
-    const previous = history[history.length - 2];
-    const percentChange = ((current - previous) / previous) * 100;
-    return `${percentChange > 0 ? '+' : ''}${percentChange.toFixed(1)}%`;
-  };
-
-  const [dashboardStats, setDashboardStats] = useState({
-    totalUsers: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-    paidOrders: 0,
-    paidRevenue: 0,
-    deliveredOrders: 0,
-    statusStats: {},
-  });
   const [loadingStats, setLoadingStats] = useState(true);
   const [errorStats, setErrorStats] = useState(null);
 
   const [salesData, setSalesData] = useState([]);
   const [loadingSalesData, setLoadingSalesData] = useState(true);
   const [errorSalesData, setErrorSalesData] = useState(null);
+  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
 
   const [recentActivities, setRecentActivities] = useState([]);
   const [loadingRecentActivities, setLoadingRecentActivities] = useState(true);
   const [errorRecentActivities, setErrorRecentActivities] = useState(null);
+
+  // Define fetchSalesData outside useEffect so it can be reused
+  const fetchSalesData = async (period = 'monthly') => {
+    setLoadingSalesData(true);
+    setErrorSalesData(null);
+    try {
+      const response = await api.get(`/orders/salesdata?period=${period}`);
+      const salesDataFromApi = response.data.salesData || [];
+
+      console.log(`Sales Data from API (${period}):`, salesDataFromApi);
+
+      setSalesData(salesDataFromApi);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to fetch sales data';
+      setErrorSalesData(msg);
+      console.error("Error fetching sales data:", err);
+
+      // Set empty array if there's an error
+      setSalesData([]);
+    } finally {
+      setLoadingSalesData(false);
+    }
+  };
+
+  // Handle period change for sales chart
+  const handlePeriodChange = async (newPeriod) => {
+    setSelectedPeriod(newPeriod);
+    await fetchSalesData(newPeriod);
+  };
 
 
   useEffect(() => {
@@ -137,45 +167,14 @@ const DashboardPage = () => {
       try {
         setLoadingStats(true);
         setErrorStats(null);
-        
-        const responses = await Promise.all([
-          api.get('/orders/stats'),
-          api.get('/users'),
-          api.get('/orders/history').catch(() => ({ data: {} }))
-        ]);
 
-        const [orderStatsResponse, usersResponse, historyResponse] = responses;
-        const orderData = orderStatsResponse.data.stats;
-        const userCount = usersResponse.data.count || 0;
-        const historyData = historyResponse.data || {};
+        // Use the new comprehensive dashboard endpoint
+        const response = await api.get('/orders/dashboard-stats?days=7'); // Last 7 days for trends
+        const data = response.data.data;
 
-        // Generate mock data for fallback
-        const generateMockTrend = (current, count = 7) => {
-          const variation = current * 0.1; // 10% variation
-          return Array(count).fill(0).map(() => 
-            Math.max(0, current + (Math.random() - 0.5) * variation)
-          );
-        };
+        console.log('Dashboard API Response:', data);
 
-        // Set history data with real data or fallback to mock data
-        setStatsHistory({
-          totalUsers: historyData.usersHistory?.length ? historyData.usersHistory : generateMockTrend(userCount),
-          totalOrders: historyData.ordersHistory?.length ? historyData.ordersHistory : generateMockTrend(orderData.totalOrders || 0),
-          totalRevenue: historyData.revenueHistory?.length ? historyData.revenueHistory : generateMockTrend(orderData.totalRevenue || 0),
-          paidOrders: historyData.paidOrdersHistory?.length ? historyData.paidOrdersHistory : generateMockTrend(orderData.paidOrders || 0),
-          paidRevenue: historyData.paidRevenueHistory?.length ? historyData.paidRevenueHistory : generateMockTrend(orderData.paidRevenue || 0),
-          deliveredOrders: historyData.deliveredOrdersHistory?.length ? historyData.deliveredOrdersHistory : generateMockTrend(orderData.deliveredOrders || 0),
-        });
-
-        setDashboardStats({
-          totalUsers: userCount,
-          totalOrders: orderData.totalOrders || 0,
-          totalRevenue: orderData.totalRevenue || 0,
-          paidOrders: orderData.paidOrders || 0,
-          paidRevenue: orderData.paidRevenue || 0,
-          deliveredOrders: orderData.deliveredOrders || 0,
-          statusStats: orderData.statusStats || {},
-        });
+        setDashboardData(data);
 
       } catch (err) {
         const msg = err.response?.data?.message || err.message || 'Failed to fetch dashboard stats';
@@ -186,27 +185,12 @@ const DashboardPage = () => {
       }
     };
 
-    const fetchSalesData = async () => {
-      setLoadingSalesData(true);
-      setErrorSalesData(null);
-      try {
-        const response = await api.get('/orders/salesdata');
-        setSalesData(response.data.salesData);
-      } catch (err) {
-        const msg = err.response?.data?.message || err.message || 'Failed to fetch sales data';
-        setErrorSalesData(msg);
-        console.error("Error fetching sales data:", err);
-      } finally {
-        setLoadingSalesData(false);
-      }
-    };
-
     const fetchRecentActivities = async () => {
       setLoadingRecentActivities(true);
       setErrorRecentActivities(null);
       try {
         const [recentOrdersResponse, recentUsersResponse] = await Promise.all([
-          api.get('/orders?limit=10'), // Assuming a limit parameter is supported or fetch all and limit on frontend
+          api.get('/orders?limit=10'),
           api.get('/users/recent')
         ]);
 
@@ -228,7 +212,7 @@ const DashboardPage = () => {
 
         const combinedActivities = [...recentOrders, ...recentUsers].sort((a, b) => b.date - a.date);
 
-        setRecentActivities(combinedActivities.slice(0, 10)); // Display top 10 recent activities
+        setRecentActivities(combinedActivities.slice(0, 10));
 
       } catch (err) {
         const msg = err.response?.data?.message || err.message || 'Failed to fetch recent activities';
@@ -239,19 +223,24 @@ const DashboardPage = () => {
       }
     };
 
-
     fetchDashboardData();
-    fetchSalesData();
+    fetchSalesData(selectedPeriod);
     fetchRecentActivities();
   }, []);
 
+  // Helper function to format percentage change from backend
+  const formatChange = (changeValue) => {
+    if (changeValue === 0) return "0%";
+    return `${changeValue > 0 ? '+' : ''}${changeValue.toFixed(1)}%`;
+  };
+
   const statCardsData = [
     {
-      title: "Total Users",
-      value: dashboardStats.totalUsers.toLocaleString(),
-      change: calculateChange(dashboardStats.totalUsers, statsHistory.totalUsers),
+title: "Tổng người dùng",
+      value: dashboardData.current.totalUsers.toLocaleString(),
+      change: formatChange(dashboardData.changes.totalUsers || 0),
       trend: {
-        data: statsHistory.totalUsers,
+        data: dashboardData.history.totalUsers || [],
         color: '#3B82F6'  // blue-500
       },
       icon: (
@@ -264,11 +253,11 @@ const DashboardPage = () => {
       loading: loadingStats,
     },
     {
-      title: "Total Orders",
-      value: dashboardStats.totalOrders.toLocaleString(),
-      change: calculateChange(dashboardStats.totalOrders, statsHistory.totalOrders),
+title: "Tổng đơn hàng",
+      value: dashboardData.current.totalOrders.toLocaleString(),
+      change: formatChange(dashboardData.changes.totalOrders || 0),
       trend: {
-        data: statsHistory.totalOrders,
+        data: dashboardData.history.totalOrders || [],
         color: '#22C55E'  // green-500
       },
       icon: (
@@ -281,14 +270,14 @@ const DashboardPage = () => {
       loading: loadingStats,
     },
     {
-      title: "Total Revenue",
+title: "Tổng doanh thu",
       value: new Intl.NumberFormat('vi-VN', {
         style: 'currency',
         currency: 'VND'
-      }).format(dashboardStats.totalRevenue || 0),
-      change: calculateChange(dashboardStats.totalRevenue, statsHistory.totalRevenue),
+      }).format(dashboardData.current.totalRevenue || 0),
+      change: formatChange(dashboardData.changes.totalRevenue || 0),
       trend: {
-        data: statsHistory.totalRevenue,
+        data: dashboardData.history.totalRevenue || [],
         color: '#A855F7'  // purple-500
       },
       icon: (
@@ -301,14 +290,14 @@ const DashboardPage = () => {
       loading: loadingStats,
     },
     {
-      title: "Paid Revenue",
+title: "Doanh thu đã thanh toán",
       value: new Intl.NumberFormat('vi-VN', {
         style: 'currency',
         currency: 'VND'
-      }).format(dashboardStats.paidRevenue || 0),
-      change: calculateChange(dashboardStats.paidRevenue, statsHistory.paidRevenue),
+      }).format(dashboardData.current.paidRevenue || 0),
+      change: formatChange(dashboardData.changes.paidRevenue || 0),
       trend: {
-        data: statsHistory.paidRevenue,
+        data: dashboardData.history.paidRevenue || [],
         color: '#14B8A6'  // teal-500
       },
       icon: (
@@ -321,15 +310,15 @@ const DashboardPage = () => {
       loading: loadingStats,
     },
     {
-      title: "Paid Orders",
-      value: (dashboardStats.paidOrders || 0).toLocaleString(),
-      change: calculateChange(dashboardStats.paidOrders, statsHistory.paidOrders),
+title: "Đơn hàng đã thanh toán",
+      value: (dashboardData.current.paidOrders || 0).toLocaleString(),
+      change: formatChange(dashboardData.changes.paidOrders || 0),
       trend: {
-        data: statsHistory.paidOrders,
+        data: dashboardData.history.paidOrders || [],
         color: '#06B6D4'  // cyan-500
       },
       icon: (
-         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
@@ -338,11 +327,11 @@ const DashboardPage = () => {
       loading: loadingStats,
     },
     {
-      title: "Delivered Orders",
-      value: (dashboardStats.deliveredOrders || 0).toLocaleString(),
-      change: calculateChange(dashboardStats.deliveredOrders, statsHistory.deliveredOrders),
+title: "Đơn hàng đã giao",
+      value: (dashboardData.current.deliveredOrders || 0).toLocaleString(),
+      change: formatChange(dashboardData.changes.deliveredOrders || 0),
       trend: {
-        data: statsHistory.deliveredOrders,
+        data: dashboardData.history.deliveredOrders || [],
         color: '#84CC16'  // lime-500
       },
       icon: (
@@ -358,191 +347,47 @@ const DashboardPage = () => {
     },
   ];
 
-    const salesChartData = {
-      labels: salesData.map(data => `${data._id.month}/${data._id.year}`),
-      datasets: [
-        {
-          label: 'Revenue',
-          data: salesData.map(data => data.totalSales),
-          fill: true,
-          backgroundColor: 'rgba(75, 192, 192, 0.1)',
-          borderColor: 'rgb(75, 192, 192)',
-          tension: 0.4,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          pointBackgroundColor: 'rgb(75, 192, 192)',
-          pointHoverBackgroundColor: 'rgb(75, 192, 192)',
-          pointBorderColor: '#fff',
-          pointHoverBorderColor: '#fff',
-          pointBorderWidth: 2,
-          yAxisID: 'y'
-        },
-        {
-          label: 'Orders',
-          data: salesData.map(data => data.orderCount || 0),
-          fill: true,
-          backgroundColor: 'rgba(54, 162, 235, 0.1)',
-          borderColor: 'rgb(54, 162, 235)',
-          tension: 0.4,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          pointBackgroundColor: 'rgb(54, 162, 235)',
-          pointHoverBackgroundColor: 'rgb(54, 162, 235)',
-          pointBorderColor: '#fff',
-          pointHoverBorderColor: '#fff',
-          pointBorderWidth: 2,
-          yAxisID: 'y1'
-        }
-      ],
-    };
-
-    const salesChartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: {
-        duration: 1000,
-        easing: 'easeInOutQuart'
+  // Create chart data using utility functions
+  const salesChartData = {
+    labels: formatChartLabels(salesData, selectedPeriod),
+    datasets: [
+      {
+label: 'Doanh thu',
+        data: salesData.map(data => data.totalSales),
+        fill: true,
+        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.4,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: 'rgb(75, 192, 192)',
+        pointHoverBackgroundColor: 'rgb(75, 192, 192)',
+        pointBorderColor: '#fff',
+        pointHoverBorderColor: '#fff',
+        pointBorderWidth: 2,
+        yAxisID: 'y'
       },
-      interaction: {
-        mode: 'index',
-        intersect: false,
-      },
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: {
-            usePointStyle: true,
-            padding: 20,
-            font: {
-              size: 12,
-              weight: '600'
-            }
-          }
-        },
-        title: {
-          display: true,
-          text: 'Monthly Sales Overview',
-          font: {
-            size: 16,
-            weight: 'bold'
-          },
-          padding: {
-            bottom: 30
-          }
-        },
-        tooltip: {
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          titleColor: '#000',
-          titleFont: {
-            size: 13,
-            weight: 'bold'
-          },
-          bodyColor: '#666',
-          bodyFont: {
-            size: 12
-          },
-          borderColor: '#ddd',
-          borderWidth: 1,
-          padding: 12,
-          usePointStyle: true,
-          callbacks: {
-            label: function(context) {
-              let label = context.dataset.label || '';
-              if (label) {
-                label += ': ';
-              }
-              if (context.dataset.label === 'Revenue') {
-                label += new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'VND'
-                }).format(context.parsed.y);
-              } else {
-                label += context.parsed.y;
-              }
-              return label;
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          type: 'linear',
-          display: true,
-          position: 'left',
-          beginAtZero: true,
-          grid: {
-            drawBorder: false,
-            color: 'rgba(0, 0, 0, 0.05)'
-          },
-          title: {
-            display: true,
-            text: 'Revenue (VNĐ)',
-            color: 'rgb(75, 192, 192)',
-            font: {
-              size: 12,
-              weight: '600'
-            },
-            padding: {
-              bottom: 10
-            }
-          },
-          ticks: {
-            color: 'rgb(75, 192, 192)',
-            callback: function(value) {
-              return new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND'
-              }).format(value);
-            },
-            maxTicksLimit: 8
-          }
-        },
-        y1: {
-          type: 'linear',
-          display: true,
-          position: 'right',
-          beginAtZero: true,
-          grid: {
-            display: false
-          },
-          title: {
-            display: true,
-            text: 'Orders',
-            color: 'rgb(54, 162, 235)',
-            font: {
-              size: 12,
-              weight: '600'
-            }
-          },
-          ticks: {
-            color: 'rgb(54, 162, 235)',
-            stepSize: Math.ceil(Math.max(...salesData.map(data => data.orderCount || 0)) / 8),
-            maxTicksLimit: 8
-          }
-        },
-        x: {
-          grid: {
-            display: false
-          },
-          title: {
-            display: true,
-            text: 'Month/Year',
-            font: {
-              size: 12,
-              weight: '600'
-            },
-            padding: {
-              top: 10
-            }
-          },
-          ticks: {
-            maxTicksLimit: 12,
-            maxRotation: 45,
-            minRotation: 45
-          }
-        }
+      {
+label: 'Đơn hàng',
+        data: salesData.map(data => data.orderCount || 0),
+        fill: true,
+        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+        borderColor: 'rgb(54, 162, 235)',
+        tension: 0.4,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: 'rgb(54, 162, 235)',
+        pointHoverBackgroundColor: 'rgb(54, 162, 235)',
+        pointBorderColor: '#fff',
+        pointHoverBorderColor: '#fff',
+        pointBorderWidth: 2,
+        yAxisID: 'y1'
       }
-    };
+    ],
+  };
+
+  // Use utility function for chart options
+  const salesChartOptions = getChartOptions(selectedPeriod, salesData);
 
   const formatActivityTime = (timestamp) => {
     const now = new Date();
@@ -564,11 +409,34 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-semibold text-gray-800">Admin Dashboard</h1>
+      <div className="flex items-center justify-between">
+<h1 className="text-3xl font-semibold text-gray-800">Bảng điều khiển quản trị</h1>
+
+        {/* Data source indicator */}
+        <div className="flex items-center space-x-2">
+          {dashboardData.metadata.hasRealData ? (
+            <div className="flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              Dữ liệu thực tế
+            </div>
+          ) : (
+            <div className="flex items-center px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+              Dữ liệu demo
+            </div>
+          )}
+          <div className="flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
+            </svg>
+            Giai đoạn: {dashboardData.metadata.period}
+          </div>
+        </div>
+      </div>
 
       {(errorStats || errorSalesData || errorRecentActivities) && (
         <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
-          <span className="font-medium">Error!</span> {errorStats || errorSalesData || errorRecentActivities}
+          <span className="font-medium">Lỗi!</span> {errorStats || errorSalesData || errorRecentActivities}
         </div>
       )}
 
@@ -594,33 +462,48 @@ const DashboardPage = () => {
         {/* Sales Overview Chart */}
         <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-700">Sales Overview</h2>
+            <div className="flex items-center space-x-3">
+              <h2 className="text-xl font-semibold text-gray-700">Sales Overview</h2>
+              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium capitalize">
+                {selectedPeriod}
+              </span>
+            </div>
             <div className="flex gap-2">
-              <select 
+              <select
                 className="px-3 py-1 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onChange={(e) => {
-                  // Placeholder for time period filter
-                  console.log(e.target.value);
-                }}
+                value={selectedPeriod}
+                onChange={(e) => handlePeriodChange(e.target.value)}
+                disabled={loadingSalesData}
               >
-                <option value="monthly">Monthly</option>
-                <option value="weekly">Weekly</option>
-                <option value="yearly">Yearly</option>
+<option value="monthly">Tháng</option>
+<option value="weekly">Tuần</option>
+<option value="yearly">Năm</option>
               </select>
-              <button 
-                className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <button
+                className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loadingSalesData || salesData.length === 0}
                 onClick={() => {
-                  // Placeholder for export functionality
-                  console.log('Export clicked');
+                  // Export functionality
+                  const dataStr = JSON.stringify(salesData, null, 2);
+                  const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                  const url = URL.createObjectURL(dataBlob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `sales-data-${selectedPeriod}-${new Date().toISOString().split('T')[0]}.json`;
+                  link.click();
+                  URL.revokeObjectURL(url);
                 }}
               >
-                Export
+Xuất dữ liệu
               </button>
             </div>
           </div>
           {loadingSalesData ? (
             <div className="h-64 bg-gray-200 rounded-md flex items-center justify-center animate-pulse">
-              <p className="text-gray-500">Loading sales data...</p>
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+<p className="text-gray-500">Đang tải dữ liệu doanh số {selectedPeriod}...</p>
+              </div>
             </div>
           ) : salesData.length > 0 ? (
             <div className="h-64">
@@ -628,21 +511,26 @@ const DashboardPage = () => {
             </div>
           ) : (
             <div className="h-64 bg-gray-100 rounded-md flex items-center justify-center">
-              <p className="text-gray-500">No sales data available.</p>
+              <div className="text-center">
+                <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+<p className="text-gray-500">Không có dữ liệu doanh số {selectedPeriod}.</p>
+              </div>
             </div>
           )}
         </div>
 
         {/* Recent Activity */}
         <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Recent Activity</h2>
+<h2 className="text-xl font-semibold text-gray-700 mb-4">Hoạt động gần đây</h2>
           {loadingRecentActivities ? (
-             <div className="space-y-3 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-             </div>
+            <div className="space-y-3 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            </div>
           ) : recentActivities.length > 0 ? (
             <ul className="space-y-3">
               {recentActivities.map((activity, index) => (
@@ -654,7 +542,7 @@ const DashboardPage = () => {
             </ul>
           ) : (
             <div className="h-full bg-gray-100 rounded-md flex items-center justify-center">
-              <p className="text-gray-500">No recent activity.</p>
+<p className="text-gray-500">Không có hoạt động gần đây.</p>
             </div>
           )}
           {/* <button className="mt-4 w-full text-blue-600 hover:text-blue-800 font-medium text-sm">

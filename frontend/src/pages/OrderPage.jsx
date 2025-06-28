@@ -22,7 +22,7 @@ function OrderPage() {
         const { data } = await getOrderById(id);
         setOrder(data.order);
       } catch (error) {
-        toast.error('Error fetching order');
+        toast.error('Lỗi khi lấy thông tin đơn hàng');
       }
     };
     fetchOrder();
@@ -44,7 +44,7 @@ function OrderPage() {
           console.log("Transaction reference:", txnRef);
           const { data } = await checkVNPayPayment(location.search);
           if (data.success) {
-            toast.success('Payment successful!');
+            toast.success('Thanh toán thành công!');
 
             // Refresh order data to get updated payment status
             const { data: orderData } = await getOrderById(id);
@@ -70,7 +70,7 @@ function OrderPage() {
             // Remove query params from URL
             navigate(location.pathname, { replace: true });
           } else {
-            toast.error(`Payment failed: ${data.message || 'Unknown error'}`);
+            toast.error(`Thanh toán thất bại: ${data.message || 'Lỗi không xác định'}`);
             console.error("Payment failure details:", data);
 
             // For specific error conditions, redirect to error page
@@ -80,7 +80,7 @@ function OrderPage() {
           }
         } catch (error) {
           console.error("Error checking payment:", error);
-          toast.error('Error checking payment status');
+          toast.error('Lỗi khi kiểm tra trạng thái thanh toán');
         }
       };
       checkPayment();
@@ -97,11 +97,11 @@ function OrderPage() {
       }
     } catch (error) {
       console.error("VNPay error details:", error.response?.data || error.message);
-      toast.error('Error creating payment URL');
+      toast.error('Lỗi khi tạo liên kết thanh toán');
     }
   }; const handleCancelOrder = async () => {
     try {
-      if (window.confirm('Are you sure you want to cancel this order?')) {
+      if (window.confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
         setCancelingOrder(true);
 
         // Lưu couponCode trước khi gọi API hủy đơn
@@ -109,7 +109,7 @@ function OrderPage() {
         const couponCode = order?.couponCode;
 
         const { data } = await cancelOrder(id);
-        toast.success('Order cancelled successfully');
+        toast.success('Hủy đơn hàng thành công');
 
         // Refresh order data
         const { data: orderData } = await getOrderById(id);
@@ -164,7 +164,7 @@ function OrderPage() {
         }
       }
     } catch (error) {
-      toast.error('Error cancelling order');
+      toast.error('Lỗi khi hủy đơn hàng');
       console.error("Error details:", error);
     } finally {
       setCancelingOrder(false);
@@ -205,6 +205,23 @@ function OrderPage() {
     }
   };
 
+  const getStatusLabel = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'pending':
+        return 'Chờ xác nhận';
+      case 'processing':
+        return 'Đang xử lý';
+      case 'shipped':
+        return 'Đang giao hàng';
+      case 'delivered':
+        return 'Đã giao';
+      case 'cancelled':
+        return 'Đã hủy';
+      default:
+        return 'Không xác định';
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -239,7 +256,7 @@ function OrderPage() {
           className="flex items-center gap-2 text-gray-300 hover:text-gray-100 mb-6 transition-colors"
         >
           <FaArrowLeft />
-          <span>Back to Orders</span>
+          <span>Quay lại danh sách đơn hàng</span>
         </button>
 
         <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 overflow-hidden">
@@ -248,11 +265,11 @@ function OrderPage() {
               <div className="flex items-center gap-3">
                 {getStatusIcon(order.status)}
                 <h1 className="text-2xl font-bold text-gray-100">
-                  Order #{order._id.slice(-8).toUpperCase()}
+                  Đơn hàng #{order._id.slice(-8).toUpperCase()}
                 </h1>
               </div>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                {order.status}
+                {getStatusLabel(order.status)}
               </span>
             </div>
           </div>
@@ -262,7 +279,7 @@ function OrderPage() {
               <div className="bg-gray-700 rounded-lg p-4 mb-6">
                 <div className="flex items-center gap-2 text-lg font-semibold text-gray-100 mb-4">
                   <FaShoppingBag className="text-blue-400" />
-                  <h2>Order Items</h2>
+                  <h2>Sản phẩm trong đơn</h2>
                 </div>
                 <div className="space-y-4">
                   {order.orderItems.map((item) => (
@@ -289,38 +306,40 @@ function OrderPage() {
               <div className="bg-gray-700 rounded-lg p-4 mb-6">
                 <div className="flex items-center gap-2 text-lg font-semibold text-gray-100 mb-4">
                   <FaCreditCard className="text-blue-400" />
-                  <h2>Payment Details</h2>
+                  <h2>Thông tin thanh toán</h2>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between text-gray-300">
-                    <span>Payment Status:</span>
+                    <span>Trạng thái thanh toán:</span>
                     <span className={`font-medium ${order.isPaid ? 'text-green-400' : 'text-red-400'}`}>
-                      {order.isPaid ? 'Paid' : 'Unpaid'}
+                      {order.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}
                     </span>
                   </div>
                   {order.isPaid && (
                     <div className="flex justify-between text-gray-300">
-                      <span>Paid At:</span>
+                      <span>Thời gian thanh toán:</span>
                       <span>{formatDate(order.paidAt)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-gray-300">
-                    <span>Payment Method:</span>
+                    <span>Phương thức thanh toán:</span>
                     <span>{order.paymentMethod}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-lg mt-4 text-gray-200">
-                    <span>Total:</span>
+                    <span>Tổng tiền:</span>
                     <span className="text-blue-400">{formatPrice(order.totalPrice)}</span>
-                  </div>                  {!order.isPaid && order.status !== 'Cancelled' && order.paymentMethod === 'VNPay' && (
+                  </div>
+                  {!order.isPaid && order.status !== 'Cancelled' && order.paymentMethod === 'VNPay' && (
                     <button
                       onClick={handleVNPayPayment}
                       className="w-full mt-4 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 
                                transition-colors flex items-center justify-center gap-2"
                     >
                       <FaCreditCard />
-                      <span>Pay with VNPay</span>
+                      <span>Thanh toán qua VNPay</span>
                     </button>
-                  )}                  {/* Nút hủy đơn hàng - chỉ hiển thị khi đơn chưa thanh toán, chưa vận chuyển và chưa bị hủy */}
+                  )}
+                  {/* Nút hủy đơn hàng - chỉ hiển thị khi đơn chưa thanh toán, chưa vận chuyển và chưa bị hủy */}
                   {!order.isPaid && order.status !== 'Shipped' && order.status !== 'Delivered' && order.status !== 'Cancelled' && (
                     <button
                       onClick={handleCancelOrder}
@@ -331,34 +350,35 @@ function OrderPage() {
                       {cancelingOrder ? (
                         <>
                           <span className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>
-                          <span className="ml-2">Processing...</span>
+                          <span className="ml-2">Đang xử lý...</span>
                         </>
                       ) : (
                         <>
                           <FaBan />
-                          <span>Cancel Order</span>
+                          <span>Hủy đơn hàng</span>
                         </>
                       )}
                     </button>
                   )}
                 </div>
-              </div>              {/* Cancel Order section removed to avoid duplication - only showing the cancel button in Payment Details section */}
+              </div>
+              {/* Cancel Order section removed to avoid duplication - only showing the cancel button in Payment Details section */}
 
               <div className="bg-gray-700 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-lg font-semibold text-gray-100 mb-4">
                   <FaMapMarkerAlt className="text-blue-400" />
-                  <h2>Shipping Details</h2>
+                  <h2>Thông tin giao hàng</h2>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between text-gray-300">
-                    <span>Delivery Status:</span>
+                    <span>Trạng thái giao hàng:</span>
                     <span className={`font-medium ${order.isDelivered ? 'text-green-400' : 'text-yellow-400'}`}>
-                      {order.isDelivered ? 'Delivered' : 'Pending'}
+                      {order.isDelivered ? 'Đã giao' : 'Chờ giao'}
                     </span>
                   </div>
                   {order.isDelivered && (
                     <div className="flex justify-between text-gray-300">
-                      <span>Delivered At:</span>
+                      <span>Thời gian giao hàng:</span>
                       <span>{formatDate(order.deliveredAt)}</span>
                     </div>
                   )}

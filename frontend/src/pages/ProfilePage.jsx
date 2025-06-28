@@ -46,7 +46,7 @@ function ProfilePage() {
         });
         dataLoadedRef.current.profile = true;
       } catch (error) {
-        toast.error('Error fetching profile');
+        toast.error('Lỗi khi lấy thông tin hồ sơ');
         console.error('Profile fetch error:', error);
       }
     };
@@ -59,7 +59,7 @@ function ProfilePage() {
         setMyReviews(data.reviews);
         dataLoadedRef.current.reviews = true;
       } catch (error) {
-        toast.error('Error fetching reviews');
+        toast.error('Lỗi khi lấy đánh giá');
         console.error('Reviews fetch error:', error);
       }
     };
@@ -93,7 +93,7 @@ function ProfilePage() {
         dataLoadedRef.current.wishlist = true;
       } catch (error) {
         console.error('Error fetching wishlist:', error);
-        toast.error('Error loading wishlist');
+        toast.error('Lỗi khi tải danh sách yêu thích');
       } finally {
         setLoadingWishlist(false);
       }
@@ -109,7 +109,7 @@ function ProfilePage() {
   const handleRemoveFromWishlist = async (productId) => {
     try {
       await removeFromWishlist(productId);
-      toast.success('Removed from wishlist');
+      toast.success('Đã xóa khỏi danh sách yêu thích');
 
       // Remove product from local state immediately for UI responsiveness
       setWishlistProducts(prev => prev.filter(item => item._id !== productId));
@@ -119,7 +119,7 @@ function ProfilePage() {
       dispatch(updateWishlist(updatedWishlistIds));
       dispatch(setWishlist(updatedWishlistIds));
     } catch (error) {
-      toast.error('Error removing from wishlist');
+      toast.error('Lỗi khi xóa khỏi danh sách yêu thích');
       console.error('Wishlist removal error:', error);
     }
   };
@@ -155,22 +155,19 @@ function ProfilePage() {
             </svg>
           </div>
           <h1 className="text-4xl font-bold text-gray-100 mb-2">
-            Welcome back, {profileData.name || userInfo.name || 'User'}!
+            Chào mừng bạn trở lại, {profileData.name || userInfo.name || 'User'}!
           </h1>
           <p className="text-gray-400 text-lg">
-            Manage your profile, addresses, and preferences
+            Quản lý hồ sơ, địa chỉ và sở thích của bạn
           </p>
         </div>
 
-        {/* Navigation Tabs (Optional Enhancement) */}
+        {/* Navigation Tabs */}
         <div className="flex justify-center mb-8">
           <div className="bg-gray-800/50 rounded-lg p-1 backdrop-blur-sm border border-gray-700">
             <div className="flex space-x-1">
-              <button className="px-4 py-2 text-sm font-medium text-blue-400 bg-blue-500/20 rounded-md">
-                Profile Info
-              </button>
-              <button className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-gray-300 rounded-md">
-                Quick Overview
+              <button className="px-4 py-2 text-sm font-medium text-blue-400 bg-blue-500/20 rounded-md cursor-default">
+                Thông tin hồ sơ
               </button>
             </div>
           </div>
@@ -204,22 +201,23 @@ function ProfilePage() {
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700 text-center">
             <div className="text-2xl font-bold text-blue-400">{wishlistProducts.length}</div>
-            <div className="text-gray-400 text-sm">Wishlist Items</div>
+            <div className="text-gray-400 text-sm">Sản phẩm trong danh sách yêu thích</div>
           </div>
           <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700 text-center">
             <div className="text-2xl font-bold text-green-400">{myReviews.length}</div>
-            <div className="text-gray-400 text-sm">Reviews Written</div>
+            <div className="text-gray-400 text-sm">Đánh giá đã viết</div>
           </div>
           <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700 text-center">
             <div className="text-2xl font-bold text-purple-400">
               {profileData.name && profileData.email ? '100%' : '50%'}
             </div>
-            <div className="text-gray-400 text-sm">Profile Complete</div>
+            <div className="text-gray-400 text-sm">Hoàn thành hồ sơ</div>
           </div>
         </div>
       </div>
     </div>
   );
+
 }
 
 export default ProfilePage;

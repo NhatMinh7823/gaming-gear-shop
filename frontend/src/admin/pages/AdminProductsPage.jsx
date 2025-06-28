@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import api, { getProducts, getCategories } from '../../services/api';
 
 const AdminProductsPage = () => {
   const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -15,10 +17,41 @@ const AdminProductsPage = () => {
   const [filterCategory, setFilterCategory] = useState('');
   const [categories, setCategories] = useState([]);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const searchTimeout = useRef(null);
 
   useEffect(() => {
-    fetchProducts();
+    if (!searchTerm) {
+      fetchProducts();
+    }
+    // eslint-disable-next-line
   }, [currentPage, sortField, sortDirection, filterCategory]);
+
+  // Fetch all products when searchTerm changes (debounced)
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (searchTerm) {
+      setSearchLoading(true);
+      searchTimeout.current = setTimeout(async () => {
+        try {
+          const response = await getProducts({
+            page: 1,
+            limit: 10000, // lấy tối đa 10.000 sản phẩm
+            sort: `${sortDirection === 'desc' ? '-' : ''}${sortField}`,
+            category: filterCategory,
+          });
+          setAllProducts(response.data.products || []);
+          setError(null);
+        } catch (err) {
+          setError(err.response?.data?.message || err.message || 'Failed to fetch products');
+        } finally {
+          setSearchLoading(false);
+        }
+      }, 350); // debounce 350ms
+    } else {
+      setAllProducts([]);
+    }
+    // eslint-disable-next-line
+  }, [searchTerm, sortField, sortDirection, filterCategory]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -102,7 +135,7 @@ const AdminProductsPage = () => {
 
   // Client-side filtering only when search term is used
   const filteredProducts = searchTerm
-    ? products.filter(product =>
+    ? allProducts.filter(product =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.brand.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -121,7 +154,7 @@ const AdminProductsPage = () => {
       {/* Header Section */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Product Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Quản lý sản phẩm</h1>
           <Link
             to="/admin/products/new"
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-150"
@@ -129,7 +162,7 @@ const AdminProductsPage = () => {
             <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            Add New Product
+            Thêm sản phẩm mới
           </Link>
         </div>
 
@@ -138,7 +171,7 @@ const AdminProductsPage = () => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Tìm kiếm sản phẩm..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -153,7 +186,7 @@ const AdminProductsPage = () => {
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
           >
-            <option value="">All Categories</option>
+            <option value="">Tất cả danh mục</option>
             {categories.map((category) => (
               <option key={category._id} value={category.slug}>
                 {category.name}
@@ -166,7 +199,7 @@ const AdminProductsPage = () => {
               onClick={handleBulkDelete}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-150"
             >
-              Delete Selected ({selectedProducts.length})
+              Xóa đã chọn ({selectedProducts.length})
             </button>
           )}
         </div>
@@ -180,17 +213,17 @@ const AdminProductsPage = () => {
       )}
 
       {/* Loading State */}
-      {loading && products.length === 0 ? (
+      {(searchTerm ? searchLoading : loading) && filteredProducts.length === 0 ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
-      ) : products.length === 0 ? (
+      ) : filteredProducts.length === 0 ? (
         <div className="text-center py-12">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No products found</h3>
-          <p className="mt-1 text-sm text-gray-500">Get started by creating a new product.</p>
+<h3 className="mt-2 text-sm font-medium text-gray-900">Không tìm thấy sản phẩm nào</h3>
+<p className="mt-1 text-sm text-gray-500">Bắt đầu bằng cách tạo sản phẩm mới.</p>
         </div>
       ) : (
         <>
@@ -209,19 +242,19 @@ const AdminProductsPage = () => {
                       />
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('name')}>
-                      Product Info <SortIcon field="name" />
+                      Thông tin sản phẩm <SortIcon field="name" />
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('price')}>
-                      Price <SortIcon field="price" />
+                      Giá <SortIcon field="price" />
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('stock')}>
-                      Stock <SortIcon field="stock" />
+                      Tồn kho <SortIcon field="stock" />
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
+                      Trạng thái
                     </th>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                      Thao tác
                     </th>
                   </tr>
                 </thead>
@@ -265,12 +298,12 @@ const AdminProductsPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.stock > 10 ? 'bg-green-100 text-green-800' :
-                            product.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
+                          product.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
                           }`}>
-                          {product.stock > 10 ? 'In Stock' :
-                            product.stock > 0 ? 'Low Stock' :
-                              'Out of Stock'}
+                          {product.stock > 10 ? 'Còn hàng' :
+                            product.stock > 0 ? 'Sắp hết hàng' :
+                              'Hết hàng'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -278,13 +311,13 @@ const AdminProductsPage = () => {
                           to={`/admin/products/edit/${product._id}`}
                           className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
                         >
-                          Edit
+                          Sửa
                         </Link>
                         <button
                           onClick={() => handleDeleteProduct(product._id)}
                           className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-red-600 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                         >
-                          Delete
+                          Xóa
                         </button>
                       </td>
                     </tr>
@@ -295,34 +328,32 @@ const AdminProductsPage = () => {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {!searchTerm && totalPages > 1 && (
             <div className="px-6 py-4 border-t bg-white rounded-b-lg">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <p className="text-sm text-gray-500">
-                  Showing {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, products.length)} of {products.length} products
+<p className="text-sm text-gray-500">
+                  Hiển thị {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, products.length)} trên tổng số {products.length} sản phẩm
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   <button
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
-                      currentPage === 1
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
-                    First
+                    Đầu
                   </button>
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
-                      currentPage === 1
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
-                    Previous
+                    Trước
                   </button>
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum;
@@ -340,11 +371,10 @@ const AdminProductsPage = () => {
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
-                          currentPage === pageNum
-                            ? 'bg-indigo-600 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${currentPage === pageNum
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
                       >
                         {pageNum}
                       </button>
@@ -353,24 +383,22 @@ const AdminProductsPage = () => {
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
-                      currentPage === totalPages
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
-                    Next
+                    Sau
                   </button>
                   <button
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${
-                      currentPage === totalPages
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    className={`px-3 py-1 text-sm font-semibold rounded-lg transition-all ${currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
-                    Last
+                    Cuối
                   </button>
                 </div>
                 <select

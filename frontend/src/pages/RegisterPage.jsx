@@ -82,11 +82,11 @@ function RegisterPage() {
       <div className="max-w-md w-full space-y-8 relative">        <div className="text-center">
         <h2 className="mt-6 text-4xl font-extrabold text-gray-100 tracking-wider">
           <span className="bg-gradient-to-r from-purple-500 to-blue-500 text-transparent bg-clip-text">
-            JOIN THE SQUAD
+            Tham gia vào đội của chúng tôi
           </span>
         </h2>
         <p className="mt-2 text-sm text-gray-400">
-          Create your gaming gear account
+          Tạo tài khoản gaming gear của bạn để nhận ưu đãi, cập nhật và nhiều hơn nữa!
         </p>
       </div>
 
@@ -131,7 +131,7 @@ function RegisterPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Email Address
+                Địa chỉ Email
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -152,7 +152,7 @@ function RegisterPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Password
+                Mật khẩu
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -170,7 +170,7 @@ function RegisterPage() {
                 />
               </div>
               <p className="mt-1 text-xs text-gray-400">
-                Password must be at least 6 characters
+                Mật khẩu phải có ít nhất 6 ký tự
               </p>
             </div>
 
@@ -183,7 +183,7 @@ function RegisterPage() {
                 required
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-400">
-                I agree to the <span className="text-purple-400 hover:text-purple-300 cursor-pointer">Terms</span> and <span className="text-purple-400 hover:text-purple-300 cursor-pointer">Privacy Policy</span>
+                Tôi đồng ý với <span className="text-purple-400 hover:text-purple-300 cursor-pointer">Điều khoản</span> và <span className="text-purple-400 hover:text-purple-300 cursor-pointer">Chính sách bảo mật</span>
               </label>
             </div>
 
@@ -206,18 +206,18 @@ function RegisterPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Creating Account...
+                    Đang tạo tài khoản...
                   </>
-                ) : 'Create Your Account'}
+                ) : 'Tạo tài khoản của bạn'}
               </button>
             </div>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-400">
-              Already have an account?{' '}
+              Bạn đã có tài khoản?{' '}
               <Link to="/login" className="font-medium text-purple-400 hover:text-purple-300 transition-colors">
-                Sign in
+                Đăng nhập
               </Link>
             </p>
           </div>

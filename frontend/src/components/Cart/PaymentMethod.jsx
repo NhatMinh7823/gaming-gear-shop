@@ -6,7 +6,7 @@ const PaymentMethod = ({ paymentMethod, onPaymentMethodChange, shippingAddress }
     <div className="space-y-6">
       <div className="bg-gray-800 p-6 rounded-xl shadow-sm">
         <h2 className="text-xl font-semibold text-gray-100 mb-6 pb-4 border-b border-gray-700">
-          Payment Method
+          Phương thức thanh toán
         </h2>
         <div className="space-y-4">
           <div
@@ -29,7 +29,7 @@ const PaymentMethod = ({ paymentMethod, onPaymentMethodChange, shippingAddress }
               <FaRegCreditCard className="h-6 w-6 text-blue-500 mr-2" />
               <div>
                 <span className="font-medium text-gray-100 block">VNPay</span>
-                <span className="text-xs text-gray-400">Pay securely with VNPay</span>
+                <span className="text-xs text-gray-400">Thanh toán an toàn qua VNPay</span>
               </div>
               <div className="bg-blue-600 text-white py-1 px-3 rounded-full text-xs ml-auto">
                 Recommended
@@ -56,8 +56,8 @@ const PaymentMethod = ({ paymentMethod, onPaymentMethodChange, shippingAddress }
             <label htmlFor="cod" className="ml-3 flex items-center cursor-pointer">
               <FaMoneyBillWave className="h-6 w-6 text-green-500 mr-2" />
               <div>
-                <span className="font-medium text-gray-100 block">Cash on Delivery</span>
-                <span className="text-xs text-gray-400">Pay when you receive</span>
+                <span className="font-medium text-gray-100 block">Thanh toán khi nhận hàng</span>
+                <span className="text-xs text-gray-400">Thanh toán khi nhận hàng</span>
               </div>
             </label>
           </div>
@@ -66,12 +66,12 @@ const PaymentMethod = ({ paymentMethod, onPaymentMethodChange, shippingAddress }
 
       <div className="bg-gray-800 p-6 rounded-xl shadow-sm">
         <h2 className="text-xl font-semibold text-gray-100 mb-4 pb-3 border-b border-gray-700">
-          Review Order
+          Xem lại đơn hàng
         </h2>
         <div className="mb-6 space-y-4">
           <div>
             <h3 className="font-medium text-gray-100 mb-2 text-sm uppercase tracking-wider">
-              Shipping Information
+              Thông tin giao hàng
             </h3>
             <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
               <div className="space-y-2">

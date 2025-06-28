@@ -9,7 +9,7 @@ function ReviewsSection({ reviews, onReviewsUpdate }) {
   return (
     <div className="bg-gray-800 shadow-lg rounded-lg p-8">
       <h2 className="text-2xl font-bold mb-6 text-gray-100 border-b border-gray-700 pb-4">
-        My Reviews
+        Đánh giá của bạn
       </h2>
       
       {reviews.length === 0 ? (
@@ -27,15 +27,15 @@ function EmptyReviews() {
       <div className="mb-4">
         <FaStar className="mx-auto h-16 w-16 text-gray-600 mb-4" />
       </div>
-      <p className="mb-4 text-lg">You haven't written any reviews yet.</p>
+      <p className="mb-4 text-lg">Bạn chưa viết đánh giá nào.</p>
       <p className="text-sm text-gray-500 mb-4">
-        Share your experience with products you've purchased
+        Chia sẻ trải nghiệm của bạn với các sản phẩm đã mua. Đánh giá của bạn sẽ giúp cộng đồng mua sắm và cải thiện chất lượng sản phẩm.
       </p>
       <Link 
         to="/products" 
         className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
       >
-        Browse products to review
+        Xem thêm sản phẩm để đánh giá
       </Link>
     </div>
   );
@@ -105,25 +105,25 @@ function ReviewItem({ review, onReviewsUpdate }) {
       const { data } = await updateReview(review._id, editData);
       onReviewsUpdate(data.review);
       setIsEditing(false);
-      toast.success('Review updated successfully');
+      toast.success('Đánh giá đã được cập nhật thành công');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error updating review');
+      toast.error(error.response?.data?.message || 'Lỗi khi cập nhật đánh giá');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this review?')) {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa đánh giá này không?')) {
       return;
     }
 
     try {
       await deleteReview(review._id);
       onReviewsUpdate(null, review._id); // Pass null for updated review, reviewId for deletion
-      toast.success('Review deleted successfully');
+      toast.success('Đánh giá đã được xóa thành công');
     } catch (error) {
-      toast.error('Error deleting review');
+      toast.error('Lỗi khi xóa đánh giá');
     }
   };
 
@@ -182,7 +182,7 @@ function EditReviewForm({ editData, setEditData, onSubmit, onCancel, isSubmittin
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <label className="block text-gray-200 text-sm font-bold mb-2">
-          Rating
+          Đánh giá
         </label>
         <StarRatingInput
           rating={editData.rating}
@@ -193,7 +193,7 @@ function EditReviewForm({ editData, setEditData, onSubmit, onCancel, isSubmittin
       
       <div>
         <label className="block text-gray-200 text-sm font-bold mb-2">
-          Title
+          Tiêu đề đánh giá
         </label>
         <input
           type="text"
@@ -208,7 +208,7 @@ function EditReviewForm({ editData, setEditData, onSubmit, onCancel, isSubmittin
       
       <div>
         <label className="block text-gray-200 text-sm font-bold mb-2">
-          Comment
+          Nội dung đánh giá
         </label>
         <textarea
           value={editData.comment}
@@ -216,7 +216,7 @@ function EditReviewForm({ editData, setEditData, onSubmit, onCancel, isSubmittin
           disabled={isSubmitting}
           className="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-100 bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500 disabled:opacity-50"
           rows="4"
-          placeholder="Write your review here"
+          placeholder="Viết đánh giá của bạn ở đây"
           required
         />
       </div>
@@ -228,14 +228,14 @@ function EditReviewForm({ editData, setEditData, onSubmit, onCancel, isSubmittin
           disabled={isSubmitting}
           className="bg-gray-600 text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors disabled:opacity-50"
         >
-          Cancel
+          Hủy
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
           className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'Saving...' : 'Save Changes'}
+          {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
         </button>
       </div>
     </form>
@@ -252,7 +252,7 @@ function StarRating({ rating }) {
         />
       ))}
       <span className="text-sm text-gray-400 ml-2">
-        ({rating}/5 stars)
+        ({rating}/5 sao)
       </span>
     </div>
   );
@@ -286,14 +286,14 @@ function ReviewActions({ onEdit, onDelete }) {
       <button
         onClick={onEdit}
         className="text-blue-400 hover:text-blue-300 p-2 rounded-full hover:bg-gray-600 transition-colors"
-        title="Edit review"
+        title="Chỉnh sửa đánh giá"
       >
         <FaEdit />
       </button>
       <button
         onClick={onDelete}
         className="text-red-400 hover:text-red-300 p-2 rounded-full hover:bg-gray-600 transition-colors"
-        title="Delete review"
+        title="Xóa đánh giá"
       >
         <FaTrash />
       </button>
@@ -302,3 +302,4 @@ function ReviewActions({ onEdit, onDelete }) {
 }
 
 export default ReviewsSection;
+  

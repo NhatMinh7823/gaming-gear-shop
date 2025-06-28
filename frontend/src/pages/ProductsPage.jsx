@@ -49,7 +49,7 @@ function ProductsPage() {
         const { data } = await getCategories();
         setCategories(data.categories);
       } catch (error) {
-        toast.error('Error fetching categories');
+        toast.error('Lỗi khi lấy danh mục');
       }
     };
     fetchCategories();
@@ -146,8 +146,7 @@ function ProductsPage() {
 
         dispatch(setProductAction(data));
       } catch (error) {
-        console.error('Error fetching products:', error);
-        toast.error('Error fetching products');
+        toast.error('Lỗi khi lấy sản phẩm');
       } finally {
         setLoading(false);
       }
@@ -306,11 +305,11 @@ function ProductsPage() {
   return (
     <div className="container mx-auto py-8 px-4 bg-gray-900">
       <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white rounded-2xl p-8 mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4">Gaming Products</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-4">Sản phẩm Gaming</h1>
         <p className="text-blue-100 text-lg">
           {isSearching
-            ? `Showing search results for "${searchParams.get('keyword')}"`
-            : 'Browse our collection of high-quality gaming gear'}
+            ? `Hiển thị kết quả tìm kiếm cho "${searchParams.get('keyword')}"`
+            : 'Khám phá bộ sưu tập thiết bị chơi game chất lượng cao của chúng tôi'}
         </p>
       </div>
 
@@ -329,7 +328,7 @@ function ProductsPage() {
                 </div>
               )}
             </div>
-            <span className="font-medium">Filters & Search</span>
+            <span className="font-medium">Bộ lọc & Tìm kiếm</span>
           </div>
           <FaSlidersH className={`w-5 h-5 transition-transform duration-200 ${expandFilters ? 'rotate-180' : ''}`} />
         </button>
@@ -350,7 +349,7 @@ function ProductsPage() {
                     </div>
                   )}
                 </div>
-                <h3 className="text-lg font-bold text-white">Filters</h3>
+                <h3 className="text-lg font-bold text-white">Bộ lọc</h3>
               </div>
               {filterCount > 0 && (
                 <button
@@ -358,7 +357,7 @@ function ProductsPage() {
                   className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-medium transition-colors duration-200 bg-red-900/20 px-2 py-1 rounded-md hover:bg-red-900/30"
                 >
                   <FaTimes className="w-3 h-3" />
-                  <span>Clear</span>
+                  <span>Xóa</span>
                 </button>
               )}
             </div>
@@ -367,7 +366,7 @@ function ProductsPage() {
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <FaSearch className="text-blue-400 text-sm" />
-                <label className="font-medium text-gray-200 text-sm">Search</label>
+                <label className="font-medium text-gray-200 text-sm">Tìm kiếm</label>
               </div>
               <form onSubmit={handleSearch} className="relative">
                 <div className="relative">
@@ -375,7 +374,7 @@ function ProductsPage() {
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search products..."
+                    placeholder="Tìm sản phẩm..."
                     className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 pl-9 pr-10 
                              text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 
                              transition-all duration-200 hover:border-gray-500 text-sm"
@@ -425,7 +424,7 @@ function ProductsPage() {
                 <div>
                   <div className="flex items-center gap-1 mb-1">
                     <FaTags className="text-blue-400 text-xs" />
-                    <label className="font-medium text-gray-200 text-xs">Category</label>
+                    <label className="font-medium text-gray-200 text-xs">Danh mục</label>
                   </div>
                   <select
                     value={category}
@@ -434,7 +433,7 @@ function ProductsPage() {
                              focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
                              hover:border-gray-500 appearance-none cursor-pointer"
                   >
-                    <option value="">All</option>
+                    <option value="">Tất cả</option>
                     {categories.map((cat) => (
                       <option key={cat._id} value={cat._id}>{cat.name}</option>
                     ))}
@@ -444,7 +443,7 @@ function ProductsPage() {
                 <div>
                   <div className="flex items-center gap-1 mb-1">
                     <FaBoxOpen className="text-blue-400 text-xs" />
-                    <label className="font-medium text-gray-200 text-xs">Stock</label>
+                    <label className="font-medium text-gray-200 text-xs">Kho hàng</label>
                   </div>
                   <select
                     value={stockStatus}
@@ -453,10 +452,10 @@ function ProductsPage() {
                              focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
                              hover:border-gray-500 appearance-none cursor-pointer"
                   >
-                    <option value="">All</option>
-                    <option value="in_stock">In Stock</option>
-                    <option value="low_stock">Low Stock</option>
-                    <option value="out_of_stock">Out of Stock</option>
+                    <option value="">Tất cả</option>
+                    <option value="in_stock">Còn hàng</option>
+                    <option value="low_stock">Sắp hết hàng</option>
+                    <option value="out_of_stock">Hết hàng</option>
                   </select>
                 </div>
               </div>
@@ -465,7 +464,7 @@ function ProductsPage() {
               <div>
                 <div className="flex items-center gap-1 mb-2">
                   <FaDollarSign className="text-blue-400 text-xs" />
-                  <label className="font-medium text-gray-200 text-xs">Price Range</label>
+                  <label className="font-medium text-gray-200 text-xs">Khoảng giá</label>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="relative">
@@ -473,7 +472,7 @@ function ProductsPage() {
                       type="number"
                       value={minPrice}
                       onChange={(e) => setMinPrice(e.target.value)}
-                      placeholder="Min"
+                      placeholder="Tối thiểu"
                       className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
                                focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
                                hover:border-gray-500 placeholder-gray-400"
@@ -484,7 +483,7 @@ function ProductsPage() {
                       type="number"
                       value={maxPrice}
                       onChange={(e) => setMaxPrice(e.target.value)}
-                      placeholder="Max"
+                      placeholder="Tối đa"
                       className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
                                focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
                                hover:border-gray-500 placeholder-gray-400"
@@ -498,13 +497,13 @@ function ProductsPage() {
                 <div>
                   <div className="flex items-center gap-1 mb-1">
                     <FaShoppingBag className="text-blue-400 text-xs" />
-                    <label className="font-medium text-gray-200 text-xs">Brand</label>
+                    <label className="font-medium text-gray-200 text-xs">Thương hiệu</label>
                   </div>
                   <input
                     type="text"
                     value={brand}
                     onChange={(e) => setBrand(e.target.value)}
-                    placeholder="Brand"
+                    placeholder="Thương hiệu"
                     className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
                              focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
                              hover:border-gray-500 placeholder-gray-400"
@@ -514,7 +513,7 @@ function ProductsPage() {
                 <div>
                   <div className="flex items-center gap-1 mb-1">
                     <FaSort className="text-blue-400 text-xs" />
-                    <label className="font-medium text-gray-200 text-xs">Sort</label>
+                    <label className="font-medium text-gray-200 text-xs">Sắp xếp</label>
                   </div>
                   <select
                     value={sort}
@@ -523,10 +522,10 @@ function ProductsPage() {
                              focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
                              hover:border-gray-500 appearance-none cursor-pointer"
                   >
-                    <option value="-createdAt">Newest</option>
-                    <option value="price">Price ↑</option>
-                    <option value="-price">Price ↓</option>
-                    <option value="-averageRating">Top Rated</option>
+                    <option value="-createdAt">Mới nhất</option>
+                    <option value="price">Giá tăng dần</option>
+                    <option value="-price">Giá giảm dần</option>
+                    <option value="-averageRating">Đánh giá cao</option>
                   </select>
                 </div>
               </div>
@@ -541,44 +540,44 @@ function ProductsPage() {
                        flex items-center justify-center gap-2 border border-blue-500/20 mb-3"
             >
               <FaCheckCircle className="w-3 h-3" />
-              <span>Apply Filters</span>
+              <span>Áp dụng bộ lọc</span>
             </button>
 
             {/* Active Filters Display */}
             {filterCount > 0 && (
               <div className="pt-3 border-t border-gray-700">
                 <div className="flex items-center gap-1 mb-2">
-                  <span className="text-xs font-medium text-gray-300">Active:</span>
+                  <span className="text-xs font-medium text-gray-300">Đang áp dụng:</span>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {searchParams.has('keyword') && (
                     <span className="inline-flex items-center gap-1 bg-blue-600/20 text-blue-300 px-1.5 py-0.5 rounded text-xs">
                       <FaSearch className="w-2 h-2" />
-                      Search
+                      Tìm kiếm
                     </span>
                   )}
                   {category && (
                     <span className="inline-flex items-center gap-1 bg-green-600/20 text-green-300 px-1.5 py-0.5 rounded text-xs">
                       <FaTags className="w-2 h-2" />
-                      Category
+                      Danh mục
                     </span>
                   )}
                   {(minPrice || maxPrice) && (
                     <span className="inline-flex items-center gap-1 bg-yellow-600/20 text-yellow-300 px-1.5 py-0.5 rounded text-xs">
                       <FaDollarSign className="w-2 h-2" />
-                      Price
+                      Giá
                     </span>
                   )}
                   {brand && (
                     <span className="inline-flex items-center gap-1 bg-purple-600/20 text-purple-300 px-1.5 py-0.5 rounded text-xs">
                       <FaShoppingBag className="w-2 h-2" />
-                      Brand
+                      Thương hiệu
                     </span>
                   )}
                   {stockStatus && (
                     <span className="inline-flex items-center gap-1 bg-orange-600/20 text-orange-300 px-1.5 py-0.5 rounded text-xs">
                       <FaBoxOpen className="w-2 h-2" />
-                      Stock
+                      Kho hàng
                     </span>
                   )}
                   {searchParams.get('performanceTier') && (
@@ -626,22 +625,22 @@ function ProductsPage() {
               <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl shadow-lg p-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center text-white border border-gray-600">
                 <div className="mb-3 sm:mb-0">
                   <p className="text-gray-300">
-                    Showing <span className="font-semibold text-blue-400">{products.length}</span> results
-                    {isSearching && <span> for "<span className="font-semibold text-blue-400">{searchParams.get('keyword')}</span>"</span>}
+                    Hiển thị <span className="font-semibold text-blue-400">{products.length}</span> kết quả
+                    {isSearching && <span> cho "<span className="font-semibold text-blue-400">{searchParams.get('keyword')}</span>"</span>}
                   </p>
                 </div>
                 <div className="flex items-center w-full sm:w-auto">
-                  <label className="hidden sm:inline mr-2 text-gray-400">Sort:</label>
+                  <label className="hidden sm:inline mr-2 text-gray-400">Sắp xếp:</label>
                   <select
                     value={sort}
                     onChange={handleSortChange}
                     className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 w-full sm:w-auto 
                              focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white transition-all duration-200"
                   >
-                    <option value="-createdAt">Newest First</option>
-                    <option value="price">Price: Low to High</option>
-                    <option value="-price">Price: High to Low</option>
-                    <option value="-averageRating">Highest Rated</option>
+                    <option value="-createdAt">Mới nhất</option>
+                    <option value="price">Giá tăng dần</option>
+                    <option value="-price">Giá giảm dần</option>
+                    <option value="-averageRating">Đánh giá cao</option>
                   </select>
                 </div>
               </div>
@@ -720,17 +719,17 @@ function ProductsPage() {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <h3 className="text-lg font-semibold text-white mb-2">No products found</h3>
+              <h3 className="text-lg font-semibold text-white mb-2">Không tìm thấy sản phẩm</h3>
               <p className="text-gray-300 mb-4">
                 {isSearching
-                  ? `We couldn't find any products matching "${searchParams.get('keyword')}"`
-                  : "There are no products matching your selected filters."}
+                  ? `Không tìm thấy sản phẩm nào phù hợp với "${searchParams.get('keyword')}"`
+                  : "Không có sản phẩm nào phù hợp với bộ lọc bạn đã chọn."}
               </p>
               <button
                 onClick={clearFilters}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
               >
-                Clear Filters
+                Xóa bộ lọc
               </button>
             </div>
           )}
@@ -741,3 +740,4 @@ function ProductsPage() {
 }
 
 export default ProductsPage;
+

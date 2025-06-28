@@ -1,12 +1,12 @@
 import React from 'react';
 
-const OrderSummary = ({ 
-  cartItems, 
-  totalPrice, 
+const OrderSummary = ({
+  cartItems,
+  totalPrice,
   shippingFee = 0,
   discountAmount = 0,
   couponCode = null,
-  isFreeship = false 
+  isFreeship = false
 }) => {
   const TAX_PRICE = 10000;
   const finalShippingFee = isFreeship ? 0 : shippingFee;
@@ -17,7 +17,7 @@ const OrderSummary = ({
       <h2 className="text-xl font-semibold text-gray-100 mb-4 pb-3 border-b border-gray-700">
         Tóm tắt đơn hàng
       </h2>
-      
+
       <div className="space-y-4">
         {/* Cart Items */}
         {cartItems.map((item) => (

@@ -19,7 +19,7 @@ function VNPayResult() {
         const { data } = await checkVNPayPayment(location.search);
         setResult(data);
         if (data.success) {
-          toast.success('Payment successful!');          // Cập nhật thông tin người dùng để lấy trạng thái coupon mới nhất
+          toast.success('Thanh toán thành công!');          // Cập nhật thông tin người dùng để lấy trạng thái coupon mới nhất
           if (userInfo) {
             try {
               const profileResponse = await getProfile();
@@ -57,11 +57,11 @@ function VNPayResult() {
             navigate(`/order/${data.orderId}`);
           }, 3000);
         } else {
-          toast.error(data.message || 'Payment failed');
+          toast.error(data.message || 'Thanh toán thất bại');
         }
       } catch (error) {
-        toast.error('Error checking payment status');
-        setResult({ success: false, message: 'Error checking payment status' });
+        toast.error('Lỗi khi kiểm tra trạng thái thanh toán');
+        setResult({ success: false, message: 'Lỗi khi kiểm tra trạng thái thanh toán' });
       } finally {
         setLoading(false);
       }
@@ -79,7 +79,7 @@ function VNPayResult() {
     return (
       <div className="container mx-auto py-8 text-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
-        <p className="mt-4 text-xl">Checking payment status...</p>
+        <p className="mt-4 text-xl">Đang kiểm tra trạng thái thanh toán...</p>
       </div>
     );
   }
@@ -92,17 +92,17 @@ function VNPayResult() {
           {result?.success ? (
             <>
               <div className="text-green-500 text-5xl mb-4">✓</div>
-              <h2 className="text-2xl font-bold text-green-700 mb-4">Payment Successful</h2>
+              <h2 className="text-2xl font-bold text-green-700 mb-4">Thanh toán thành công</h2>
               <p className="text-green-600 mb-4">
-                Your payment has been processed successfully. You will be redirected to your order page shortly.
+                Giao dịch của bạn đã được xử lý thành công. Bạn sẽ được chuyển đến trang đơn hàng trong giây lát.
               </p>
             </>
           ) : (
             <>
               <div className="text-red-500 text-5xl mb-4">×</div>
-              <h2 className="text-2xl font-bold text-red-700 mb-4">Payment Failed</h2>
+              <h2 className="text-2xl font-bold text-red-700 mb-4">Thanh toán thất bại</h2>
               <p className="text-red-600 mb-4">
-                {result?.message || 'There was an error processing your payment.'}
+                {result?.message || 'Đã xảy ra lỗi khi xử lý thanh toán.'}
               </p>
             </>
           )}
@@ -111,7 +111,7 @@ function VNPayResult() {
             onClick={() => navigate('/orders')}
             className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors"
           >
-            View Orders
+            Xem danh sách đơn hàng
           </button>
         </div>
       </div>

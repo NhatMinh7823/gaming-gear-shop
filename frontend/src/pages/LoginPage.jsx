@@ -30,13 +30,13 @@ function LoginPage() {
           dispatch(setWishlist(wishlistIds));
         }
       } catch (error) {
-        console.error('Failed to load wishlist:', error);
+        console.error('Không thể tải danh sách yêu thích:', error);
       }
 
       navigate('/');
-      toast.success('Login successful! Welcome back, gamer!');
+      toast.success('Đăng nhập thành công! Chào mừng bạn quay trở lại!');
     } catch (error) {
-      toast.error('Login failed! Check your credentials and try again.');
+      toast.error('Đăng nhập thất bại! Vui lòng kiểm tra thông tin và thử lại.');
     } finally {
       setLoading(false);
     }
@@ -54,11 +54,11 @@ function LoginPage() {
         <div className="text-center">
           <h2 className="mt-6 text-4xl font-extrabold text-gray-100 tracking-wider">
             <span className="bg-gradient-to-r from-blue-400 to-purple-600 text-transparent bg-clip-text">
-              GAMER SIGN-IN
+              ĐĂNG NHẬP GAME THỦ
             </span>
           </h2>
           <p className="mt-2 text-sm text-gray-400">
-            Access your gaming gear account
+            Truy cập tài khoản Gaming Gear của bạn
           </p>
         </div>
 
@@ -79,7 +79,7 @@ function LoginPage() {
                   className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg 
                            bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 
                            focus:border-transparent shadow-sm"
-                  placeholder="Enter your email"
+                  placeholder="Nhập email của bạn"
                   required
                 />
               </div>
@@ -87,7 +87,7 @@ function LoginPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Password
+                Mật khẩu
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -100,7 +100,7 @@ function LoginPage() {
                   className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg 
                            bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 
                            focus:border-transparent shadow-sm"
-                  placeholder="Enter your password"
+                  placeholder="Nhập mật khẩu"
                   required
                 />
               </div>
@@ -115,13 +115,13 @@ function LoginPage() {
                   className="h-4 w-4 bg-gray-700 border-gray-600 rounded accent-blue-500 focus:ring-blue-500"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-400">
-                  Remember me
+                  Ghi nhớ đăng nhập
                 </label>
               </div>
 
               <div className="text-sm">
                 <Link to="/forgot-password" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
-                  Forgot your password?
+                  Quên mật khẩu?
                 </Link>
               </div>
             </div>
@@ -145,18 +145,18 @@ function LoginPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Processing...
+                    Đang xử lý...
                   </>
-                ) : 'Sign in to your account'}
+                ) : 'Đăng nhập'}
               </button>
             </div>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-400">
-              Don't have an account?{' '}
+              Chưa có tài khoản?{' '}
               <Link to="/register" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
-                Sign up now
+                Đăng ký ngay
               </Link>
             </p>
           </div>
@@ -164,7 +164,7 @@ function LoginPage() {
 
         <div className="text-center mt-4">
           <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} Gaming Gear Shop. All rights reserved.
+            &copy; {new Date().getFullYear()} Gaming Gear Shop. Đã đăng ký bản quyền.
           </p>
         </div>
       </div>

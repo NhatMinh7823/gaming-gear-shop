@@ -15,7 +15,7 @@ function WishlistSection({
           <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center mr-4">
             <FaHeart className="text-white text-xl" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-100">My Wishlist</h2>
+          <h2 className="text-2xl font-bold text-gray-100">Danh sách yêu thích</h2>
         </div>
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
@@ -31,11 +31,11 @@ function WishlistSection({
           <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center mr-4">
             <FaHeart className="text-white text-xl" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-100">My Wishlist</h2>
+          <h2 className="text-2xl font-bold text-gray-100">Danh sách yêu thích</h2>
         </div>
         {wishlistProducts && wishlistProducts.length > 0 && (
           <div className="bg-gray-700/50 px-3 py-1 rounded-full text-sm text-gray-300">
-            {wishlistProducts.length} {wishlistProducts.length === 1 ? 'item' : 'items'}
+            {wishlistProducts.length} {wishlistProducts.length === 1 ? 'sản phẩm' : 'sản phẩm'}
           </div>
         )}
       </div>
@@ -60,16 +60,16 @@ function EmptyWishlist() {
           <FaHeart className="h-10 w-10 text-gray-500" />
         </div>
       </div>
-      <h3 className="text-xl font-semibold text-gray-200 mb-2">Your wishlist is empty</h3>
+      <h3 className="text-xl font-semibold text-gray-200 mb-2">Danh sách yêu thích của bạn đang trống</h3>
       <p className="text-gray-400 mb-6 max-w-md mx-auto">
-        Discover amazing products and add them to your wishlist to keep track of your favorites
+        Khám phá các sản phẩm tuyệt vời và thêm chúng vào danh sách yêu thích của bạn để theo dõi những sản phẩm yêu thích
       </p>
       <Link 
         to="/products" 
         className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800"
       >
         <FaShoppingCart className="mr-2" />
-        Browse Products
+        Xem sản phẩm
       </Link>
     </div>
   );
@@ -157,7 +157,7 @@ function ProductRating({ rating = 0, numReviews = 0 }) {
         ))}
       </div>
       <span className="text-sm text-gray-400 ml-2">
-        ({numReviews} reviews)
+        ({numReviews} đánh giá)
       </span>
     </div>
   );
@@ -188,7 +188,7 @@ function ProductPrice({ product }) {
 
 function ProductActions({ productId, onRemoveFromWishlist }) {
   const handleRemove = () => {
-    if (window.confirm('Are you sure you want to remove this item from your wishlist?')) {
+    if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi danh sách yêu thích?')) {
       onRemoveFromWishlist(productId);
     }
   };
@@ -198,7 +198,7 @@ function ProductActions({ productId, onRemoveFromWishlist }) {
       <button
         onClick={handleRemove}
         className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 transition-all duration-200 transform hover:scale-110"
-        title="Remove from wishlist"
+        title="Xóa khỏi danh sách yêu thích"
       >
         <FaTrash className="text-sm" />
       </button>
@@ -206,7 +206,7 @@ function ProductActions({ productId, onRemoveFromWishlist }) {
       <Link
         to={`/product/${productId}`}
         className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-2 rounded-lg transition-all duration-200 flex items-center justify-center transform hover:scale-110"
-        title="View product"
+        title="Xem sản phẩm"
       >
         <FaShoppingCart className="text-sm" />
       </Link>

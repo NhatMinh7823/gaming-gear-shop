@@ -266,7 +266,7 @@ const HomePage = () => {
         <div className="container mx-auto px-4 h-full flex items-center relative z-20">
           <div className="max-w-xl text-white">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Công Nghệ Hiện Đại Cho Cuộc Sống Thông Minh
+              NHỮNG SẢN PHẨM HÀNG ĐẦU THỊ TRƯỜNG GAMING
             </h1>
             <p className="text-lg mb-8">
               Khám phá bộ sưu tập sản phẩm công nghệ cao cấp mới nhất với thiết

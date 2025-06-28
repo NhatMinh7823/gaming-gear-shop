@@ -20,7 +20,7 @@ function OrdersPage() {
         const { data } = await getMyOrders();
         setOrders(data.orders);
       } catch (error) {
-        toast.error('Error fetching orders');
+        toast.error('Lỗi khi lấy danh sách đơn hàng');
       }
     };
     fetchOrders();
@@ -62,6 +62,23 @@ function OrdersPage() {
     }
   };
 
+  const getStatusLabel = (status) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Chờ xác nhận';
+      case 'processing':
+        return 'Đang xử lý';
+      case 'shipped':
+        return 'Đang giao hàng';
+      case 'delivered':
+        return 'Đã giao';
+      case 'cancelled':
+        return 'Đã hủy';
+      default:
+        return 'Không xác định';
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
       year: 'numeric',
@@ -84,13 +101,13 @@ function OrdersPage() {
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex items-center gap-3 mb-8">
           <FaShoppingBag className="text-3xl text-blue-500" />
-          <h1 className="text-3xl font-bold text-gray-100">My Orders</h1>
+          <h1 className="text-3xl font-bold text-gray-100">Đơn hàng của tôi</h1>
         </div>
 
         {orders.length === 0 ? (
           <div className="text-center py-12 bg-gray-800 rounded-lg">
             <FaBox className="mx-auto text-5xl text-gray-400 mb-4" />
-            <p className="text-xl text-gray-300">No orders found.</p>
+            <p className="text-xl text-gray-300">Không có đơn hàng nào.</p>
           </div>
         ) : (
           <div className="grid gap-6">
@@ -104,11 +121,11 @@ function OrdersPage() {
                     <div className="flex items-center gap-3 mb-3 md:mb-0">
                       {getStatusIcon(order.status)}
                       <h2 className="text-lg font-semibold text-gray-100">
-                        Order #{order._id.slice(-8).toUpperCase()}
+                        Đơn hàng #{order._id.slice(-8).toUpperCase()}
                       </h2>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                      {order.status}
+                      {getStatusLabel(order.status)}
                     </span>
                   </div>
 
@@ -118,7 +135,7 @@ function OrdersPage() {
                       <span>{formatDate(order.createdAt)}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-300">Total:</span>
+                      <span className="font-medium text-gray-300">Tổng tiền:</span>
                       <span className="text-blue-400 font-semibold">{formatPrice(order.totalPrice)}</span>
                     </div>
                   </div>
@@ -128,7 +145,7 @@ function OrdersPage() {
                     className="w-full md:w-auto mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 
                              transition-colors duration-200 flex items-center justify-center gap-2"
                   >
-                    <span>View Details</span>
+                    <span>Xem chi tiết</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                     </svg>

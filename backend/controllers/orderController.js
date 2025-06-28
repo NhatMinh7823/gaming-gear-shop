@@ -407,10 +407,41 @@ exports.deleteOrder = async (req, res) => {
 };
 
 // @desc    Get sales data aggregated by month
-// @route   GET /api/orders/salesdata
+// @desc    Get sales data for charts
+// @route   GET /api/orders/salesdata?period=monthly|weekly|yearly
 // @access  Private/Admin
 exports.getSalesData = async (req, res) => {
   try {
+    const { period = "monthly" } = req.query;
+
+    let groupBy = {};
+    let sortBy = {};
+
+    // Define grouping and sorting based on period
+    switch (period) {
+      case "weekly":
+        groupBy = {
+          year: { $year: "$paidAt" },
+          week: { $week: "$paidAt" },
+        };
+        sortBy = { "_id.year": 1, "_id.week": 1 };
+        break;
+      case "yearly":
+        groupBy = {
+          year: { $year: "$paidAt" },
+        };
+        sortBy = { "_id.year": 1 };
+        break;
+      case "monthly":
+      default:
+        groupBy = {
+          year: { $year: "$paidAt" },
+          month: { $month: "$paidAt" },
+        };
+        sortBy = { "_id.year": 1, "_id.month": 1 };
+        break;
+    }
+
     const salesData = await Order.aggregate([
       {
         $match: {
@@ -419,25 +450,27 @@ exports.getSalesData = async (req, res) => {
       },
       {
         $group: {
-          _id: {
-            year: { $year: "$paidAt" },
-            month: { $month: "$paidAt" },
-          },
+          _id: groupBy,
           totalSales: { $sum: "$totalPrice" },
-          count: { $sum: 1 },
+          orderCount: { $sum: 1 },
         },
       },
       {
-        $sort: {
-          "_id.year": 1,
-          "_id.month": 1,
-        },
+        $sort: sortBy,
       },
     ]);
 
+    // Format the response to include both old and new field names for backward compatibility
+    const formattedSalesData = salesData.map((item) => ({
+      ...item,
+      count: item.orderCount, // Keep old field name for backward compatibility
+      period: period, // Add period info to response
+    }));
+
     res.status(200).json({
       success: true,
-      salesData,
+      period: period,
+      salesData: formattedSalesData,
     });
   } catch (error) {
     console.error("Error in getSalesData:", error);
@@ -454,8 +487,8 @@ exports.getOrderHistory = async (req, res) => {
     const today = new Date();
     const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    // Get daily stats for the last 7 days
-    const dailyStats = await Order.aggregate([
+    // Get daily order stats for the last 7 days
+    const dailyOrderStats = await Order.aggregate([
       {
         $match: {
           createdAt: { $gte: lastWeek },
@@ -486,15 +519,56 @@ exports.getOrderHistory = async (req, res) => {
       { $sort: { _id: 1 } },
     ]);
 
-    // Transform data into arrays
+    // Get daily user registration stats for the last 7 days
+    const User = require("../models/userModel");
+    const dailyUserStats = await User.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: lastWeek },
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          newUsers: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Create a map for user stats
+    const userStatsMap = {};
+    dailyUserStats.forEach((day) => {
+      userStatsMap[day._id] = day.newUsers;
+    });
+
+    // Transform data into arrays, ensuring we have data for all 7 days
     const historyData = {
-      usersHistory: [], // Users will be handled separately
-      ordersHistory: dailyStats.map((day) => day.totalOrders),
-      revenueHistory: dailyStats.map((day) => day.totalRevenue),
-      paidOrdersHistory: dailyStats.map((day) => day.paidOrders),
-      paidRevenueHistory: dailyStats.map((day) => day.paidRevenue),
-      deliveredOrdersHistory: dailyStats.map((day) => day.deliveredOrders),
+      usersHistory: [],
+      ordersHistory: [],
+      revenueHistory: [],
+      paidOrdersHistory: [],
+      paidRevenueHistory: [],
+      deliveredOrdersHistory: [],
     };
+
+    // Fill arrays with data for each day
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+      const dateString = date.toISOString().split("T")[0];
+
+      const orderDay = dailyOrderStats.find((day) => day._id === dateString);
+      const userDay = userStatsMap[dateString] || 0;
+
+      historyData.usersHistory.push(userDay);
+      historyData.ordersHistory.push(orderDay ? orderDay.totalOrders : 0);
+      historyData.revenueHistory.push(orderDay ? orderDay.totalRevenue : 0);
+      historyData.paidOrdersHistory.push(orderDay ? orderDay.paidOrders : 0);
+      historyData.paidRevenueHistory.push(orderDay ? orderDay.paidRevenue : 0);
+      historyData.deliveredOrdersHistory.push(
+        orderDay ? orderDay.deliveredOrders : 0
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -502,6 +576,243 @@ exports.getOrderHistory = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in getOrderHistory:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get order statistics
+// @desc    Get comprehensive dashboard stats with history and calculations
+// @route   GET /api/orders/dashboard-stats
+// @access  Private/Admin
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const { days = 30 } = req.query; // Default to last 30 days for history
+
+    // Calculate date range
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(days));
+
+    // Get current stats
+    const totalOrders = await Order.countDocuments();
+    const paidOrders = await Order.countDocuments({ isPaid: true });
+    const deliveredOrders = await Order.countDocuments({ isDelivered: true });
+    const totalUsers = await User.countDocuments();
+
+    // Get revenue data
+    const revenueAggregation = await Order.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$totalPrice" },
+        },
+      },
+    ]);
+    const totalRevenue =
+      revenueAggregation.length > 0 ? revenueAggregation[0].totalRevenue : 0;
+
+    const paidRevenueAggregation = await Order.aggregate([
+      { $match: { isPaid: true } },
+      {
+        $group: {
+          _id: null,
+          paidRevenue: { $sum: "$totalPrice" },
+        },
+      },
+    ]);
+    const paidRevenue =
+      paidRevenueAggregation.length > 0
+        ? paidRevenueAggregation[0].paidRevenue
+        : 0;
+
+    // Get status stats
+    const statusCounts = await Order.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+    const statusStats = statusCounts.reduce((acc, curr) => {
+      acc[curr._id] = curr.count;
+      return acc;
+    }, {});
+
+    // Get historical data for trends (daily data for the specified period)
+    const historicalData = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+          },
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: "$totalPrice" },
+          paidOrders: {
+            $sum: { $cond: [{ $eq: ["$isPaid", true] }, 1, 0] },
+          },
+          paidRevenue: {
+            $sum: { $cond: [{ $eq: ["$isPaid", true] }, "$totalPrice", 0] },
+          },
+          deliveredOrders: {
+            $sum: { $cond: [{ $eq: ["$isDelivered", true] }, 1, 0] },
+          },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Get user registration history
+    const userHistoricalData = await User.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+          },
+          newUsers: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Create arrays for frontend consumption
+    const createHistoryArray = (
+      historicalData,
+      field,
+      fillMissingDays = true
+    ) => {
+      if (!fillMissingDays) {
+        return historicalData.map((item) => item[field] || 0);
+      }
+
+      // Fill missing days with 0
+      const history = [];
+      const dataMap = historicalData.reduce((acc, item) => {
+        acc[item._id] = item[field] || 0;
+        return acc;
+      }, {});
+
+      for (let i = parseInt(days) - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateString = date.toISOString().split("T")[0];
+        history.push(dataMap[dateString] || 0);
+      }
+
+      return history;
+    };
+
+    // Create cumulative arrays for users (since total users is cumulative)
+    const createCumulativeUserHistory = () => {
+      const history = [];
+      let runningTotal = totalUsers;
+
+      for (let i = parseInt(days) - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateString = date.toISOString().split("T")[0];
+
+        // Find new users for this day
+        const dayData = userHistoricalData.find(
+          (item) => item._id === dateString
+        );
+        const newUsersThisDay = dayData ? dayData.newUsers : 0;
+
+        // For past days, subtract from current total to simulate historical totals
+        if (i > 0) {
+          runningTotal -= newUsersThisDay;
+          history.unshift(Math.max(0, runningTotal));
+        } else {
+          history.push(totalUsers); // Current day
+        }
+      }
+
+      return history.reverse();
+    };
+
+    // Calculate percentage changes
+    const calculateChange = (current, history) => {
+      if (!history || history.length < 2) return 0;
+      const previous = history[history.length - 2];
+
+      if (previous === 0) {
+        return current > 0 ? 100 : 0;
+      }
+
+      if (current === previous) return 0;
+
+      const percentChange = ((current - previous) / previous) * 100;
+      return Math.max(-99.9, Math.min(999.9, percentChange));
+    };
+
+    // Create history arrays
+    const ordersHistory = createHistoryArray(historicalData, "totalOrders");
+    const revenueHistory = createHistoryArray(historicalData, "totalRevenue");
+    const paidOrdersHistory = createHistoryArray(historicalData, "paidOrders");
+    const paidRevenueHistory = createHistoryArray(
+      historicalData,
+      "paidRevenue"
+    );
+    const deliveredOrdersHistory = createHistoryArray(
+      historicalData,
+      "deliveredOrders"
+    );
+    const usersHistory = createCumulativeUserHistory();
+
+    // Calculate changes
+    const changes = {
+      totalUsers: calculateChange(totalUsers, usersHistory),
+      totalOrders: calculateChange(totalOrders, ordersHistory),
+      totalRevenue: calculateChange(totalRevenue, revenueHistory),
+      paidOrders: calculateChange(paidOrders, paidOrdersHistory),
+      paidRevenue: calculateChange(paidRevenue, paidRevenueHistory),
+      deliveredOrders: calculateChange(deliveredOrders, deliveredOrdersHistory),
+    };
+
+    res.status(200).json({
+      success: true,
+      data: {
+        current: {
+          totalUsers,
+          totalOrders,
+          totalRevenue,
+          paidOrders,
+          paidRevenue,
+          deliveredOrders,
+          statusStats,
+        },
+        history: {
+          totalUsers: usersHistory,
+          totalOrders: ordersHistory,
+          totalRevenue: revenueHistory,
+          paidOrders: paidOrdersHistory,
+          paidRevenue: paidRevenueHistory,
+          deliveredOrders: deliveredOrdersHistory,
+        },
+        changes,
+        metadata: {
+          period: `${days} days`,
+          hasRealData: historicalData.length > 0,
+          dataPoints: Math.min(parseInt(days), historicalData.length),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error in getDashboardStats:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",

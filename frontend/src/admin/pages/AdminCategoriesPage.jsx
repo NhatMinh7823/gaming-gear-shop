@@ -15,7 +15,9 @@ const AdminCategoriesPage = () => {
   const [sortOrder, setSortOrder] = useState('asc');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
-  
+  const [deleting, setDeleting] = useState(null); // Track which category is being deleted
+  const [bulkDeleting, setBulkDeleting] = useState(false); // Track bulk delete operation
+
   const itemsPerPage = 10;
 
   const fetchCategories = async (pageNum = page) => {
@@ -42,11 +44,16 @@ const AdminCategoriesPage = () => {
   };
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
+    // Only add delay for search debouncing, not for initial load
+    if (searchTerm) {
+      const delayDebounceFn = setTimeout(() => {
+        fetchCategories(1);
+      }, 500);
+      return () => clearTimeout(delayDebounceFn);
+    } else {
+      // Immediate load for initial load and non-search operations
       fetchCategories(1);
-    }, 500);
-
-    return () => clearTimeout(delayDebounceFn);
+    }
   }, [searchTerm, sortField, sortOrder]);
 
   const handleSort = (field) => {
@@ -84,7 +91,7 @@ const AdminCategoriesPage = () => {
   const handleBulkDelete = async () => {
     if (window.confirm(`Are you sure you want to delete ${selectedCategories.length} categories?`)) {
       try {
-        setLoading(true);
+        setBulkDeleting(true);
         await Promise.all(selectedCategories.map(id => api.delete(`/categories/${id}`)));
         toast.success('Categories deleted successfully');
         setSelectedCategories([]);
@@ -92,14 +99,14 @@ const AdminCategoriesPage = () => {
       } catch (err) {
         toast.error(err.response?.data?.message || 'Failed to delete categories');
       } finally {
-        setLoading(false);
+        setBulkDeleting(false);
       }
     }
   };
 
   const handleDeleteCategory = async (categoryId) => {
     try {
-      setLoading(true);
+      setDeleting(categoryId);
       await api.delete(`/categories/${categoryId}`);
       toast.success('Category deleted successfully');
       setCategories(prevCategories => prevCategories.filter(c => c._id !== categoryId));
@@ -111,7 +118,7 @@ const AdminCategoriesPage = () => {
       console.error("Error deleting category:", err);
       toast.error(err.response?.data?.message || 'Failed to delete category');
     } finally {
-      setLoading(false);
+      setDeleting(null);
     }
   };
 
@@ -173,9 +180,17 @@ const AdminCategoriesPage = () => {
           {selectedCategories.length > 0 && (
             <button
               onClick={handleBulkDelete}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out"
+              disabled={bulkDeleting}
+              className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center"
             >
-              Delete Selected ({selectedCategories.length})
+              {bulkDeleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Deleting...
+                </>
+              ) : (
+                `Delete Selected (${selectedCategories.length})`
+              )}
             </button>
           )}
         </div>
@@ -248,9 +263,8 @@ const AdminCategoriesPage = () => {
               {categories.map((category) => (
                 <tr
                   key={category._id}
-                  className={`hover:bg-gray-50 transition-colors ${
-                    selectedCategories.includes(category._id) ? 'bg-blue-50' : ''
-                  }`}
+                  className={`hover:bg-gray-50 transition-colors ${selectedCategories.includes(category._id) ? 'bg-blue-50' : ''
+                    }`}
                 >
                   <td className="px-6 py-4">
                     <input
@@ -278,9 +292,8 @@ const AdminCategoriesPage = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      category.featured ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-xs ${category.featured ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
                       {category.featured ? 'Featured' : 'Standard'}
                     </span>
                   </td>
@@ -296,9 +309,17 @@ const AdminCategoriesPage = () => {
                         setCategoryToDelete(category);
                         setShowDeleteModal(true);
                       }}
-                      className="text-red-600 hover:text-red-900 ml-3"
+                      disabled={deleting === category._id}
+                      className="text-red-600 hover:text-red-900 ml-3 disabled:text-red-400 disabled:cursor-not-allowed flex items-center"
                     >
-                      Delete
+                      {deleting === category._id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-500 mr-1"></div>
+                          Deleting...
+                        </>
+                      ) : (
+                        'Delete'
+                      )}
                     </button>
                   </td>
                 </tr>
@@ -307,17 +328,19 @@ const AdminCategoriesPage = () => {
           </table>
         </div>
       )}
-      
+
       {/* Pagination */}
       <div className="mt-6 flex justify-center space-x-2">
         <button
-          onClick={() => setPage(p => Math.max(1, p - 1))}
-          disabled={page === 1}
-          className={`px-4 py-2 rounded-lg ${
-            page === 1
+          onClick={() => {
+            setPage(p => Math.max(1, p - 1));
+            fetchCategories(Math.max(1, page - 1));
+          }}
+          disabled={page === 1 || loading}
+          className={`px-4 py-2 rounded-lg ${page === 1 || loading
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
+            }`}
         >
           Previous
         </button>
@@ -325,13 +348,15 @@ const AdminCategoriesPage = () => {
           Page {page} of {totalPages}
         </span>
         <button
-          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-          disabled={page === totalPages}
-          className={`px-4 py-2 rounded-lg ${
-            page === totalPages
+          onClick={() => {
+            setPage(p => Math.min(totalPages, p + 1));
+            fetchCategories(Math.min(totalPages, page + 1));
+          }}
+          disabled={page === totalPages || loading}
+          className={`px-4 py-2 rounded-lg ${page === totalPages
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
+            }`}
         >
           Next
         </button>

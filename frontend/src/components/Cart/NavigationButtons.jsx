@@ -19,13 +19,13 @@ const NavigationButtons = ({
               className="flex-1 py-3 px-4 border border-gray-300 text-gray-200 hover:bg-gray-700 font-medium rounded-lg transition duration-300 flex items-center justify-center"
             >
               <FaArrowLeft className="mr-2" />
-              Continue Shopping
+              Tiếp tục mua sắm
             </Link>
             <button
               onClick={onNextStep}
               className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-300 flex items-center justify-center"
             >
-              Continue to Shipping
+              Tiếp tục đến giao hàng
               <FaArrowRight className="ml-2" />
             </button>
           </>
@@ -39,13 +39,13 @@ const NavigationButtons = ({
               className="flex-1 py-3 px-4 border border-gray-300 text-gray-200 hover:bg-gray-700 font-medium rounded-lg transition duration-300 flex items-center justify-center"
             >
               <FaArrowLeft className="mr-2" />
-              Back to Cart
+              Quay lại giỏ hàng
             </button>
             <button
               onClick={onNextStep}
               className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-300 flex items-center justify-center"
             >
-              Continue to Payment
+              Tiếp tục đến thanh toán
               <FaArrowRight className="ml-2" />
             </button>
           </>
@@ -59,7 +59,7 @@ const NavigationButtons = ({
               className="flex-1 py-3 px-4 border border-gray-300 text-gray-200 hover:bg-gray-700 font-medium rounded-lg transition duration-300 flex items-center justify-center"
             >
               <FaArrowLeft className="mr-2" />
-              Back to Shipping
+              Quay lại giao hàng
             </button>
             <button
               onClick={onCheckout}
@@ -72,11 +72,11 @@ const NavigationButtons = ({
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Processing...
+                  Đang xử lý...
                 </>
               ) : (
                 <>
-                  Place Order
+                  Đặt hàng
                   <FaArrowRight className="ml-2" />
                 </>
               )}
