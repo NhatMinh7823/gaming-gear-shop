@@ -22,7 +22,7 @@ const UserEditPage = () => {
         setRole(response.data.user.role);
         setError(null);
       } catch (err) {
-        setError(err.response?.data?.message || err.message || 'Failed to fetch user details');
+        setError(err.response?.data?.message || err.message || 'Không thể tải chi tiết người dùng');
         console.error("Error fetching user:", err);
       } finally {
         setLoading(false);
@@ -42,12 +42,12 @@ const UserEditPage = () => {
 
     try {
       await api.put(`/users/${userId}`, { role }); // Admin update user (role)
-      setSuccessMessage('User role updated successfully!');
+      setSuccessMessage('Cập nhật vai trò người dùng thành công!');
       setTimeout(() => {
         navigate('/admin/users');
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to update user role');
+      setError(err.response?.data?.message || err.message || 'Cập nhật vai trò người dùng thất bại');
       console.error("Error updating user role:", err);
     } finally {
       setLoading(false);
@@ -66,11 +66,11 @@ const UserEditPage = () => {
     return (
       <div className="text-red-500 p-4 bg-red-100 rounded-md flex items-center justify-between">
         <span>Error: {error}</span>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
         >
-          Retry
+          Thử lại
         </button>
       </div>
     );
@@ -82,14 +82,14 @@ const UserEditPage = () => {
         <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
         </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900">User not found</h3>
-        <p className="mt-1 text-sm text-gray-500">The requested user could not be found or there was an error loading their details.</p>
+        <h3 className="mt-2 text-sm font-medium text-gray-900">Không tìm thấy người dùng</h3>
+        <p className="mt-1 text-sm text-gray-500">Không thể tìm thấy người dùng yêu cầu hoặc có lỗi khi tải thông tin chi tiết.</p>
         <div className="mt-6">
           <button
             onClick={() => navigate('/admin/users')}
             className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
           >
-            Back to Users
+            Quay lại danh sách người dùng
           </button>
         </div>
       </div>
@@ -105,15 +105,15 @@ const UserEditPage = () => {
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        Back to Users
+        Quay lại danh sách người dùng
       </button>
 
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
-          <h1 className="text-2xl font-semibold text-gray-800 mb-4">Edit User Role</h1>
+          <h1 className="text-2xl font-semibold text-gray-800 mb-4">Chỉnh sửa vai trò người dùng</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <p className="text-sm text-gray-500">User Details</p>
+              <p className="text-sm text-gray-500">Thông tin người dùng</p>
               <div className="flex items-center space-x-3">
                 <div className="bg-gray-100 p-3 rounded-full">
                   <svg className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,7 +126,7 @@ const UserEditPage = () => {
                 </div>
               </div>
               <div className="mt-2">
-                <p className="text-sm text-gray-500">Current Role</p>
+                <p className="text-sm text-gray-500">Vai trò hiện tại</p>
                 <span className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                   user.role === 'admin' 
                     ? 'bg-purple-100 text-purple-800 border border-purple-200' 
@@ -136,7 +136,7 @@ const UserEditPage = () => {
                 </span>
               </div>
               <div className="mt-2">
-                <p className="text-sm text-gray-500">Member Since</p>
+                <p className="text-sm text-gray-500">Thành viên từ</p>
                 <p className="text-sm text-gray-900">
                   {new Date(user.createdAt).toLocaleDateString('vi-VN', {
                     year: 'numeric',
@@ -174,7 +174,7 @@ const UserEditPage = () => {
               }} className="space-y-4">
                 <div>
                   <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                    New Role
+                    Vai trò mới
                   </label>
                   <div className="mt-1 relative">
                     <select
@@ -185,8 +185,8 @@ const UserEditPage = () => {
                       className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       required
                     >
-                      <option value="user">User</option>
-                      <option value="admin">Admin</option>
+                      <option value="user">Người dùng</option>
+                      <option value="admin">Quản trị viên</option>
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                       <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
@@ -202,7 +202,7 @@ const UserEditPage = () => {
                     onClick={() => navigate('/admin/users')}
                     className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    Cancel
+                    Hủy
                   </button>
                   <button
                     type="submit"
@@ -215,9 +215,9 @@ const UserEditPage = () => {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                         </svg>
-                        Updating...
+                        Đang cập nhật...
                       </>
-                    ) : 'Save Changes'}
+                    ) : 'Lưu thay đổi'}
                   </button>
                 </div>
               </form>

@@ -33,7 +33,7 @@ class WorkflowStateManager {
    * @param {Object} data - Initial workflow data
    */
   initWorkflow(sessionId, type, data = {}) {
-    const workflow = {
+    const workflow = { // về mặt kỹ thuật workflow là một object chứa các thông tin để 
       id: `${sessionId}_${Date.now()}`,
       sessionId,
       type,

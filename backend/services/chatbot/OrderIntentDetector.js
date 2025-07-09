@@ -182,17 +182,19 @@ class OrderIntentDetector {
    * Check for confirmation intent in order flow
    */
   static checkConfirmationIntent(normalizedMessage, context) {
-    // Check for cancellation FIRST - should work even without needsConfirmation
-    for (const keyword of this.CANCEL_KEYWORDS) {
-      if (normalizedMessage === keyword || 
-          normalizedMessage.startsWith(keyword) ||
-          normalizedMessage.endsWith(keyword)) {
-        return this.createIntentResult(
-          'ORDER_CANCELLATION', 
-          0.95, 
-          true, 
-          `Order cancellation: "${keyword}"`
-        );
+    // Only check for cancellation if in order flow or needs confirmation
+    if (context.isInOrderFlow || context.needsConfirmation) {
+      for (const keyword of this.CANCEL_KEYWORDS) {
+        if (normalizedMessage === keyword || 
+            normalizedMessage.startsWith(keyword) ||
+            normalizedMessage.endsWith(keyword)) {
+          return this.createIntentResult(
+            'ORDER_CANCELLATION', 
+            0.95, 
+            true, 
+            `Order cancellation: "${keyword}"`
+          );
+        }
       }
     }
 

@@ -46,7 +46,7 @@ const AdminUsersPage = () => {
   }, [searchTerm]);
 
   const handleDeleteUser = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+    if (window.confirm('Bạn có chắc chắn muốn xóa người dùng này không? Hành động này không thể hoàn tác.')) {
       try {
         setDeleteLoading(prev => ({ ...prev, [userId]: true }));
         await api.delete(`/users/${userId}`);
@@ -54,7 +54,7 @@ const AdminUsersPage = () => {
         setSelectedUsers(prev => prev.filter(id => id !== userId));
         setError(null);
       } catch (err) {
-        setError(err.response?.data?.message || err.message || 'Failed to delete user');
+        setError(err.response?.data?.message || err.message || 'Xóa người dùng thất bại');
         console.error("Error deleting user:", err);
       } finally {
         setDeleteLoading(prev => ({ ...prev, [userId]: false }));
@@ -65,7 +65,7 @@ const AdminUsersPage = () => {
   const handleBulkDelete = async () => {
     if (selectedUsers.length === 0) return;
 
-    if (window.confirm(`Are you sure you want to delete ${selectedUsers.length} selected users? This action cannot be undone.`)) {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa ${selectedUsers.length} người dùng đã chọn không? Hành động này không thể hoàn tác.`)) {
       try {
         setBulkDeleteLoading(true);
         await Promise.all(selectedUsers.map(userId => api.delete(`/users/${userId}`)));
@@ -73,7 +73,7 @@ const AdminUsersPage = () => {
         setSelectedUsers([]);
         setError(null);
       } catch (err) {
-        setError(err.response?.data?.message || err.message || 'Failed to delete selected users');
+        setError(err.response?.data?.message || err.message || 'Xóa các người dùng đã chọn thất bại');
         console.error("Error deleting users:", err);
       } finally {
         setBulkDeleteLoading(false);
@@ -185,12 +185,12 @@ const AdminUsersPage = () => {
   if (error) {
     return (
       <div className="text-red-500 p-4 bg-red-100 rounded-md flex items-center justify-between">
-        <span>Error: {error}</span>
+        <span>Lỗi: {error}</span>
         <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
         >
-          Retry
+          Thử lại
         </button>
       </div>
     );
@@ -202,9 +202,9 @@ const AdminUsersPage = () => {
         {/* Header */}
         <div className="mb-8">            <div className="sm:flex sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Quản lý người dùng</h1>
             <p className="mt-2 text-sm text-gray-700">
-              Manage and oversee all user accounts in your system
+              Quản lý và giám sát tất cả tài khoản người dùng trong hệ thống của bạn
             </p>
           </div>
           <div className="mt-4 sm:mt-0">
@@ -215,7 +215,7 @@ const AdminUsersPage = () => {
               <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              Add New User
+              Thêm người dùng mới
             </Link>
           </div>
         </div>
@@ -227,13 +227,13 @@ const AdminUsersPage = () => {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
                 <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-                  Search Users
+                  Tìm kiếm người dùng
                 </label>
                 <div className="relative">
                   <input
                     id="search"
                     type="text"
-                    placeholder="Search by name, email, or ID..."
+                    placeholder="Tìm theo tên, email hoặc ID..."
                     className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -252,7 +252,7 @@ const AdminUsersPage = () => {
               </div>
               <div>
                 <label htmlFor="role-filter" className="block text-sm font-medium text-gray-700 mb-1">
-                  Filter by Role
+                  Lọc theo vai trò
                 </label>
                 <select
                   id="role-filter"
@@ -260,14 +260,14 @@ const AdminUsersPage = () => {
                   onChange={(e) => setFilterRole(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 >
-                  <option value="all">All Roles</option>
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
+                  <option value="all">Tất cả vai trò</option>
+                  <option value="user">Người dùng</option>
+                  <option value="admin">Quản trị viên</option>
                 </select>
               </div>
               <div>
                 <label htmlFor="items-per-page" className="block text-sm font-medium text-gray-700 mb-1">
-                  Items per page
+                  Số mục mỗi trang
                 </label>
                 <select
                   id="items-per-page"
@@ -294,14 +294,14 @@ const AdminUsersPage = () => {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
-                        Deleting...
+                        Đang xóa...
                       </>
                     ) : (
                       <>
                         <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        Delete ({selectedUsers.length})
+                        Xóa ({selectedUsers.length})
                       </>
                     )}
                   </button>
@@ -344,7 +344,7 @@ const AdminUsersPage = () => {
               <div className="flex justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
               </div>
-              <p className="text-center text-gray-500 mt-4">Loading users...</p>
+              <p className="text-center text-gray-500 mt-4">Đang tải danh sách...</p>
             </div>
           </div>
         ) : sortedUsers.length === 0 ? (
@@ -353,11 +353,11 @@ const AdminUsersPage = () => {
               <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">Không tìm thấy người dùng nào</h3>
               <p className="mt-1 text-sm text-gray-500">
                 {debouncedSearchTerm || filterRole !== 'all'
-                  ? `No users match your ${debouncedSearchTerm ? 'search' : ''}${debouncedSearchTerm && filterRole !== 'all' ? ' and ' : ''}${filterRole !== 'all' ? 'filter' : ''} criteria.`
-                  : 'Get started by creating a new user.'}
+                  ? `Không có người dùng nào phù hợp với tiêu chí ${debouncedSearchTerm ? 'tìm kiếm' : ''}${debouncedSearchTerm && filterRole !== 'all' ? ' và ' : ''}${filterRole !== 'all' ? 'lọc' : ''}.`
+                  : 'Bắt đầu bằng cách tạo người dùng mới.'}
               </p>
             </div>
           </div>
@@ -368,11 +368,11 @@ const AdminUsersPage = () => {
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium text-gray-900">
-                    Users ({filteredUsers.length} {filteredUsers.length !== users.length ? `of ${users.length}` : ''})
+                    Người dùng ({filteredUsers.length} {filteredUsers.length !== users.length ? `của ${users.length}` : ''})
                   </h3>
                   {selectedUsers.length > 0 && (
                     <p className="text-sm text-gray-700">
-                      {selectedUsers.length} selected
+                      {selectedUsers.length} đã chọn
                     </p>
                   )}
                 </div>
@@ -402,7 +402,7 @@ const AdminUsersPage = () => {
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => requestSort('name')}
                       >
-                        Name <SortIcon field="name" />
+                        Tên <SortIcon field="name" />
                       </th>
                       <th
                         scope="col"
@@ -416,17 +416,17 @@ const AdminUsersPage = () => {
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => requestSort('role')}
                       >
-                        Role <SortIcon field="role" />
+                        Vai trò <SortIcon field="role" />
                       </th>
                       <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => requestSort('createdAt')}
                       >
-                        Joined <SortIcon field="createdAt" />
+                        Ngày tham gia <SortIcon field="createdAt" />
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
+                        Thao tác
                       </th>
                     </tr>
                   </thead>
@@ -482,7 +482,7 @@ const AdminUsersPage = () => {
                               to={`/admin/users/edit/${user._id}`}
                               className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                             >
-                              Edit
+                              Chỉnh sửa
                             </Link>
                             {user.role !== 'admin' && (
                               <button
@@ -490,7 +490,7 @@ const AdminUsersPage = () => {
                                 disabled={deleteLoading[user._id]}
                                 className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-red-600 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
                               >
-                                {deleteLoading[user._id] ? 'Deleting...' : 'Delete'}
+                                {deleteLoading[user._id] ? 'Đang xóa...' : 'Xóa'}
                               </button>
                             )}
                           </div>
@@ -510,26 +510,26 @@ const AdminUsersPage = () => {
                       disabled={currentPage === 1}
                       className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                     >
-                      Previous
+                      Trước
                     </button>
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
                       className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                     >
-                      Next
+                      Tiếp theo
                     </button>
                   </div>
                   <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm text-gray-700">
-                        Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
+                        Hiển thị <span className="font-medium">{startIndex + 1}</span> đến{' '}
                         <span className="font-medium">
                           {Math.min(startIndex + itemsPerPage, filteredUsers.length)}
                         </span>{' '}
-                        of <span className="font-medium">{filteredUsers.length}</span> results
+                        trong <span className="font-medium">{filteredUsers.length}</span> kết quả
                         {filteredUsers.length !== users.length && (
-                          <span className="text-gray-500"> (filtered from {users.length} total)</span>
+                          <span className="text-gray-500"> (lọc từ {users.length} tổng số)</span>
                         )}
                       </p>
                     </div>

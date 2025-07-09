@@ -116,11 +116,11 @@ const AdminOrderDetailPage = () => {
   }
 
   if (error && !order) {
-    return <div className="text-red-500 p-4 bg-red-100 rounded-md">Error: {error}</div>;
+    return <div className="text-red-500 p-4 bg-red-100 rounded-md">Lỗi: {error}</div>;
   }
 
   if (!order) {
-    return <div className="text-center p-4">Order not found.</div>;
+    return <div className="text-center p-4">Không tìm thấy đơn hàng.</div>;
   }
 
   return (
@@ -132,10 +132,10 @@ const AdminOrderDetailPage = () => {
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        Back to Orders
+        Quay lại danh sách đơn hàng
       </button>
-      <h1 className="text-3xl font-semibold text-gray-800 mb-2">Order Details</h1>
-      <p className="text-sm text-gray-500 mb-6">Order ID: {order._id}</p>
+      <h1 className="text-3xl font-semibold text-gray-800 mb-2">Chi tiết đơn hàng</h1>
+      <p className="text-sm text-gray-500 mb-6">Mã đơn: {order._id}</p>
 
       {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
       {successMessage && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">{successMessage}</div>}
@@ -143,28 +143,28 @@ const AdminOrderDetailPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Order Info & Items */}
         <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-xl">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Order Information</h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">Thông tin đơn hàng</h2>
           <div className="space-y-3 text-sm">
-            <p><strong>User:</strong> {order.user?.name} ({order.user?.email})</p>
-            <p><strong>Date Placed:</strong> {new Date(order.createdAt).toLocaleString()}</p>
-            <p><strong>Payment Method:</strong> {order.paymentMethod}</p>
-            <p><strong>Total Amount:</strong> <span className="font-semibold text-lg">
+            <p><strong>Khách hàng:</strong> {order.user?.name} ({order.user?.email})</p>
+            <p><strong>Ngày đặt:</strong> {new Date(order.createdAt).toLocaleString()}</p>
+            <p><strong>Phương thức thanh toán:</strong> {order.paymentMethod}</p>
+            <p><strong>Tổng tiền:</strong> <span className="font-semibold text-lg">
               {new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
                 currency: 'VND'
               }).format(order.totalPrice)}
             </span></p>
-            <p><strong>Shipping Price:</strong> {new Intl.NumberFormat('vi-VN', {
+            <p><strong>Phí vận chuyển:</strong> {new Intl.NumberFormat('vi-VN', {
               style: 'currency',
               currency: 'VND'
             }).format(order.shippingPrice)}</p>
-            <p><strong>Tax Price:</strong> {new Intl.NumberFormat('vi-VN', {
+            <p><strong>Thuế:</strong> {new Intl.NumberFormat('vi-VN', {
               style: 'currency',
               currency: 'VND'
             }).format(order.taxPrice)}</p>
 
             <div className="mt-4">
-              <h3 className="text-md font-semibold text-gray-700 mb-1">Shipping Address:</h3>
+              <h3 className="text-md font-semibold text-gray-700 mb-1">Địa chỉ giao hàng:</h3>
               <p>{order.shippingAddress.street}</p>
               <p>{order.shippingAddress.ward?.name}, {order.shippingAddress.district?.name}</p>
               <p>{order.shippingAddress.province?.name}</p>
@@ -172,14 +172,14 @@ const AdminOrderDetailPage = () => {
 
             <div className="mt-6 space-y-4">
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-md font-semibold text-gray-700 mb-2">Payment Status</h3>
+                <h3 className="text-md font-semibold text-gray-700 mb-2">Trạng thái thanh toán</h3>
                 {order.isPaid ? (
                   <div className="flex items-center">
                     <span className="flex items-center px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800 border border-green-200">
                       <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      Paid
+                      Đã thanh toán
                     </span>
                     <span className="ml-2 text-sm text-gray-500">
                       {new Date(order.paidAt).toLocaleDateString('vi-VN', {
@@ -196,20 +196,20 @@ const AdminOrderDetailPage = () => {
                     <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                     </svg>
-                    Not Paid
+                    Chưa thanh toán
                   </span>
                 )}
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-md font-semibold text-gray-700 mb-2">Delivery Status</h3>
+                <h3 className="text-md font-semibold text-gray-700 mb-2">Trạng thái giao hàng</h3>
                 {order.isDelivered ? (
                   <div className="flex items-center">
                     <span className="flex items-center px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800 border border-green-200">
                       <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      Delivered
+                      Đã giao
                     </span>
                     <span className="ml-2 text-sm text-gray-500">
                       {new Date(order.deliveredAt).toLocaleDateString('vi-VN', {
@@ -226,7 +226,7 @@ const AdminOrderDetailPage = () => {
                     <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                     </svg>
-                    Pending Delivery
+                    Chưa giao
                   </span>
                 )}
                 {order.trackingNumber && (
@@ -234,7 +234,7 @@ const AdminOrderDetailPage = () => {
                     <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
-                    Tracking: {order.trackingNumber}
+                    Mã vận đơn: {order.trackingNumber}
                   </div>
                 )}
               </div>
@@ -242,7 +242,7 @@ const AdminOrderDetailPage = () => {
           </div>
 
           <div className="mt-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">Order Items</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">Sản phẩm trong đơn</h3>
             <ul className="divide-y divide-gray-200 bg-gray-50 rounded-lg overflow-hidden">
               {order.orderItems.map(item => (
                 <li key={item.product} className="p-4 hover:bg-gray-100 transition-colors">
@@ -276,14 +276,14 @@ const AdminOrderDetailPage = () => {
 
         {/* Update Status Section */}
         <div className="bg-white p-6 rounded-lg shadow-xl h-fit">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Update Order</h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">Cập nhật đơn hàng</h2>
           <form onSubmit={(e) => {
             e.preventDefault();
             setPendingAction({ type: 'updateStatus' });
             setIsConfirmOpen(true);
           }} className="space-y-4">
             <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Order Status</label>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Trạng thái đơn hàng</label>
               <select
                 id="status"
                 name="status"
@@ -297,7 +297,7 @@ const AdminOrderDetailPage = () => {
             </div>
             {newStatus === 'Shipped' && (
               <div>
-                <label htmlFor="trackingNumber" className="block text-sm font-medium text-gray-700 mb-1">Tracking Number</label>
+                <label htmlFor="trackingNumber" className="block text-sm font-medium text-gray-700 mb-1">Mã vận đơn</label>
                 <input
                   type="text"
                   id="trackingNumber"
@@ -305,7 +305,7 @@ const AdminOrderDetailPage = () => {
                   value={trackingNumber}
                   onChange={(e) => setTrackingNumber(e.target.value)}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Enter tracking number"
+                  placeholder="Nhập mã vận đơn"
                   disabled={updateLoading}
                 />
               </div>
@@ -315,7 +315,7 @@ const AdminOrderDetailPage = () => {
               disabled={updateLoading}
               className="w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {updateLoading ? 'Updating...' : 'Update Status'}
+              {updateLoading ? 'Đang cập nhật...' : 'Cập nhật trạng thái'}
             </button>
           </form>
 
@@ -336,10 +336,10 @@ const AdminOrderDetailPage = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                     </svg>
-                    Processing...
+                    Đang xử lý...
                   </span>
                 ) : (
-                  'Mark as Paid'
+                  'Đánh dấu đã thanh toán'
                 )}
               </button>
             )}
@@ -359,10 +359,10 @@ const AdminOrderDetailPage = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                     </svg>
-                    Processing...
+                    Đang xử lý...
                   </span>
                 ) : (
-                  'Mark as Delivered'
+                  'Đánh dấu đã giao hàng'
                 )}
               </button>
             )}
@@ -396,15 +396,15 @@ const AdminOrderDetailPage = () => {
                   >
                     <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                       <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
-                        Confirm Action
+                        Xác nhận thao tác
                       </Dialog.Title>
                       <div className="mt-2">
                         <p className="text-sm text-gray-500">
-                          {pendingAction?.type === 'markPaid' 
-                            ? 'Are you sure you want to mark this order as paid?' 
+                          {pendingAction?.type === 'markPaid'
+                            ? 'Bạn có chắc chắn muốn đánh dấu đơn hàng này đã thanh toán?'
                             : pendingAction?.type === 'markDelivered'
-                            ? 'Are you sure you want to mark this order as delivered?'
-                            : 'Are you sure you want to update the order status?'}
+                            ? 'Bạn có chắc chắn muốn đánh dấu đơn hàng này đã giao hàng?'
+                            : 'Bạn có chắc chắn muốn cập nhật trạng thái đơn hàng?'}
                         </p>
                       </div>
 
@@ -423,14 +423,14 @@ const AdminOrderDetailPage = () => {
                             }
                           }}
                         >
-                          Confirm
+                          Xác nhận
                         </button>
                         <button
                           type="button"
                           className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
                           onClick={() => setIsConfirmOpen(false)}
                         >
-                          Cancel
+                          Hủy
                         </button>
                       </div>
                     </Dialog.Panel>

@@ -3,23 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   FiShoppingBag, 
   FiMonitor, 
-  FiHeadphones, 
-  FiType, 
-  FiHardDrive,
-  FiCpu,
   FiDollarSign,
   FiSettings,
-  FiWifi,
-  FiVolumeX,
-  FiZap,
-  FiRefreshCw,
-  FiEye,
-  FiMove,
-  FiTarget,
-  FiTrendingUp,
-  FiAward,
-  FiFilter
+  FiFilter,
 } from 'react-icons/fi';
+import { GiPc, GiLaptop, GiKeyboard, GiMouse, GiHeadphones } from "react-icons/gi";
 import { getCategories } from '../../services/api';
 import specificationService from '../../services/specificationService';
 
@@ -32,55 +20,6 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
-  // Performance Tiers
-  const performanceTiers = [
-    { 
-      key: 'entry', 
-      label: 'Cơ bản', 
-      description: 'Phù hợp cho người dùng mới',
-      icon: FiTarget,
-      color: 'emerald'
-    },
-    { 
-      key: 'mid', 
-      label: 'Tầm trung', 
-      description: 'Cân bằng hiệu suất và giá cả',
-      icon: FiTrendingUp,
-      color: 'blue' 
-    },
-    { 
-      key: 'high', 
-      label: 'Cao cấp', 
-      description: 'Hiệu suất tối đa cho chuyên gia',
-      icon: FiAward,
-      color: 'purple'
-    }
-  ];
-
-  // Use Cases
-  const useCases = [
-    {
-      key: 'competitive',
-      label: 'Gaming cạnh tranh',
-      description: 'Esports và gaming chuyên nghiệp',
-      icon: FiZap,
-      color: 'red'
-    },
-    {
-      key: 'content',
-      label: 'Sáng tạo nội dung',
-      description: 'Streaming, video editing',
-      icon: FiCpu,
-      color: 'indigo'
-    },
-    {
-      key: 'casual',
-      label: 'Gaming giải trí',
-      description: 'Chơi game thường ngày',
-      icon: FiShoppingBag,
-      color: 'green'
-    }
-  ];
 
   // Price ranges in VND
   const priceRanges = [
@@ -92,53 +31,15 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
     { label: 'Trên 10 triệu', min: 10000000, max: null, icon: FiDollarSign }
   ];
 
-  // Technical specifications by category type
-  const categorySpecs = {
-    'headset': [
-      { label: 'Wireless/Có dây', icon: FiWifi },
-      { label: 'Chống ồn', icon: FiVolumeX },
-      { label: 'Âm thanh vòm', icon: FiHeadphones },
-      { label: 'Microphone tháo rời', icon: FiSettings }
-    ],
-    'keyboard': [
-      { label: 'Cơ/Màng', icon: FiType },
-      { label: 'Đèn RGB', icon: FiZap },
-      { label: 'Loại switch', icon: FiSettings },
-      { label: 'Wireless/Có dây', icon: FiWifi }
-    ],
-    'mouse': [
-      { label: 'DPI cao', icon: FiMove },
-      { label: 'Wireless/Có dây', icon: FiWifi },
-      { label: 'Số nút bấm', icon: FiSettings },
-      { label: 'RGB Lighting', icon: FiZap }
-    ],
-    'monitor': [
-      { label: 'Độ phân giải 4K', icon: FiMonitor },
-      { label: 'Tần số quét cao', icon: FiRefreshCw },
-      { label: 'Panel IPS/VA', icon: FiEye },
-      { label: 'G-Sync/FreeSync', icon: FiSettings }
-    ],
-    'storage': [
-      { label: 'SSD/HDD', icon: FiHardDrive },
-      { label: 'Dung lượng lớn', icon: FiHardDrive },
-      { label: 'Tốc độ đọc/ghi', icon: FiZap },
-      { label: 'M.2 NVMe', icon: FiSettings }
-    ],
-    'default': [
-      { label: 'Chất lượng cao', icon: FiSettings },
-      { label: 'Bảo hành chính hãng', icon: FiShoppingBag },
-      { label: 'Tương thích rộng', icon: FiZap },
-      { label: 'Thiết kế gaming', icon: FiCpu }
-    ]
-  };
 
   // Category icons mapping
   const categoryIcons = {
-    'headset': FiHeadphones,
-    'keyboard': FiType,
-    'mouse': FiMove,
+    'headset': GiHeadphones,
+    'keyboard': GiKeyboard,
+    'mouse': GiMouse,
     'monitor': FiMonitor,
-    'storage': FiHardDrive,
+    'pc': GiPc,
+    'laptop': GiLaptop,
     'default': FiShoppingBag
   };
 
@@ -186,11 +87,12 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
 
   const getCategoryType = (categoryName) => {
     const name = categoryName.toLowerCase();
-    if (name.includes('headset') || name.includes('tai nghe')) return 'headset';
-    if (name.includes('keyboard') || name.includes('bàn phím')) return 'keyboard';
-    if (name.includes('mouse') || name.includes('chuột')) return 'mouse';
-    if (name.includes('monitor') || name.includes('màn hình')) return 'monitor';
-    if (name.includes('storage') || name.includes('ổ cứng') || name.includes('ssd')) return 'storage';
+    if (name.includes('tai nghe')) return 'headset';
+    if (name.includes('bàn phím')) return 'keyboard';
+    if (name.includes('chuột')) return 'mouse';
+    if (name.includes('màn hình')) return 'monitor';
+    if (name.includes('gaming laptops')) return 'laptop';
+    if (name.includes('gaming pcs')) return 'pc';
     return 'default';
   };
 
@@ -211,20 +113,13 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
     navigate(`/products?${params.toString()}`);
   };
 
-  const handleSpecClick = (category) => {
-    if (category) {
-      navigate(`/products?category=${category._id}`);
-    } else {
-      navigate('/products');
-    }
-  };
 
   if (!isVisible) return null;
 
   return (
     <div
       ref={dropdownRef}
-      className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-[900px] max-w-[95vw] 
+      className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-[800px] max-w-[90vw] 
                  bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-2xl shadow-2xl 
                  border border-gray-700/50 backdrop-blur-sm z-50 overflow-hidden"
       onMouseEnter={onMouseEnter}
@@ -235,8 +130,8 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05)'
       }}
     >
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Column 1: Categories */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-700/50">
@@ -267,7 +162,7 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
                                border border-transparent hover:border-blue-500/30 group"
                     >
                       <div className="p-2 rounded-lg bg-gray-700/50 group-hover:bg-blue-600/20 transition-colors duration-300">
-                        <IconComponent className="w-4 h-4 text-gray-400 group-hover:text-blue-400" />
+                        <IconComponent className="w-6 h-6 text-gray-400 group-hover:text-blue-400" />
                       </div>
                       <div className="flex-1">
                         <span className="font-medium">{category.name}</span>
@@ -289,7 +184,7 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
               <h3 className="text-lg font-semibold text-white">Khoảng giá</h3>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
               {priceRanges.map((range, index) => (
                 <button
                   key={index}
@@ -375,7 +270,7 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
                              specKey === 'motherboard' ? 'Mainboard' :
                              specKey}
                           </h4>
-                          <div className="space-y-1 max-h-32 overflow-y-auto">
+                          <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
                             {specValues.slice(0, 5).map((value, index) => (
                               <button
                                 key={index}
@@ -431,41 +326,15 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
                 </>
               ) : (
                 /* Default State */
-                <>
-                  <div className="text-center py-6">
-                    <FiSettings className="w-8 h-8 text-gray-500 mx-auto mb-3" />
-                    <p className="text-gray-400 text-sm mb-2">
-                      Hover vào danh mục để xem thông số kỹ thuật
-                    </p>
-                    <p className="text-gray-500 text-xs">
-                      Chọn danh mục để lọc theo specifications cụ thể
-                    </p>
-                  </div>
-                  
-                  {/* Quick Filter Options */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wide px-2">
-                      Lọc nhanh
-                    </h4>
-                    {performanceTiers.slice(0, 3).map((tier) => (
-                      <button
-                        key={tier.key}
-                        onClick={() => {
-                          const params = new URLSearchParams();
-                          params.set('performanceTier', tier.key);
-                          navigate(`/products?${params.toString()}`);
-                        }}
-                        className="w-full flex items-center gap-2 p-2 rounded-md text-left
-                                 bg-gray-800/30 hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20
-                                 text-gray-300 hover:text-white transition-all duration-200
-                                 border border-transparent hover:border-purple-500/30 text-xs"
-                      >
-                        <tier.icon className="w-3 h-3 text-purple-400" />
-                        <span className="flex-1">{tier.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </>
+                <div className="text-center py-8">
+                  <FiSettings className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-400 text-sm mb-2">
+                    Hover vào danh mục để xem thông số kỹ thuật
+                  </p>
+                  <p className="text-gray-500 text-xs">
+                    Chọn danh mục để lọc theo specifications cụ thể
+                  </p>
+                </div>
               )}
             </div>
           </div>

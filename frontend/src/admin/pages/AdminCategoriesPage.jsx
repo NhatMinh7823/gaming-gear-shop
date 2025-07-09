@@ -169,13 +169,13 @@ const AdminCategoriesPage = () => {
         categoryName={categoryToDelete?.name}
       />
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
-        <h1 className="text-3xl font-semibold text-gray-800">Manage Categories</h1>
+        <h1 className="text-3xl font-semibold text-gray-800">Quản lý danh mục</h1>
         <div className="flex items-center space-x-4 w-full md:w-auto">
           <Link
             to="/admin/categories/new"
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out"
           >
-            + Add New Category
+            + Thêm danh mục mới
           </Link>
           {selectedCategories.length > 0 && (
             <button
@@ -186,10 +186,10 @@ const AdminCategoriesPage = () => {
               {bulkDeleting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Deleting...
+                  Đang xóa...
                 </>
               ) : (
-                `Delete Selected (${selectedCategories.length})`
+                `Xóa đã chọn (${selectedCategories.length})`
               )}
             </button>
           )}
@@ -197,7 +197,7 @@ const AdminCategoriesPage = () => {
         <div className="w-full md:w-64">
           <input
             type="search"
-            placeholder="Search categories..."
+            placeholder="Tìm kiếm danh mục..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -206,9 +206,9 @@ const AdminCategoriesPage = () => {
       </div>
 
       {error ? (
-        <div className="text-red-500 p-4 bg-red-100 rounded-md mb-4">Error: {error}</div>
+        <div className="text-red-500 p-4 bg-red-100 rounded-md mb-4">Lỗi: {error}</div>
       ) : categories.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">No categories found.</div>
+        <div className="text-center text-gray-500 py-8">Không tìm thấy danh mục nào.</div>
       ) : (
         <div className="bg-white shadow-xl rounded-lg overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -227,7 +227,7 @@ const AdminCategoriesPage = () => {
                     onClick={() => handleSort('image')}
                     className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Image {getSortIcon('image')}
+                    Hình ảnh {getSortIcon('image')}
                   </button>
                 </th>
                 <th className="px-6 py-3">
@@ -235,7 +235,7 @@ const AdminCategoriesPage = () => {
                     onClick={() => handleSort('name')}
                     className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Name {getSortIcon('name')}
+                    Tên {getSortIcon('name')}
                   </button>
                 </th>
                 <th className="px-6 py-3">
@@ -243,7 +243,7 @@ const AdminCategoriesPage = () => {
                     onClick={() => handleSort('description')}
                     className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Description {getSortIcon('description')}
+                    Mô tả {getSortIcon('description')}
                   </button>
                 </th>
                 <th className="px-6 py-3">
@@ -251,11 +251,11 @@ const AdminCategoriesPage = () => {
                     onClick={() => handleSort('featured')}
                     className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Featured {getSortIcon('featured')}
+                    Nổi bật {getSortIcon('featured')}
                   </button>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  Thao tác
                 </th>
               </tr>
             </thead>
@@ -278,7 +278,7 @@ const AdminCategoriesPage = () => {
                     {category.image && category.image.url ? (
                       <img src={category.image.url} alt={category.name} className="h-10 w-10 object-cover rounded-full" />
                     ) : (
-                      <span className="text-gray-500">No Image</span>
+                      <span className="text-gray-500">Không có hình ảnh</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -294,15 +294,18 @@ const AdminCategoriesPage = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 rounded-full text-xs ${category.featured ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                       }`}>
-                      {category.featured ? 'Featured' : 'Standard'}
+                      {category.featured ? 'Nổi bật' : 'Tiêu chuẩn'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <Link
                       to={`/admin/categories/edit/${category._id}`}
-                      className="text-indigo-600 hover:text-indigo-900 mr-3"
+                      className="text-indigo-600 hover:text-indigo-900 mr-3 inline-flex items-center"
                     >
-                      Edit
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                      Chỉnh sửa
                     </Link>
                     <button
                       onClick={() => {
@@ -310,15 +313,20 @@ const AdminCategoriesPage = () => {
                         setShowDeleteModal(true);
                       }}
                       disabled={deleting === category._id}
-                      className="text-red-600 hover:text-red-900 ml-3 disabled:text-red-400 disabled:cursor-not-allowed flex items-center"
+                      className="text-red-600 hover:text-red-900 ml-3 disabled:text-red-400 disabled:cursor-not-allowed inline-flex items-center"
                     >
                       {deleting === category._id ? (
                         <>
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-500 mr-1"></div>
-                          Deleting...
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500 mr-1"></div>
+                          Đang xóa...
                         </>
                       ) : (
-                        'Delete'
+                        <>
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                          Xóa
+                        </>
                       )}
                     </button>
                   </td>
@@ -342,10 +350,10 @@ const AdminCategoriesPage = () => {
               : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
         >
-          Previous
+          Trước
         </button>
         <span className="px-4 py-2 text-gray-700">
-          Page {page} of {totalPages}
+          Trang {page} của {totalPages}
         </span>
         <button
           onClick={() => {
@@ -358,7 +366,7 @@ const AdminCategoriesPage = () => {
               : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
         >
-          Next
+          Tiếp theo
         </button>
       </div>
     </div>

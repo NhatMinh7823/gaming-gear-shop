@@ -1,14 +1,20 @@
 const { StructuredTool } = require("@langchain/core/tools");
 const { z } = require("zod");
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
-const Product = require("../../../models/productModel");
 const { llmConfig } = require("../../config/llmConfig");
 const { formatProductFromMetadata } = require("../../config/utils");
 
 class AIProductSearchTool extends StructuredTool {
-  constructor() {
+  constructor(options = {}) {
     super();
+    const { vectorStoreManager } = options;
+    if (!vectorStoreManager) {
+      throw new Error(
+        "AIProductSearchTool requires a valid vectorStoreManager in options."
+      );
+    }
     this.llm = new ChatGoogleGenerativeAI(llmConfig);
+    this.vectorStoreManager = vectorStoreManager;
   }
 
   schema = z.object({
@@ -17,71 +23,96 @@ class AIProductSearchTool extends StructuredTool {
   });
 
   name = "ai_product_search";
-  description = "🤖 Tìm kiếm sản phẩm thông minh sử dụng AI Gemini-2.0-flash. AI sẽ phân tích yêu cầu và tự động chọn sản phẩm phù hợp nhất dựa trên tên, mô tả, thương hiệu, giá cả, thông số kỹ thuật, và ngữ cảnh tự nhiên.";
+  description =
+    "🤖 Tìm kiếm sản phẩm thông minh sử dụng AI Gemini-2.0-flash. AI sẽ phân tích yêu cầu và tự động chọn sản phẩm phù hợp nhất dựa trên tên, mô tả, thương hiệu, giá cả, thông số kỹ thuật, và ngữ cảnh tự nhiên.";
 
   async _call(input) {
     try {
       const query = input.query || "";
       const limit = input.limit || 5;
-      
-      console.log(`🤖 AIProductSearchTool called with query: "${query}", limit: ${limit}`);
-      
-      // Fetch all products from database
-      const allProducts = await Product.find({ stock: { $gt: 0 } })
-        .populate("category", "name")
-        .lean();
-      
-      if (allProducts.length === 0) {
-        return "❌ Không có sản phẩm nào trong kho hiện tại.";
+
+      console.log(
+        `🤖 AIProductSearchTool called with query: "${query}", limit: ${limit}`
+      );
+
+      // Semantic search using vectorStoreManager
+      if (!this.vectorStoreManager) {
+        throw new Error("VectorStoreManager is not provided.");
+      }
+      const vectorResults = await this.vectorStoreManager.similaritySearch(
+        query,
+        limit
+      );
+
+      if (!vectorResults || vectorResults.length === 0) {
+        return "❌ Không tìm thấy sản phẩm phù hợp theo semantic search.";
       }
 
-      console.log(`📦 Loaded ${allProducts.length} products for AI analysis`);
+      // Use only metadata from vectorStore (no DB query)
+      const productsForAI = vectorResults.map((res) => {
+        // Sử dụng trực tiếp inStock và stock từ metadata (không fallback)
+        return {
+          id: res.metadata?.id || "",
+          name: res.metadata?.name || "",
+          brand: res.metadata?.brand || "N/A",
+          category: res.metadata?.category || "N/A",
+          price: res.metadata?.price,
+          discountPrice: res.metadata?.discountPrice || null,
+          effectivePrice: res.metadata?.discountPrice || res.metadata?.price,
+          description: res.metadata?.description || "",
+          features: res.metadata?.features || [],
+          specifications: res.metadata?.specifications || {},
+          averageRating: res.metadata?.averageRating || 0,
+          numReviews: res.metadata?.numReviews || 0,
+          stock: res.metadata?.stock,
+          inStock: res.metadata?.inStock,
+          imageUrl: res.metadata?.imageUrl || "",
+        };
+      });
 
-      // Prepare products data for AI analysis
-      const productsForAI = allProducts.map(product => ({
-        id: product._id.toString(),
-        name: product.name,
-        brand: product.brand || "N/A",
-        category: product.category?.name || "N/A",
-        price: product.price,
-        discountPrice: product.discountPrice || null,
-        effectivePrice: product.discountPrice || product.price,
-        description: product.description || "",
-        features: product.features || [],
-        specifications: product.specifications || {},
-        averageRating: product.averageRating || 0,
-        numReviews: product.numReviews || 0,
-        stock: product.stock,
-        imageUrl: product.images?.[0]?.url || ""
-      }));
+      // Simple price stats by category (from vector metadata)
+      const categoryPriceStats = {};
+      productsForAI.forEach((product) => {
+        const cat = product.category;
+        if (!categoryPriceStats[cat]) categoryPriceStats[cat] = [];
+        categoryPriceStats[cat].push(product.effectivePrice);
+      });
+      // Compute quantiles for more robust stats
+      const priceStatsText = Object.entries(categoryPriceStats)
+        .map(([cat, prices]) => {
+          const sorted = prices.filter(Boolean).sort((a, b) => a - b);
+          if (!sorted.length) return `- ${cat}: không có dữ liệu giá`;
+          const min = sorted[0];
+          const max = sorted[sorted.length - 1];
+          const quantile = (q) => {
+            const pos = (sorted.length - 1) * q;
+            const base = Math.floor(pos);
+            const rest = pos - base;
+            if (sorted[base + 1] !== undefined) {
+              return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+            } else {
+              return sorted[base];
+            }
+          };
+          return `- ${cat}: min=${min}, max=${max}, Q1=${quantile(
+            0.25
+          )}, median=${quantile(0.5)}, Q3=${quantile(0.75)}`;
+        })
+        .join("\n");
 
       // Create AI prompt for intelligent product selection
       const aiPrompt = `Bạn là chuyên gia tư vấn sản phẩm gaming gear. Phân tích yêu cầu của khách hàng và chọn ${limit} sản phẩm phù hợp nhất.
+
+      **THỐNG KÊ GIÁ THEO DANH MỤC:**
+      ${priceStatsText}
 
 **YÊU CẦU KHÁCH HÀNG:** "${query}"
 
 **DANH SÁCH SẢN PHẨM:**
 ${JSON.stringify(productsForAI, null, 2)}
-
 **NHIỆM VỤ:**
 1. Phân tích ý định tìm kiếm (danh mục, thương hiệu, tầm giá, đặc điểm kỹ thuật)
 2. Chọn ${limit} sản phẩm phù hợp nhất
-3. Xếp hạng theo độ phù hợp (từ cao đến thấp)
-4. Xem xét giá khuyến mãi (discountPrice) là giá thực tế
-5. Ưu tiên sản phẩm có đánh giá tốt và còn hàng
-
-**QUY TẮC PHÂN LOẠI QUAN TRỌNG:**
-- "pc gaming", "gaming pc", "máy tính bàn", "desktop" → Gaming PCs/Case
-- "laptop gaming", "laptop", "máy tính xách tay" → Gaming Laptops  
-- "màn hình", "monitor" → Gaming Monitors
-- "chuột", "mouse" → Gaming Mice
-- "bàn phím", "keyboard" → Gaming Keyboards
-- "tai nghe", "headset" → Gaming Headsets
-
-**XỬ LÝ TẦMGIÁ:**
-- Phát hiện tự động: "tầm 5 triệu", "7-8 triệu", "dưới 10 triệu"
-- So sánh với effectivePrice (ưu tiên discountPrice nếu có)
-- Chấp nhận sản phẩm có giá gốc cao nhưng giảm giá phù hợp
 
 **ĐỊNH DẠNG PHẢN HỒI JSON:**
 {
@@ -113,7 +144,7 @@ Hãy phân tích kỹ và trả về JSON hợp lệ:`;
       // Get AI analysis
       console.log(`🧠 Sending query to Gemini AI for analysis...`);
       const aiResponse = await this.llm.invoke(aiPrompt);
-      
+
       let aiResult;
       try {
         // Extract JSON from AI response
@@ -125,49 +156,37 @@ Hãy phân tích kỹ và trả về JSON hợp lệ:`;
       } catch (parseError) {
         console.error("❌ AI JSON parsing error:", parseError);
         console.log("Raw AI response:", aiResponse.content);
-        
         // Fallback: simple search
-        return await this.fallbackSearch(query, limit, allProducts);
+        return await this.fallbackSearch(query, limit, productsForAI);
       }
 
       // Validate AI result
-      if (!aiResult.selectedProducts || !Array.isArray(aiResult.selectedProducts)) {
+      if (
+        !aiResult.selectedProducts ||
+        !Array.isArray(aiResult.selectedProducts)
+      ) {
         console.error("❌ Invalid AI result structure");
-        return await this.fallbackSearch(query, limit, allProducts);
+        return await this.fallbackSearch(query, limit, productsForAI);
       }
 
-      // Map selected products with full details
+      // Map selected products with full details (from productsForAI)
       const selectedProducts = aiResult.selectedProducts
         .slice(0, limit)
-        .map(selection => {
-          const product = allProducts.find(p => p._id.toString() === selection.id);
+        .map((selection) => {
+          const product = productsForAI.find((p) => p.id === selection.id);
           if (!product) return null;
-          
           return {
-            metadata: {
-              id: product._id.toString(),
-              name: product.name,
-              price: product.price,
-              discountPrice: product.discountPrice || null,
-              category: product.category?.name || "N/A",
-              brand: product.brand || "N/A",
-              inStock: product.stock > 0,
-              specifications: product.specifications || {},
-              features: product.features || [],
-              averageRating: product.averageRating || 0,
-              numReviews: product.numReviews || 0,
-              imageUrl: product.images?.[0]?.url || ""
-            },
+            metadata: product,
             aiScore: selection.relevanceScore || 0,
             matchReasons: selection.matchReasons || [],
-            recommendation: selection.recommendation || ""
+            recommendation: selection.recommendation || "",
           };
         })
         .filter(Boolean);
 
       if (selectedProducts.length === 0) {
         console.log("❌ No valid products selected by AI");
-        return await this.fallbackSearch(query, limit, allProducts);
+        return await this.fallbackSearch(query, limit, productsForAI);
       }
 
       // Format results for display
@@ -177,37 +196,53 @@ Hãy phân tích kỹ và trả về JSON hợp lệ:`;
           return `${formatted}
 
 🤖 **AI Phân tích (${result.aiScore}/100 điểm):**
-${result.matchReasons.map(reason => `✅ ${reason}`).join('\n')}
+${result.matchReasons.map((reason) => `✅ ${reason}`).join("\n")}
 💡 **Đề xuất:** ${result.recommendation}`;
         })
         .join("\n\n" + "=".repeat(50) + "\n\n");
 
       // Build comprehensive response
       const analysis = aiResult.analysis || {};
-      
+
       const response = `🤖 **AI Gemini-2.0-flash Phân Tích Thông Minh**
 
 🔍 **Truy vấn:** "${query}"
 🎯 **Ý định tìm kiếm:** ${analysis.searchIntent || "Tìm kiếm sản phẩm gaming"}
-${analysis.detectedCategory ? `📂 **Danh mục:** ${analysis.detectedCategory}` : ""}
+${
+  analysis.detectedCategory
+    ? `📂 **Danh mục:** ${analysis.detectedCategory}`
+    : ""
+}
 ${analysis.detectedBrand ? `🏷️ **Thương hiệu:** ${analysis.detectedBrand}` : ""}
-${analysis.priceRange?.detected ? `💰 **Tầm giá:** ${analysis.priceRange.detected}` : ""}
+${
+  analysis.priceRange?.detected
+    ? `💰 **Tầm giá:** ${analysis.priceRange.detected}`
+    : ""
+}
 
 📋 **Yêu cầu chính:**
-${analysis.keyRequirements ? analysis.keyRequirements.map(req => `• ${req}`).join('\n') : "• Tìm sản phẩm gaming chất lượng"}
+${
+  analysis.keyRequirements
+    ? analysis.keyRequirements.map((req) => `• ${req}`).join("\n")
+    : "• Tìm sản phẩm gaming chất lượng"
+}
 
 ## 🏆 **Top ${selectedProducts.length} Sản Phẩm AI Đề Xuất:**
 
 ${productList}
 
 ## 📊 **Tổng Kết AI:**
-${aiResult.summary || "AI đã phân tích và chọn những sản phẩm phù hợp nhất với yêu cầu của bạn."}
+${
+  aiResult.summary ||
+  "AI đã phân tích và chọn những sản phẩm phù hợp nhất với yêu cầu của bạn."
+}
 
 💡 **Lưu ý:** Kết quả được phân tích bởi AI Gemini-2.0-flash, xem xét toàn diện về giá cả, tính năng, đánh giá và độ phù hợp với nhu cầu cụ thể.`;
 
-      console.log(`✅ AI successfully analyzed and returned ${selectedProducts.length} products`);
+      console.log(
+        `✅ AI successfully analyzed and returned ${selectedProducts.length} products`
+      );
       return response;
-
     } catch (error) {
       console.error("❌ Error in AIProductSearchTool:", error);
       return `❌ Lỗi AI tìm kiếm sản phẩm: ${error.message}
@@ -222,25 +257,45 @@ ${aiResult.summary || "AI đã phân tích và chọn những sản phẩm phù 
   /**
    * Fallback search when AI fails
    */
-  async fallbackSearch(query, limit, allProducts) {
+  async fallbackSearch(query, limit, productsForAI) {
     console.log("🔄 Using fallback search...");
-    
     const queryLower = query.toLowerCase();
-    
-    // Simple keyword matching
-    const matches = allProducts
-      .map(product => {
+    // Detect category keyword from query
+    const categoryKeywords = [
+      { key: "tai nghe", match: ["tai nghe", "headset"] },
+      { key: "chuột", match: ["chuột", "mouse"] },
+      { key: "bàn phím", match: ["bàn phím", "keyboard"] },
+      { key: "màn hình", match: ["màn hình", "monitor"] },
+      { key: "laptop", match: ["laptop", "máy tính xách tay"] },
+      { key: "pc", match: ["pc", "máy tính", "desktop"] },
+    ];
+    let detectedCategory = null;
+    for (const cat of categoryKeywords) {
+      if (cat.match.some((kw) => queryLower.includes(kw))) {
+        detectedCategory = cat.key;
+        break;
+      }
+    }
+
+    // Simple keyword matching on vectorStore metadata, with category filtering
+    const matches = productsForAI
+      .map((product) => {
         let score = 0;
-        const searchText = `${product.name} ${product.brand} ${product.category?.name} ${product.description}`.toLowerCase();
-        
-        // Basic scoring
+        const searchText =
+          `${product.name} ${product.brand} ${product.category} ${product.description}`.toLowerCase();
         if (product.name.toLowerCase().includes(queryLower)) score += 50;
         if (product.brand?.toLowerCase().includes(queryLower)) score += 30;
         if (searchText.includes(queryLower)) score += 20;
-        
+        // Category filtering: strong penalty if not matching detected category
+        if (
+          detectedCategory &&
+          !product.category.toLowerCase().includes(detectedCategory)
+        ) {
+          score -= 100; // Negative weighting for wrong category
+        }
         return { product, score };
       })
-      .filter(item => item.score > 0)
+      .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
 
@@ -254,20 +309,23 @@ ${aiResult.summary || "AI đã phân tích và chọn những sản phẩm phù 
     }
 
     const productList = matches
-      .map(item => formatProductFromMetadata({
-        id: item.product._id.toString(),
-        name: item.product.name,
-        price: item.product.price,
-        discountPrice: item.product.discountPrice || null,
-        category: item.product.category?.name || "N/A",
-        brand: item.product.brand || "N/A",
-        inStock: item.product.stock > 0,
-        specifications: item.product.specifications || {},
-        features: item.product.features || [],
-        averageRating: item.product.averageRating || 0,
-        numReviews: item.product.numReviews || 0,
-        imageUrl: item.product.images?.[0]?.url || ""
-      }))
+      .map((item) =>
+        formatProductFromMetadata({
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          discountPrice: item.product.discountPrice || null,
+          category: item.product.category || "N/A",
+          brand: item.product.brand || "N/A",
+          inStock: item.product.inStock,
+          stock: item.product.stock,
+          specifications: item.product.specifications || {},
+          features: item.product.features || [],
+          averageRating: item.product.averageRating || 0,
+          numReviews: item.product.numReviews || 0,
+          imageUrl: item.product.imageUrl || "",
+        })
+      )
       .join("\n\n");
 
     return `🔍 **Kết quả tìm kiếm cho "${query}"** (Fallback mode)

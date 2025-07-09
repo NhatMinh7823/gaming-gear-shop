@@ -196,7 +196,7 @@ const DashboardPage = () => {
 
         const recentOrders = recentOrdersResponse.data.orders.map(order => ({
           type: 'order',
-          text: `New order #${order._id.slice(-6)} placed by ${order.user.name}.`,
+          text: `Đơn hàng mới #${order._id.slice(-6)} được đặt bởi ${order.user.name}.`,
           time: order.createdAt,
           color: 'green-500',
           date: new Date(order.createdAt),
@@ -204,7 +204,7 @@ const DashboardPage = () => {
 
         const recentUsers = recentUsersResponse.data.users.map(user => ({
           type: 'user',
-          text: `User '${user.name}' registered.`,
+          text: `Người dùng '${user.name}' đã đăng ký.`,
           time: user.createdAt,
           color: 'blue-500',
           date: new Date(user.createdAt),
@@ -398,11 +398,11 @@ label: 'Đơn hàng',
     const diffInDays = Math.round(diffInMilliseconds / (1000 * 60 * 60 * 24));
 
     if (diffInMinutes < 60) {
-      return `${diffInMinutes}m ago`;
+      return `${diffInMinutes}p trước`;
     } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
+      return `${diffInHours}g trước`;
     } else {
-      return `${diffInDays}d ago`;
+      return `${diffInDays}ngày trước`;
     }
   };
 

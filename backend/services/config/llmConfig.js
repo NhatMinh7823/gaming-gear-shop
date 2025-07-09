@@ -6,7 +6,7 @@ if (!process.env.GEMINI_API_KEY) {
 const llmConfig = {
   // model: "gemini-2.5-flash-lite-preview-06-17", // chậm vì có reasioning
   // model: "gemini-1.5-flash", nhanh, hiểu yêu cầu, không thông minh
-  model: "gemini-2.0-flash", // Nhanh, hiểu yêu cầu, thông minh hơn
+  model: "gemini-2.5-flash", // Nhanh, hiểu yêu cầu, thông minh hơn
   apiKey: process.env.GEMINI_API_KEY,
   temperature: 0.7,
   maxTokens: 4096, // Tăng để handle longer conversations
@@ -14,7 +14,9 @@ const llmConfig = {
 
 const embeddingsConfig = {
   apiKey: process.env.GEMINI_API_KEY,
-  model: "text-embedding-004",
+  model: "text-embedding-004", // Model mới nhất của Google, hỗ trợ tốt Tiếng Việt
+  // model: "gemini-embedding-001",
+  taskType: "RETRIEVAL_QUERY", // Thêm taskType để tối ưu cho việc tìm kiếm và lưu trữ "SEMANTIC_SIMILARITY" là lựa chọn tốt cho mục đích chung, "RETRIEVAL_QUERY" khi tìm kiếm, "RETRIEVAL_DOCUMENT" khi lưu trữ vector trong logic ứng dụng.
 };
 
 const agentConfig = {

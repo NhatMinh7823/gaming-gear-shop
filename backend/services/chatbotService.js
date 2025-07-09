@@ -58,7 +58,7 @@ class ChatbotService {
 
       // Load products to vector store
       this.log("Loading products to vector store...");
-      await this.loadProductsToVectorStore(); // Initialize tools with dependencies
+      await this.loadProductsToVectorStore(); 
       this.log("Initializing tools...");
       await tools.initialize(this.vectorStoreManager, this.userContext);
 
@@ -75,37 +75,11 @@ class ChatbotService {
   }
   async loadProductsToVectorStore() {
     try {
-      // Check if database is connected
-      const mongoose = require("mongoose");
-      if (mongoose.connection.readyState !== 1) {
-        this.log("Waiting for database connection...");
-        await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error("Database connection timeout"));
-          }, 30000); // 30 second timeout
-
-          if (mongoose.connection.readyState === 1) {
-            clearTimeout(timeout);
-            resolve();
-          } else {
-            mongoose.connection.on("connected", () => {
-              clearTimeout(timeout);
-              resolve();
-            });
-            mongoose.connection.on("error", (err) => {
-              clearTimeout(timeout);
-              reject(err);
-            });
-          }
-        });
-      }
-
       const products = await Product.find().populate("category", "name");
       await this.vectorStoreManager.loadProducts(products);
       this.log(`Loaded ${products.length} products to vector store`);
     } catch (error) {
       this.logError("Error loading products to vector store:", error);
-      // Don't throw the error - allow the service to continue without products initially
       this.log("Chatbot will initialize without product data and retry later");
     }
   }
@@ -122,17 +96,17 @@ class ChatbotService {
     await this.ensureInitialized();
     const startTime = Date.now();
     try {
-      this.log(
-        `Processing message for session ${sessionId || "new"}${
-          userId ? ` (user: ${userId})` : ""
-        }`
-      );
+      // this.log(
+      //   `Processing message for session ${sessionId || "new"}${
+      //     userId ? ` (user: ${userId})` : ""
+      //   }`
+      // );
       this.log(`Message: "${message}"`);
-      this.log(`UserId received:`, userId);
+      // this.log(`UserId received:`, userId);
 
       // Set user context and create fresh tools
       if (userId) {
-        this.log(`Setting user context with userId: ${userId}`);
+        // this.log(`Setting user context with userId: ${userId}`);
         this.userContext.setUser(userId);
         await this.createFreshToolsAndUpdateAgent();
       } else {
@@ -159,11 +133,11 @@ class ChatbotService {
       let workflow =
         this.workflowStateManager.getWorkflowState(actualSessionId);
       
-      this.log(`📊 Workflow analysis:`, {
-        detectedIntent: workflowIntent,
-        hasExistingWorkflow: !!workflow,
-        existingType: workflow?.type,
-      });
+      // this.log(`📊 Workflow analysis:`, {
+      //   detectedIntent: workflowIntent,
+      //   hasExistingWorkflow: !!workflow,
+      //   existingType: workflow?.type,
+      // });
 
       // 🚀 WORKFLOW INITIALIZATION
       if (workflowIntent && !workflow) {

@@ -106,21 +106,21 @@ const AdminOrdersPage = () => {
   }, [searchTerm, filterStatus]);
 
   if (loading && orders.length === 0) {
-    return <div className="flex justify-center items-center h-64"><p className="text-xl">Loading orders...</p></div>;
+    return <div className="flex justify-center items-center h-64"><p className="text-xl">Đang tải đơn hàng...</p></div>;
   }
 
   if (error) {
-    return <div className="text-red-500 p-4 bg-red-100 rounded-md">Error: {error}</div>;
+    return <div className="text-red-500 p-4 bg-red-100 rounded-md">Lỗi: {error}</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-semibold text-gray-800">Manage Orders</h1>
+        <h1 className="text-3xl font-semibold text-gray-800">Quản lý đơn hàng</h1>
         <div className="flex gap-4">
           <input
             type="text"
-            placeholder="Search orders..."
+            placeholder="Tìm kiếm đơn hàng..."
             className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -130,7 +130,7 @@ const AdminOrdersPage = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">All Status</option>
+            <option value="all">Tất cả trạng thái</option>
             <option value="Processing">Processing</option>
             <option value="Shipped">Shipped</option>
             <option value="Delivered">Delivered</option>
@@ -140,7 +140,7 @@ const AdminOrdersPage = () => {
       </div>
 
       {orders && orders.length === 0 && !loading && (
-        <p className="text-center text-gray-500">No orders found.</p>
+        <p className="text-center text-gray-500">Không có đơn hàng nào.</p>
       )}
 
       {currentOrders.length > 0 && (
@@ -154,50 +154,50 @@ const AdminOrdersPage = () => {
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
                     onClick={() => requestSort('_id')}
                   >
-                    Order ID {getSortIndicator('_id')}
+                    Mã đơn {getSortIndicator('_id')}
                   </th>
                   <th 
                     scope="col" 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
                     onClick={() => requestSort('user.name')}
                   >
-                    User {getSortIndicator('user.name')}
+                    Khách hàng {getSortIndicator('user.name')}
                   </th>
                   <th 
                     scope="col" 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
                     onClick={() => requestSort('createdAt')}
                   >
-                    Date {getSortIndicator('createdAt')}
+                    Ngày tạo {getSortIndicator('createdAt')}
                   </th>
                   <th 
                     scope="col" 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
                     onClick={() => requestSort('totalPrice')}
                   >
-                    Total {getSortIndicator('totalPrice')}
+                    Tổng tiền {getSortIndicator('totalPrice')}
                   </th>
                   <th 
                     scope="col" 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Payment
+                    Thanh toán
                   </th>
                   <th 
                     scope="col" 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Delivery
+                    Giao hàng
                   </th>
                   <th 
                     scope="col" 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
                     onClick={() => requestSort('status')}
                   >
-                    Status {getSortIndicator('status')}
+                    Trạng thái {getSortIndicator('status')}
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    Thao tác
                   </th>
                 </tr>
             </thead>
@@ -214,8 +214,8 @@ const AdminOrdersPage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       <div className="flex flex-col">
-                        <span className="font-medium">{order.user?.name || 'N/A'}</span>
-                        <span className="text-xs text-gray-500">ID: {order.user?._id.slice(-6).toUpperCase() || 'N/A'}</span>
+                        <span className="font-medium">{order.user?.name || 'Không có'}</span>
+                        <span className="text-xs text-gray-500">ID: {order.user?._id.slice(-6).toUpperCase() || 'Không có'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -237,7 +237,7 @@ const AdminOrdersPage = () => {
                       {order.isPaid ? (
                         <div className="flex flex-col">
                           <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 border border-green-300">
-                            Paid
+                            Đã thanh toán
                           </span>
                           <span className="text-xs text-gray-500 mt-1">
                             {new Date(order.paidAt).toLocaleDateString('vi-VN')}
@@ -245,7 +245,7 @@ const AdminOrdersPage = () => {
                         </div>
                       ) : (
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 border border-red-300">
-                          Pending
+                          Chưa thanh toán
                         </span>
                       )}
                     </td>
@@ -253,7 +253,7 @@ const AdminOrdersPage = () => {
                       {order.isDelivered ? (
                         <div className="flex flex-col">
                           <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 border border-green-300">
-                            Delivered
+                            Đã giao
                           </span>
                           <span className="text-xs text-gray-500 mt-1">
                             {new Date(order.deliveredAt).toLocaleDateString('vi-VN')}
@@ -261,7 +261,7 @@ const AdminOrdersPage = () => {
                         </div>
                       ) : (
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300">
-                          Pending
+                          Chưa giao
                         </span>
                       )}
                     </td>
@@ -275,7 +275,7 @@ const AdminOrdersPage = () => {
                         to={`/admin/orders/${order._id}`}
                         className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded transition-colors"
                       >
-                        View Details
+                        Xem chi tiết
                       </Link>
                     </td>
                   </tr>
@@ -286,7 +286,7 @@ const AdminOrdersPage = () => {
           <div className="px-6 py-4 border-t">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
               <p className="text-sm text-gray-500">
-                Showing {indexOfFirstOrder + 1}-{Math.min(indexOfLastOrder, sortedOrders.length)} of {sortedOrders.length} orders
+                Hiển thị {indexOfFirstOrder + 1}-{Math.min(indexOfLastOrder, sortedOrders.length)} trên tổng số {sortedOrders.length} đơn hàng
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 <button
@@ -298,7 +298,7 @@ const AdminOrdersPage = () => {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  First
+                  Đầu
                 </button>
                 <button
                   onClick={() => paginate(currentPage - 1)}
@@ -309,7 +309,7 @@ const AdminOrdersPage = () => {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  Previous
+                  Trước
                 </button>
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum;
@@ -346,7 +346,7 @@ const AdminOrdersPage = () => {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  Next
+                  Tiếp
                 </button>
                 <button
                   onClick={() => paginate(totalPages)}
@@ -357,7 +357,7 @@ const AdminOrdersPage = () => {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  Last
+                  Cuối
                 </button>
               </div>
               <select
@@ -381,9 +381,9 @@ const AdminOrdersPage = () => {
       {currentOrders.length === 0 && !loading && (
         <div className="text-center py-12 bg-white rounded-lg shadow">
           <p className="text-gray-500 text-lg">
-            {searchTerm || filterStatus !== 'all' 
-              ? 'No orders match your search criteria.' 
-              : 'No orders found.'}
+            {searchTerm || filterStatus !== 'all'
+              ? 'Không có đơn hàng nào phù hợp với tiêu chí tìm kiếm.'
+              : 'Không có đơn hàng nào.'}
           </p>
         </div>
       )}

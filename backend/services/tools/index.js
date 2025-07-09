@@ -26,7 +26,7 @@ const initialize = async (vsManager, userContext) => {
 
   // Initialize non-user-specific tools once
   globalToolInstances = [
-    new ProductSearchTool(),
+    new ProductSearchTool({ vectorStoreManager }),
     new CategoryListTool(),
     new ProductDetailsTool(),
   ];
@@ -103,6 +103,6 @@ module.exports = {
   CategoryListTool,
   ProductDetailsTool,
   AISmartWishlistTool,
-  AISmartCartTool, // AI-driven cart tool
+  AISmartCartTool, 
   OrderTool,
 };

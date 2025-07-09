@@ -36,7 +36,7 @@ class ProductDetailsTool extends StructuredTool {
 
       // If not found by ID or not a valid ID, try by name
       if (!product) {
-        console.log(`Searching product by name used: ${productQuery}`);
+        console.log(`Searching product by name productDetails: ${productQuery}`);
         product = await this._findByName(productQuery);
       }
 
