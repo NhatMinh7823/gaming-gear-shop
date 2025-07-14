@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import io from 'socket.io-client';
 import gamingChatbot from '../../services/chatbotService';
 import { formatMessageText } from '../../utils/textFormatter';
 import {
@@ -12,9 +13,24 @@ import {
     setSuggestions,
     toggleSuggestions,
     toggleQuickCategories,
-    updateLastActivity
+    updateLastActivity,
+    addIntermediateStep,
+    updateIntermediateStep,
+    clearIntermediateSteps,
+    addThinkingStep,
+    updateThinkingStep,
 } from '../../redux/slices/chatbotSlice';
 import './Chatbot.css';
+
+const spinnerStyle = {
+    width: '12px',
+    height: '12px',
+    borderRadius: '50%',
+    border: '2px solid rgba(0, 0, 0, 0.1)',
+    borderTopColor: '#3b82f6',
+    animation: 'spin 1s linear infinite',
+    marginRight: '5px',
+};
 
 const Chatbot = () => {
     const [inputMessage, setInputMessage] = useState('');
@@ -31,8 +47,117 @@ const Chatbot = () => {
         sessionId,
         suggestions,
         showSuggestions,
-        showQuickCategories
+        showQuickCategories,
+        intermediateSteps
     } = useSelector((state) => state.chatbot);
+    const socketRef = useRef(null);
+
+    // Effect for WebSocket connection
+    useEffect(() => {
+        if (isOpen && sessionId) {
+            // Connect to the server
+            socketRef.current = io('http://localhost:5000');
+
+            // Join a room based on sessionId
+            socketRef.current.emit('join_session', sessionId);
+
+            socketRef.current.on('connect', () => {
+                console.log('🔌 Connected to WebSocket server with ID:', socketRef.current.id);
+            });
+
+            // Handle tool start events
+            socketRef.current.on('tool:start', (data) => {
+                console.log('⚡ Tool Start:', data);
+                dispatch(addIntermediateStep({
+                    id: data.id,
+                    tool: data.tool,
+                    input: data.input,
+                    status: 'running',
+                    runId: data.runId,
+                }));
+            });
+
+            // Handle tool end events
+            socketRef.current.on('tool:end', (data) => {
+                console.log('✅ Tool End:', data);
+                dispatch(updateIntermediateStep({
+                    id: data.id,
+                    runId: data.runId,
+                    output: data.output,
+                    status: 'completed',
+                }));
+            });
+
+            // Handle agent action events
+            socketRef.current.on('agent:action', (data) => {
+                console.log('🤖 Agent Action:', data);
+                dispatch(addIntermediateStep({
+                    id: data.id,
+                    tool: data.tool,
+                    input: data.input,
+                    status: 'running',
+                    runId: data.runId,
+                }));
+            });
+
+            // Handle agent end events
+            socketRef.current.on('agent:end', (data) => {
+                console.log('🤖 Agent End:', data);
+                // Agent end doesn't need specific handling, tools will handle their own completion
+            });
+
+            // Handle LLM thinking events
+            socketRef.current.on('llm:start', (data) => {
+                console.log('🧠 LLM Start:', data);
+                dispatch(addThinkingStep({
+                    id: data.id,
+                    runId: data.runId,
+                    status: 'thinking',
+                }));
+            });
+
+            // Handle LLM end events
+            socketRef.current.on('llm:end', (data) => {
+                console.log('🧠 LLM End:', data);
+                dispatch(updateThinkingStep({
+                    id: data.id,
+                    runId: data.runId,
+                    status: 'completed',
+                }));
+            });
+
+            // Handle session joined confirmation
+            socketRef.current.on('session_joined', (data) => {
+                console.log('✅ Session joined:', data);
+            });
+
+            // Handle processing start event
+            socketRef.current.on('processing:start', (data) => {
+                console.log('🚀 Processing started:', data);
+                // Clear any existing intermediate steps when new processing starts
+                dispatch(clearIntermediateSteps());
+            });
+
+            socketRef.current.on('disconnect', () => {
+                console.log('🔌 Disconnected from WebSocket server.');
+            });
+
+        } else {
+            // Disconnect when chat is closed or sessionId is not available
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+                socketRef.current = null;
+            }
+        }
+
+        // Cleanup on component unmount
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+            }
+        };
+    }, [isOpen, sessionId, dispatch]);
+
 
     // Initialize chatbot on component mount
     useEffect(() => {
@@ -55,7 +180,7 @@ const Chatbot = () => {
     // Auto-scroll to bottom when messages change
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, intermediateSteps]);
 
     // Auto-scroll to bottom when chatbot opens
     useEffect(() => {
@@ -78,6 +203,9 @@ const Chatbot = () => {
             alert(validation.error);
             return;
         }
+
+        // Clear intermediate steps from previous message
+        dispatch(clearIntermediateSteps());
 
         const userMessage = {
             id: 'user_' + Date.now(),
@@ -103,7 +231,8 @@ const Chatbot = () => {
                 text: response.response,
                 sender: 'bot',
                 timestamp: response.timestamp,
-                success: !response.error
+                success: !response.error,
+                intermediateSteps: response.debugInfo?.intermediateSteps || []
             };
 
             // Add bot message to Redux store
@@ -388,11 +517,97 @@ const Chatbot = () => {
                                         wordWrap: 'break-word'
                                     }}
                                 >
+                                    {/* Main message text */}
                                     {message.sender === 'bot' ? formatMessageText(message.text) : message.text}
                                 </div>
                             </div>
                         ))}
-
+                        {/* Real-time step rendering */}
+                        {intermediateSteps.map((step) => {
+                            const isThinking = step.tool === 'AI Thinking';
+                            const isRunning = step.status === 'running' || step.status === 'thinking';
+                            
+                            return (
+                                <div
+                                    key={step.id}
+                                    className="message-item"
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'flex-start'
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            maxWidth: '80%',
+                                            padding: '8px 12px',
+                                            borderRadius: '12px',
+                                            backgroundColor: isThinking ? '#fef3c7' : '#f3f4f6',
+                                            color: '#374151',
+                                            fontSize: '13px',
+                                            lineHeight: '1.4',
+                                            wordWrap: 'break-word',
+                                            border: isThinking ? '1px solid #fbbf24' : '1px solid #e5e7eb'
+                                        }}
+                                    >
+                                        <div className="step-message" style={{ fontSize: '12px', color: '#4b5563' }}>
+                                            <p style={{ margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                {isRunning ? (
+                                                    <span 
+                                                        className="spinner" 
+                                                        style={{ 
+                                                            width: '12px', 
+                                                            height: '12px',
+                                                            border: '2px solid rgba(0, 0, 0, 0.1)',
+                                                            borderTopColor: isThinking ? '#f59e0b' : '#3b82f6',
+                                                            borderRadius: '50%',
+                                                            animation: 'spin 1s linear infinite'
+                                                        }}
+                                                    ></span>
+                                                ) : (
+                                                    <span style={{ color: '#16a34a' }}>✅</span>
+                                                )}
+                                                <span>
+                                                    {isThinking ? (
+                                                        <>🧠 <em>Đang suy nghĩ...</em></>
+                                                    ) : (
+                                                        <>🔧 Đang sử dụng: <code style={{ color: '#c026d3', fontWeight: 'bold' }}>{step.tool}</code></>
+                                                    )}
+                                                </span>
+                                            </p>
+                                            {step.status === 'completed' && step.output && !isThinking && (
+                                                <div style={{ marginTop: '5px', borderTop: '1px dashed #d1d5db', paddingTop: '5px' }}>
+                                                    <strong style={{ color: '#166534' }}>Kết quả:</strong>
+                                                    <div style={{ 
+                                                        marginTop: '4px', 
+                                                        backgroundColor: '#f0fdf4', 
+                                                        padding: '4px 6px', 
+                                                        borderRadius: '4px', 
+                                                        border: '1px solid #bbf7d0', 
+                                                        fontSize: '11px',
+                                                        maxHeight: '100px',
+                                                        overflowY: 'auto'
+                                                    }}>
+                                                        <pre style={{ 
+                                                            whiteSpace: 'pre-wrap', 
+                                                            wordWrap: 'break-word', 
+                                                            margin: '0',
+                                                            fontFamily: 'inherit'
+                                                        }}>
+                                                            {typeof step.output === 'string' 
+                                                                ? step.output.length > 200 
+                                                                    ? step.output.substring(0, 200) + '...'
+                                                                    : step.output
+                                                                : JSON.stringify(step.output, null, 2)
+                                                            }
+                                                        </pre>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                         {isLoading && (
                             <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                                 <div
@@ -508,7 +723,7 @@ const Chatbot = () => {
                             padding: '16px',
                             borderTop: '1px solid #e5e7eb'
                         }}
-                    >
+                        >
                         <div style={{ display: 'flex', gap: '8px' }}>
                             <input
                                 ref={inputRef}

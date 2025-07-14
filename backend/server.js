@@ -13,14 +13,54 @@ dotenv.config();
 connectDB();
 
 // Initialize GHN warehouse configuration
-const ghnService = require('./services/ghnService');
-ghnService.initializeWarehouse().catch(error => {
-  console.error('Failed to initialize GHN warehouse:', error.message);
-  console.log('GHN API will use fallback shipping fees');
+const ghnService = require("./services/ghnService");
+const http = require("http");
+const { Server } = require("socket.io");
+const chatbotService = require("./services/chatbotService");
+
+ghnService.initializeWarehouse().catch((error) => {
+  console.error("Failed to initialize GHN warehouse:", error.message);
+  console.log("GHN API will use fallback shipping fees");
 });
 
 // Initialize Express app
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
+
+// Pass io instance to chatbotService
+chatbotService.setSocketIO(io);
+
+// Handle Socket.IO connections
+io.on("connection", (socket) => {
+  console.log("🔌 A user connected with socket ID:", socket.id);
+
+  // Handle joining session room
+  socket.on("join_session", (sessionId) => {
+    if (sessionId) {
+      socket.join(sessionId);
+      console.log(`🔌 Socket ${socket.id} joined session room: ${sessionId}`);
+      socket.emit("session_joined", { sessionId, socketId: socket.id });
+    }
+  });
+
+  // Handle leaving session room
+  socket.on("leave_session", (sessionId) => {
+    if (sessionId) {
+      socket.leave(sessionId);
+      console.log(`🔌 Socket ${socket.id} left session room: ${sessionId}`);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("🔌 User disconnected with socket ID:", socket.id);
+  });
+});
 
 // Apply middleware
 app.use(
@@ -88,6 +128,6 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

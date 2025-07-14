@@ -44,6 +44,7 @@ class GamingChatbot {
           response: botResponse,
           sessionId,
           timestamp,
+          debugInfo,
         } = response.data.data;
 
         // Update session ID if provided
@@ -59,6 +60,7 @@ class GamingChatbot {
           response: botResponse,
           sessionId: sessionId,
           timestamp: timestamp,
+          debugInfo: debugInfo,
         };
       } else {
         throw new Error("Failed to get response from chatbot");

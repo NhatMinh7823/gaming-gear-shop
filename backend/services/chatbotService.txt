@@ -1,0 +1,105 @@
+Khi có một yêu cầu tìm kiếm một sản phẩm cụ thể, quy trình xử lý trong ChatbotService diễn ra như sau:
+
+1. Phân tích intent: line 157
+ Hàm detectWorkflowIntent(message) sẽ kiểm tra nội dung tin nhắn để xác định intent. 
+ Nếu phát hiện các từ khóa liên quan đến tìm kiếm sản phẩm (ví dụ: "tìm", "gợi ý", tên sản phẩm, thương hiệu...), intent "search" sẽ được trả về.
+
+2. Khởi tạo workflow:
+ Nếu intent là "search" và chưa có workflow nào cho session hiện tại, 
+ initWorkflow của WorkflowStateManager sẽ được gọi để khởi tạo workflow "search" cho session này.
+
+3. Tạo context workflow:
+ Lấy trạng thái workflow hiện tại (nếu có) từ WorkflowStateManager để truyền vào context cho agent,
+ bao gồm loại workflow, bước hiện tại, thông tin bước, trạng thái tiếp tục...
+ 
+4. Gọi agent thực thi:
+ Agent (thông qua agentExecutor.invoke) sẽ nhận message, lịch sử chat, context workflow 
+ và thực thi các tool phù hợp (ví dụ: tool tìm kiếm sản phẩm).
+
+5.Cập nhật tiến trình workflow:
+ Sau khi agent trả về kết quả (bao gồm output và các bước trung gian/intermediateSteps), 
+ updateWorkflowBasedOnResult sẽ được gọi để cập nhật tiến trình workflow dựa trên tool
+ đã dùng (ví dụ: nếu tool "product_search" đã được dùng ở bước 0, workflow sẽ được advance
+ sang bước tiếp theo).
+
+6.Trả về kết quả:
+ Kết quả tìm kiếm sản phẩm (output của agent), trạng thái workflow, các tool đã dùng, 
+ tiến trình workflow, và các thông tin phân tích sẽ được trả về cho user.
+
+---
+
+Lines tương ứng với từng bước trong file chatbotService.js:
+
+1. Phân tích intent:
+- Line: 157
+  const workflowIntent = this.detectWorkflowIntent(message);
+
+2. Khởi tạo workflow:
+- Lines: 160–170
+  let workflow = this.workflowStateManager.getWorkflowState(actualSessionId);
+  // ...
+  if (workflowIntent && !workflow) {
+    workflow = this.workflowStateManager.initWorkflow(
+      actualSessionId,
+      workflowIntent,
+      {
+        originalMessage: message,
+        userId: userId,
+      }
+    );
+    this.log(`🎯 Started new ${workflowIntent} workflow`);
+  }
+
+3. Tạo context workflow:
+- Lines: 211–218
+  const workflowContext = workflow
+    ? {
+        currentWorkflow: workflow.type,
+        currentStep: workflow.currentStep,
+        stepInfo:
+          this.workflowStateManager.getCurrentStepInfo(actualSessionId),
+        shouldContinue:
+          this.workflowStateManager.shouldContinueWorkflow(actualSessionId),
+      }
+    : {};
+
+4. Gọi agent thực thi:
+- Lines: 220–227
+  const agentStartTime = Date.now();
+  const result = await agentExecutor.invoke({
+    input: message,
+    chat_history: previousMessages,
+    workflow_context: workflowContext,
+    session_id: actualSessionId,
+  });
+
+5. Cập nhật tiến trình workflow:
+- Lines: 250–254
+  if (workflow || workflowIntent) {
+    this.updateWorkflowBasedOnResult(actualSessionId, result, toolsUsed);
+    workflow = this.workflowStateManager.getWorkflowState(actualSessionId);
+  }
+
+6. Trả về kết quả:
+- Lines: 262–281
+  return {
+    text:
+      result.output ||
+      "Xin lỗi, tôi không thể xử lý yêu cầu của bạn lúc này.",
+    sessionId: actualSessionId,
+    intermediateSteps: result.intermediateSteps || [],
+    toolsUsed: toolsUsed,
+    workflowComplete: workflowComplete,
+    workflow: workflowAnalytics,
+    executionTime: totalDuration,
+    agentExecutionTime: agentDuration,
+    iterationsUsed: result.intermediateSteps?.length || 0,
+    analytics: {
+      workflowIntent: workflowIntent,
+      hasActiveWorkflow: !!workflow,
+      toolsExecuted: toolsUsed.length,
+      workflowProgress: workflowProgress,
+    },
+  };
+
+Bạn có thể đối chiếu từng bước với các dòng code trên để hiểu rõ quy trình xử lý tìm kiếm sản phẩm trong ChatbotService.

@@ -2,7 +2,10 @@ import { createSlice } from '@reduxjs/toolkit';
 import { loadChatbotState } from '../middleware/persistenceMiddleware';
 
 // Load initial state from localStorage or use defaults
-const initialState = loadChatbotState();
+const initialState = {
+  ...loadChatbotState(),
+  intermediateSteps: [],
+};
 
 const chatbotSlice = createSlice({
   name: 'chatbot',
@@ -14,7 +17,7 @@ const chatbotSlice = createSlice({
       const welcomeText = userInfo
         ? `Chào ${userInfo.name}! 👋 Tôi là trợ lý AI của Gaming Gear Shop. Tôi có thể giúp bạn tư vấn về thiết bị gaming dựa trên sở thích của bạn. Bạn cần hỗ trợ gì?`
         : "Chào bạn! 👋 Tôi là trợ lý AI của Gaming Gear Shop. Tôi có thể giúp bạn tư vấn về thiết bị gaming. Bạn cần hỗ trợ gì?";
-      
+
       // Only set welcome message if there are no messages yet
       if (state.messages.length === 0) {
         state.messages = [{
@@ -75,6 +78,7 @@ const chatbotSlice = createSlice({
       state.sessionId = null;
       state.isLoading = false;
       state.lastActivity = new Date().toISOString();
+      state.intermediateSteps = []; // Clear intermediate steps on clear chat
     },
 
     // Update suggestions
@@ -110,12 +114,70 @@ const chatbotSlice = createSlice({
 
     // Reset chatbot to initial state
     resetChatbot: (state) => {
-      return { ...loadChatbotState() };
+      return { ...loadChatbotState(), intermediateSteps: [] };
     },
 
     // Update last activity timestamp
     updateLastActivity: (state) => {
       state.lastActivity = new Date().toISOString();
+    },
+
+    // Real-time streaming reducers
+    addIntermediateStep: (state, action) => {
+      state.intermediateSteps.push({
+        ...action.payload,
+        status: action.payload.status || 'running',
+        timestamp: new Date().toISOString(),
+      });
+    },
+
+    updateIntermediateStep: (state, action) => {
+      const { id, runId, output, status } = action.payload;
+      
+      // Find step by id or runId
+      const stepIndex = state.intermediateSteps.findIndex((step) => 
+        step.id === id || step.runId === runId
+      );
+      
+      if (stepIndex !== -1) {
+        state.intermediateSteps[stepIndex] = {
+          ...state.intermediateSteps[stepIndex],
+          output: output,
+          status: status || 'completed',
+          timestamp: new Date().toISOString(),
+        };
+      }
+    },
+
+    // Clear intermediate steps when starting new message
+    clearIntermediateSteps: (state) => {
+      state.intermediateSteps = [];
+    },
+
+    // Add thinking step for LLM processing
+    addThinkingStep: (state, action) => {
+      state.intermediateSteps.push({
+        ...action.payload,
+        tool: 'AI Thinking',
+        status: 'thinking',
+        timestamp: new Date().toISOString(),
+      });
+    },
+
+    // Update thinking step
+    updateThinkingStep: (state, action) => {
+      const { id, runId, status } = action.payload;
+      const stepIndex = state.intermediateSteps.findIndex((step) => 
+        (step.id === id || step.runId === runId) && step.tool === 'AI Thinking'
+      );
+      
+      if (stepIndex !== -1) {
+        state.intermediateSteps[stepIndex] = {
+          ...state.intermediateSteps[stepIndex],
+          status: status || 'completed',
+          timestamp: new Date().toISOString(),
+        };
+      }
     },
   },
 });
@@ -123,6 +185,11 @@ const chatbotSlice = createSlice({
 export const {
   setWelcomeMessage,
   addMessage,
+  addIntermediateStep,
+  updateIntermediateStep,
+  clearIntermediateSteps,
+  addThinkingStep,
+  updateThinkingStep,
   addMessages,
   setLoading,
   toggleChatbot,

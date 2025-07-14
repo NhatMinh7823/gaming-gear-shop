@@ -30,6 +30,15 @@ const handleChatbotConversation = asyncHandler(async (req, res) => {
         response: response.text,
         sessionId: response.sessionId,
         timestamp: new Date().toISOString(),
+        //  Debugging and analytics information
+        debugInfo: {
+          toolsUsed: response.toolsUsed,
+          workflow: response.workflow,
+          executionTime: response.executionTime,
+          agentExecutionTime: response.agentExecutionTime,
+          iterationsUsed: response.iterationsUsed,
+          intermediateSteps: response.intermediateSteps,
+        },
       },
     });
   } catch (error) {

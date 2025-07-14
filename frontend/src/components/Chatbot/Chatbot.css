@@ -197,6 +197,85 @@
   }
 }
 
+/* Spinner Animation for Real-time Steps */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Step Message Styling */
+.step-message {
+  animation: fadeInSlide 0.3s ease-out;
+}
+
+.step-message code {
+  background-color: rgba(192, 38, 211, 0.1);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+/* Thinking Step Special Styling */
+.thinking-step {
+  background: linear-gradient(45deg, #fef3c7, #fde68a);
+  border: 1px solid #f59e0b;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Tool Step Styling */
+.tool-step {
+  background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+  border: 1px solid #d1d5db;
+}
+
+.tool-step.completed {
+  background: linear-gradient(45deg, #f0fdf4, #dcfce7);
+  border: 1px solid #bbf7d0;
+}
+
+/* Step Output Styling */
+.step-output {
+  max-height: 100px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.step-output::-webkit-scrollbar {
+  width: 4px;
+}
+
+.step-output::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 2px;
+}
+
+.step-output::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
 /* Status Bar Transition */
 .status-bar {
   transition: all 0.3s ease;

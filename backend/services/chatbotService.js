@@ -1,3 +1,4 @@
+const { BaseCallbackHandler } = require("@langchain/core/callbacks/base");
 const AgentManager = require("./chatbot/AgentManager");
 const ChatHistoryManager = require("./chatbot/ChatHistoryManager");
 const VectorStoreManager = require("./chatbot/VectorStoreManager");
@@ -27,13 +28,101 @@ class ChatbotService {
     this.chatHistoryManager = new ChatHistoryManager();
     this.vectorStoreManager = VectorStoreManager.getInstance();
     this.userContext = new UserContext();
-    // this.orderFlowManager = null; // REMOVED
-
-    // 🆕 WORKFLOW MANAGEMENT COMPONENTS
     this.workflowStateManager = new WorkflowStateManager();
-
     this.isInitialized = false;
     this.debugMode = CHATBOT_DEBUG;
+    this.io = null;
+  }
+
+  setSocketIO(io) {
+    this.io = io;
+    this.log("Socket.IO instance has been set.");
+  }
+
+  createSocketCallbackHandler(sessionId) {
+    const self = this; // Capture 'this' context
+    class SocketIOCallbackHandler extends BaseCallbackHandler {
+      name = "SocketIOCallbackHandler";
+
+      handleToolStart(tool, input, runId, parentRunId, tags, metadata) {
+        self.log(`[SocketCallback] Tool Start: ${tool.name}`);
+        if (self.io) {
+          const stepData = {
+            id: `step_${runId}_${Date.now()}`,
+            tool: tool.name,
+            input: input,
+            status: 'running',
+            timestamp: new Date().toISOString(),
+            runId: runId
+          };
+          self.io.to(sessionId).emit("tool:start", stepData);
+        }
+      }
+
+      handleToolEnd(output, runId, parentRunId, tags) {
+        self.log(`[SocketCallback] Tool End. Output:`, output);
+        if (self.io) {
+          const stepData = {
+            id: `step_${runId}_${Date.now()}`,
+            output: output,
+            status: 'completed',
+            timestamp: new Date().toISOString(),
+            runId: runId
+          };
+          self.io.to(sessionId).emit("tool:end", stepData);
+        }
+      }
+
+      handleAgentAction(action, runId, parentRunId, tags) {
+        self.log(`[SocketCallback] Agent Action: ${action.tool}`);
+        if (self.io) {
+          const stepData = {
+            id: `step_${runId}_${Date.now()}`,
+            tool: action.tool,
+            input: action.toolInput,
+            status: 'running',
+            timestamp: new Date().toISOString(),
+            runId: runId
+          };
+          self.io.to(sessionId).emit("agent:action", stepData);
+        }
+      }
+
+      handleAgentEnd(action, runId, parentRunId, tags) {
+        self.log(`[SocketCallback] Agent End`);
+        if (self.io) {
+          self.io.to(sessionId).emit("agent:end", {
+            timestamp: new Date().toISOString(),
+            runId: runId
+          });
+        }
+      }
+
+      handleLLMStart(llm, prompts, runId, parentRunId, extraParams, tags, metadata) {
+        self.log(`[SocketCallback] LLM Start`);
+        if (self.io) {
+          self.io.to(sessionId).emit("llm:start", {
+            id: `llm_${runId}_${Date.now()}`,
+            status: 'thinking',
+            timestamp: new Date().toISOString(),
+            runId: runId
+          });
+        }
+      }
+
+      handleLLMEnd(output, runId, parentRunId, tags) {
+        self.log(`[SocketCallback] LLM End`);
+        if (self.io) {
+          self.io.to(sessionId).emit("llm:end", {
+            id: `llm_${runId}_${Date.now()}`,
+            status: 'completed',
+            timestamp: new Date().toISOString(),
+            runId: runId
+          });
+        }
+      }
+    }
+    return new SocketIOCallbackHandler();
   }
 
   log(message, ...args) {
@@ -57,7 +146,7 @@ class ChatbotService {
 
       // Load products to vector store
       this.log("Loading products to vector store...");
-      await this.loadProductsToVectorStore(); 
+      await this.loadProductsToVectorStore();
       this.log("Initializing tools...");
       await tools.initialize(this.vectorStoreManager, this.userContext);
 
@@ -122,7 +211,7 @@ class ChatbotService {
       const workflowIntent = this.detectWorkflowIntent(message);
       let workflow =
         this.workflowStateManager.getWorkflowState(actualSessionId);
-      
+
       // this.log(`📊 Workflow analysis:`, {
       //   detectedIntent: workflowIntent,
       //   hasExistingWorkflow: !!workflow,
@@ -151,7 +240,9 @@ class ChatbotService {
 
       // The old OrderFlowManager logic has been removed.
       // All requests now go directly to the main agent, which will use AIOrderTool when appropriate.
-      this.log("Bypassing legacy OrderFlowManager. Proceeding directly to agent.");
+      this.log(
+        "Bypassing legacy OrderFlowManager. Proceeding directly to agent."
+      );
 
       // Get agent executor from manager
       const agentExecutor = this.agentManager.getAgentExecutor();
@@ -159,6 +250,14 @@ class ChatbotService {
         throw new Error("Agent executor not available");
       }
       const previousMessages = await history.getMessages();
+
+      // Emit processing start event
+      if (this.io) {
+        this.io.to(actualSessionId).emit("processing:start", {
+          message: message,
+          timestamp: new Date().toISOString(),
+        });
+      }
 
       // Lấy context workflow từ WorkflowStateManager
       const workflowContext = workflow
@@ -173,12 +272,18 @@ class ChatbotService {
         : {};
 
       const agentStartTime = Date.now();
-      const result = await agentExecutor.invoke({
-        input: message,
-        chat_history: previousMessages,
-        workflow_context: workflowContext,
-        session_id: actualSessionId,
-      });
+      const callbackHandler = this.createSocketCallbackHandler(actualSessionId);
+      const result = await this.agentManager.executeAgent(
+        {
+          input: message,
+          chat_history: previousMessages,
+          workflow_context: workflowContext,
+          session_id: actualSessionId
+        },
+        {
+          callbacks: [callbackHandler]
+        }
+      );
       const agentDuration = Date.now() - agentStartTime;
 
       // Save conversation to history
@@ -265,7 +370,6 @@ class ChatbotService {
   }
   /**
    * Create fresh tools with current UserContext and update agent
-   * This ensures that each request gets tools with the correct UserContext
    */
   async createFreshToolsAndUpdateAgent() {
     try {
@@ -499,7 +603,7 @@ class ChatbotService {
   }
 
   /**
-   * Update workflow state based on agent result
+   * Update workflow state based on result
    */
   updateWorkflowBasedOnResult(sessionId, result, toolsUsed) {
     const workflow = this.workflowStateManager.getWorkflowState(sessionId);
@@ -620,23 +724,17 @@ class ChatbotService {
 
     // Check for completion
     if (stepData.orderSuccess) {
-      this.workflowStateManager.completeWorkflow(
-        sessionId,
-        {
-          finalOutput: result.output,
-          toolsUsed: toolsUsed,
-          totalSteps: workflow.currentStep,
-        }
-      );
+      this.workflowStateManager.completeWorkflow(sessionId, {
+        finalOutput: result.output,
+        toolsUsed: toolsUsed,
+        totalSteps: workflow.currentStep,
+      });
     } else if (!this.workflowStateManager.shouldContinueWorkflow(sessionId)) {
-      this.workflowStateManager.completeWorkflow(
-        sessionId,
-        {
-          finalOutput: result.output,
-          toolsUsed: toolsUsed,
-          totalSteps: workflow.currentStep,
-        }
-      );
+      this.workflowStateManager.completeWorkflow(sessionId, {
+        finalOutput: result.output,
+        toolsUsed: toolsUsed,
+        totalSteps: workflow.currentStep,
+      });
     }
 
     // Handle user cancellation patterns

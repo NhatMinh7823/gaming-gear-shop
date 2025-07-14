@@ -126,8 +126,9 @@ class AgentManager {
 
   /**
    * Execute agent with input - main interaction point
+   * Accepts input and options (e.g. callbacks)
    */
-  async executeAgent(input) {
+  async executeAgent(input, options = {}) {
     if (!this.isInitialized) {
       await this.initialize();
     }
@@ -136,7 +137,8 @@ class AgentManager {
       throw new Error("Agent executor not initialized");
     }
 
-    return await this.agentExecutor.invoke(input);
+    // Pass options (such as callbacks) to agentExecutor.invoke if provided
+    return await this.agentExecutor.invoke(input, options);
   }
 
   /**
