@@ -24,28 +24,15 @@ class InventoryValidator {
 
     for (const item of cartItems) {
       try {
-        const product = await Product.findById(item.product);
+        const product = item.product; // item.product is already populated by AIOrderTool
         
-        if (!product) {
+        if (!product || !product._id) {
           validationResults.push({
             item: item,
             status: 'PRODUCT_NOT_FOUND',
             available: 0,
             requested: item.quantity,
             message: `Sản phẩm ${item.name} không còn tồn tại`,
-            severity: 'ERROR'
-          });
-          continue;
-        }
-        
-        // Check if product is active/available
-        if (product.isDeleted || product.isActive === false) {
-          validationResults.push({
-            item: item,
-            status: 'PRODUCT_UNAVAILABLE',
-            available: 0,
-            requested: item.quantity,
-            message: `${item.name || item.product.name} hiện không có sẵn (sản phẩm đã bị tạm ngừng)`,
             severity: 'ERROR'
           });
           continue;
@@ -91,7 +78,7 @@ class InventoryValidator {
         });
         
       } catch (error) {
-        console.error(`Error validating item ${item.product}:`, error);
+        console.error(`Error validating item ${item.product?._id || item.product}:`, error);
         validationResults.push({
           item: item,
           status: 'VALIDATION_ERROR',
@@ -138,7 +125,7 @@ class InventoryValidator {
         if (error.status === 'INSUFFICIENT_STOCK' && error.available > 0) {
           recommendations.push({
             type: 'ADJUST_QUANTITY',
-            productId: error.item.product,
+            productId: error.item.product?._id || error.item.product, // Use _id if populated, else raw ID
             productName: error.item.name,
             suggestedQuantity: error.available,
             currentQuantity: error.requested
@@ -146,7 +133,7 @@ class InventoryValidator {
         } else if (error.status === 'PRODUCT_NOT_FOUND' || error.status === 'PRODUCT_UNAVAILABLE') {
           recommendations.push({
             type: 'REMOVE_PRODUCT',
-            productId: error.item.product,
+            productId: error.item.product?._id || error.item.product, // Use _id if populated, else raw ID
             productName: error.item.name
           });
         }
@@ -211,20 +198,19 @@ class InventoryValidator {
    */
   static async getAlternativeProducts(item) {
     try {
-      const originalProduct = await Product.findById(item.product);
-      if (!originalProduct) return [];
+      // Assuming item.product is already a populated product object
+      const originalProduct = item.product; 
+      if (!originalProduct || !originalProduct._id) return [];
       
       // Find similar products in same category with similar price range
       const alternatives = await Product.find({
-        _id: { $ne: item.product },
+        _id: { $ne: originalProduct._id }, // Use _id from the populated object
         category: originalProduct.category,
         price: {
           $gte: originalProduct.price * 0.8,
           $lte: originalProduct.price * 1.2
         },
-        stock: { $gt: 0 },
-        isActive: true,
-        isDeleted: { $ne: true }
+        stock: { $gt: 0 }
       })
       .limit(3)
       .sort({ sold: -1 }); // Sort by popularity

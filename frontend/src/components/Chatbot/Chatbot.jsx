@@ -19,6 +19,7 @@ import './Chatbot.css';
 const Chatbot = () => {
     const [inputMessage, setInputMessage] = useState('');
     const messagesEndRef = useRef(null);
+    const inputRef = useRef(null);
     const dispatch = useDispatch();
 
     // Get state from Redux
@@ -60,6 +61,7 @@ const Chatbot = () => {
     useEffect(() => {
         if (isOpen) {
             scrollToBottom();
+            setTimeout(() => inputRef.current?.focus(), 100);
         }
     }, [isOpen]);
 
@@ -509,6 +511,7 @@ const Chatbot = () => {
                     >
                         <div style={{ display: 'flex', gap: '8px' }}>
                             <input
+                                ref={inputRef}
                                 type="text"
                                 value={inputMessage}
                                 onChange={(e) => setInputMessage(e.target.value)}

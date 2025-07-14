@@ -70,11 +70,8 @@ Only works when user is authenticated (userId available).`;
       // Get current cart for context
       const currentCart = await this.getCurrentCart(userId);
       
-      // Get available products for AI analysis (sample to prevent token overflow)
-      const availableProducts = await this.getAvailableProducts();
-
       // Create comprehensive AI prompt for cart analysis
-      const aiPrompt = this.createCartAIPrompt(query, currentCart, availableProducts);
+      const aiPrompt = this.createCartAIPrompt(query, currentCart);
 
       this.log("Sending query to Gemini AI for cart analysis...");
       const aiResponse = await this.llm.invoke(aiPrompt);
@@ -133,42 +130,11 @@ Only works when user is authenticated (userId available).`;
     }
   }
 
-  async getAvailableProducts() {
-    try {
-      const products = await Product.find({ stock: { $gt: 0 } })
-        .populate("category", "name")
-        .sort({ averageRating: -1 })
-        .limit(30) // Limit to prevent token overflow
-        .lean();
-
-      return products.map(product => ({
-        id: product._id.toString(),
-        name: product.name,
-        brand: product.brand || "N/A",
-        category: product.category?.name || "N/A",
-        price: product.price,
-        discountPrice: product.discountPrice || null,
-        effectivePrice: product.discountPrice || product.price,
-        stock: product.stock,
-        rating: product.averageRating || 0,
-        reviews: product.numReviews || 0,
-        features: product.features || [],
-        description: product.description || ""
-      }));
-    } catch (error) {
-      this.log("Error getting available products:", error);
-      return [];
-    }
-  }
-
-  createCartAIPrompt(query, currentCart, availableProducts) {
+  createCartAIPrompt(query, currentCart) {
     return `Bạn là AI chuyên gia quản lý giỏ hàng thông minh cho gaming gear shop. Phân tích yêu cầu của khách hàng và thực hiện hành động phù hợp.
 
 **THÔNG TIN GIỎ HÀNG HIỆN TẠI:**
 ${JSON.stringify(currentCart, null, 2)}
-
-**SẢN PHẨM CÓ SẴN (mẫu):**
-${JSON.stringify(availableProducts.slice(0, 20), null, 2)}
 
 **YÊU CẦU KHÁCH HÀNG:** "${query}"
 
@@ -179,11 +145,10 @@ ${JSON.stringify(availableProducts.slice(0, 20), null, 2)}
 4. Đưa ra quyết định thông minh và phản hồi phù hợp
 
 **CÁC LOẠI HÀNH ĐỘNG:**
-- **add_product**: Thêm sản phẩm vào giỏ hàng
+- **search_and_add**: Tìm kiếm và thêm sản phẩm. Luôn sử dụng hành động này cho mọi yêu cầu thêm hàng vào giỏ.
 - **view_cart**: Xem giỏ hàng hiện tại
 - **remove_product**: Xóa sản phẩm khỏi giỏ hàng  
 - **clear_cart**: Xóa toàn bộ giỏ hàng
-- **search_and_add**: Tìm kiếm và thêm sản phẩm
 - **update_quantity**: Cập nhật số lượng sản phẩm
 
 **QUY TẮC QUAN TRỌNG:**
@@ -194,17 +159,9 @@ ${JSON.stringify(availableProducts.slice(0, 20), null, 2)}
 - Extract product intent từ search results nếu cần
 - Đưa ra gợi ý khi không chắc chắn
 
-**PRODUCT SELECTION LOGIC:**
-- "rẻ nhất" → chọn sản phẩm giá thấp nhất
-- "tốt nhất" → chọn sản phẩm rating cao nhất
-- "đầu tiên" → chọn sản phẩm đầu tiên
-- Thương hiệu cụ thể → ưu tiên brand đó
-- Đặc điểm cụ thể → match features
-
 **QUANTITY EXTRACTION:**
-- Số cụ thể: "mua 3 cái" → 3
+- Số cụ thể: "thêm 3 cái" → 3
 - Mô tả: "vài cái" → 3, "đôi" → 2, "nhiều" → 5
-- Context: "cho team" → 6, "cá nhân" → 1
 - Default: không có thông tin → 1
 
 **ĐỊNH DẠNG PHẢN HỒI JSON:**
@@ -241,15 +198,12 @@ Phân tích và trả về JSON hợp lệ cho cart operation:`;
   }
 
   async executeAIAction(aiResult, userId) {
-    const { action, execution, response, analysis } = aiResult;
+    const { action, execution, response} = aiResult;
     
     this.log(`Executing AI action: ${action}`, execution);
 
     try {
       switch (action) {
-        case "add_product":
-          return await this.handleAddProduct(userId, execution, response);
-
         case "search_and_add":
           return await this.handleSearchAndAdd(userId, execution, response);
 
@@ -274,21 +228,6 @@ Phân tích và trả về JSON hợp lệ cho cart operation:`;
     }
   }
 
-  async handleAddProduct(userId, execution, response) {
-    const { productId, quantity = 1 } = execution;
-
-    if (!productId) {
-      return "❌ Không xác định được sản phẩm cần thêm. Vui lòng chỉ rõ tên hoặc ID sản phẩm.";
-    }
-
-    const product = await Product.findById(productId);
-    if (!product) {
-      return "❌ Không tìm thấy sản phẩm. Vui lòng kiểm tra lại thông tin.";
-    }
-
-    return await this.addToCart(userId, product, quantity, response);
-  }
-
   async handleSearchAndAdd(userId, execution, response) {
     const { searchQuery, quantity = 1, selectionCriteria } = execution;
 
@@ -298,7 +237,7 @@ Phân tích và trả về JSON hợp lệ cho cart operation:`;
 
     // Perform vector search
     const vectorStoreManager = VectorStoreManager.getInstance();
-    const searchResults = await vectorStoreManager.similaritySearch(searchQuery, 10);
+    const searchResults = await vectorStoreManager.similaritySearch(searchQuery, 2);
 
     if (!searchResults || searchResults.length === 0) {
       return `❌ Không tìm thấy sản phẩm nào phù hợp với "${searchQuery}". Vui lòng thử từ khóa khác.`;
@@ -316,8 +255,9 @@ Phân tích và trả về JSON hợp lệ cho cart operation:`;
       return "❌ Sản phẩm đã chọn không tồn tại. Vui lòng thử lại.";
     }
 
-    const result = await this.addToCart(userId, product, quantity, response);
-    return `${result}\n\n🎯 **Lý do chọn:** ${selectedProduct.reason}\n🔍 **Từ ${searchResults.length} kết quả tìm được**`;
+    // The item has been successfully added. Return the result from addToCart directly.
+    // Appending more information might confuse the agent.
+    return await this.addToCart(userId, product, quantity, response);
   }
 
   async aiSelectProduct(searchResults, criteria, originalQuery) {
@@ -359,9 +299,9 @@ Trả về JSON:
     const cart = await Cart.findOne({ user: userId }).populate('items.product');
 
     if (!cart || cart.items.length === 0) {
-      return `🛒 **${response.title || 'Giỏ hàng trống'}**
+      return `🛒 **${response?.title || 'Giỏ hàng trống'}**
 
-${response.message || 'Giỏ hàng của bạn đang trống. Hãy tìm kiếm và thêm sản phẩm!'}
+${response?.message || 'Giỏ hàng của bạn đang trống. Hãy tìm kiếm và thêm sản phẩm!'}
 
 💡 **Gợi ý:**
 - "Tìm chuột gaming" 
@@ -371,21 +311,23 @@ ${response.message || 'Giỏ hàng của bạn đang trống. Hãy tìm kiếm v
 
     const cartItems = cart.items.map((item, index) => {
       const product = item.product;
-      const stockStatus = product && product.stock >= item.quantity ? "✅ Còn hàng" : "⚠️ Hết hàng";
+      const stockStatus = product 
+        ? (product.stock >= item.quantity ? "✅ Còn hàng" : `⚠️ Hết hàng (còn ${product.stock})`) 
+        : "❌ Sản phẩm không còn tồn tại";
       
       return `${index + 1}. **${item.name}**
    💰 ${item.price.toLocaleString("vi-VN")}đ x ${item.quantity} = ${(item.price * item.quantity).toLocaleString("vi-VN")}đ
    📋 ${stockStatus}`;
     }).join("\n\n");
 
-    return `🛒 **${response.title || 'Giỏ hàng của bạn'}**
+    return `🛒 **${response?.title || 'Giỏ hàng của bạn'}**
 
 ${cartItems}
 
 💰 **TỔNG CỘNG: ${cart.totalPrice.toLocaleString("vi-VN")}đ**
 📦 **${cart.items.length} sản phẩm**
 
-${response.message || 'Bạn có thể tiếp tục mua sắm hoặc tiến hành thanh toán!'}`;
+${response?.message || 'Bạn có thể tiếp tục mua sắm hoặc tiến hành thanh toán!'}`;
   }
 
   async handleRemoveProduct(userId, execution, response) {
@@ -414,14 +356,14 @@ ${response.message || 'Bạn có thể tiếp tục mua sắm hoặc tiến hàn
     cart.totalPrice = cart.items.reduce((total, item) => total + item.price * item.quantity, 0);
     await cart.save();
 
-    return `✅ **${response.title || 'Đã xóa sản phẩm'}**
+    return `✅ **${response?.title || 'Đã xóa sản phẩm'}**
 
 🗑️ **Đã xóa:** ${removedItem.name}
 💰 **Tiết kiệm:** ${(removedItem.price * removedItem.quantity).toLocaleString("vi-VN")}đ
 
 🛍️ **Giỏ hàng còn:** ${cart.totalPrice.toLocaleString("vi-VN")}đ (${cart.items.length} sản phẩm)
 
-${response.message || ''}`;
+${response?.message || ''}`;
   }
 
   async handleClearCart(userId, response) {
@@ -434,12 +376,12 @@ ${response.message || ''}`;
     const totalValue = cart.totalPrice;
     await Cart.findOneAndDelete({ user: userId });
 
-    return `✅ **${response.title || 'Đã xóa toàn bộ giỏ hàng'}**
+    return `✅ **${response?.title || 'Đã xóa toàn bộ giỏ hàng'}**
 
 🗑️ **Đã xóa:** ${itemCount} sản phẩm
 💰 **Tổng giá trị:** ${totalValue.toLocaleString("vi-VN")}đ
 
-${response.message || 'Giỏ hàng hiện tại đã trống. Bạn có thể bắt đầu mua sắm mới!'}`;
+${response?.message || 'Giỏ hàng hiện tại đã trống. Bạn có thể bắt đầu mua sắm mới!'}`;
   }
 
   async handleUpdateQuantity(userId, execution, response) {
@@ -515,21 +457,12 @@ ${response.message || 'Giỏ hàng hiện tại đã trống. Bạn có thể b�
     }
 
     await cart.save();
+    
+    const successTitle = response?.title || `Đã thêm ${quantity} x ${product.name} vào giỏ hàng.`;
+    const customMessage = response?.message ? `\n${response.message}` : "";
+    const cartStatus = `Giỏ hàng hiện tại có ${cart.items.length} sản phẩm, tổng cộng ${cart.totalPrice.toLocaleString("vi-VN")}đ.`;
 
-    const discountText = product.discountPrice 
-      ? ` (Giảm từ ${product.price.toLocaleString("vi-VN")}đ)`
-      : "";
-
-    return `✅ **${response.title || 'Đã thêm vào giỏ hàng!'}**
-
-🛒 **${product.name}**
-💰 ${effectivePrice.toLocaleString("vi-VN")}đ${discountText}
-📦 Số lượng: ${quantity}
-💵 Thành tiền: ${(effectivePrice * quantity).toLocaleString("vi-VN")}đ
-
-🛍️ **Tổng giỏ hàng:** ${cart.totalPrice.toLocaleString("vi-VN")}đ (${cart.items.length} sản phẩm)
-
-${response.message || 'Tiếp tục mua sắm hoặc hỏi tôi để xem giỏ hàng!'}`;
+    return `[ACTION_SUCCESS] ✅ ${successTitle}. ${cartStatus}${customMessage}`;
   }
 
   generateProductSelectionOptions(searchResults, query) {

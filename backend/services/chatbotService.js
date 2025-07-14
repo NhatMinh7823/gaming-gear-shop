@@ -2,8 +2,7 @@ const AgentManager = require("./chatbot/AgentManager");
 const ChatHistoryManager = require("./chatbot/ChatHistoryManager");
 const VectorStoreManager = require("./chatbot/VectorStoreManager");
 const UserContext = require("./chatbot/UserContext");
-const OrderFlowManager = require("./chatbot/OrderFlowManager");
-const OrderIntentDetector = require("./chatbot/OrderIntentDetector");
+// const OrderFlowManager = require("./chatbot/OrderFlowManager"); // REMOVED: Replaced by AIOrderTool
 const WorkflowStateManager = require("./chatbot/WorkflowStateManager");
 const tools = require("./tools");
 const { getToolsWithContext } = require("./tools");
@@ -28,7 +27,7 @@ class ChatbotService {
     this.chatHistoryManager = new ChatHistoryManager();
     this.vectorStoreManager = VectorStoreManager.getInstance();
     this.userContext = new UserContext();
-    this.orderFlowManager = null; // Will be initialized with userContext
+    // this.orderFlowManager = null; // REMOVED
 
     // 🆕 WORKFLOW MANAGEMENT COMPONENTS
     this.workflowStateManager = new WorkflowStateManager();
@@ -115,15 +114,6 @@ class ChatbotService {
         await this.createFreshToolsAndUpdateAgent();
       }
 
-      // Initialize OrderFlowManager with current userContext
-      if (
-        !this.orderFlowManager ||
-        this.orderFlowManager.userContext !== this.userContext
-      ) {
-        this.orderFlowManager = new OrderFlowManager(this.userContext);
-        this.log("🔄 OrderFlowManager initialized with current userContext");
-      }
-
       // Get or create chat history with user context
       const { history, sessionId: actualSessionId } =
         this.chatHistoryManager.getOrCreateChatHistory(sessionId, userId);
@@ -159,32 +149,9 @@ class ChatbotService {
         );
       }
 
-      // 🔄 WORKFLOW-FIRST LOGIC: Check if we should use complete workflow instead of OrderFlow
-      const shouldUseCompleteWorkflow = this.shouldUseCompleteWorkflow(
-        message,
-        workflowIntent
-      );
-
-      // Check for order flow ONLY if not using complete workflow
-      if (this.orderFlowManager && !shouldUseCompleteWorkflow) {
-        this.log("🛒 Checking for order flow (no complete workflow needed)...");
-        const orderFlowResult = await this.orderFlowManager.handleOrderFlow(
-          message,
-          actualSessionId
-        );
-        if (orderFlowResult) {
-          await history.addUserMessage(message);
-          await history.addAIMessage(orderFlowResult.message);
-          return {
-            text: orderFlowResult.message,
-            sessionId: actualSessionId,
-            orderFlow: orderFlowResult.orderFlow || false,
-            ...orderFlowResult,
-          };
-        }
-      } else if (shouldUseCompleteWorkflow) {
-        this.log("🎯 Bypassing OrderFlow - using complete workflow instead");
-      }
+      // The old OrderFlowManager logic has been removed.
+      // All requests now go directly to the main agent, which will use AIOrderTool when appropriate.
+      this.log("Bypassing legacy OrderFlowManager. Proceeding directly to agent.");
 
       // Get agent executor from manager
       const agentExecutor = this.agentManager.getAgentExecutor();
@@ -569,8 +536,19 @@ class ChatbotService {
           workflow.currentStep === 4 &&
           toolsUsed.includes("order_tool")
         ) {
-          shouldAdvance = true;
-          stepData.orderInitiated = true;
+          const orderSuccessMessage = "✅ **ĐẶT HÀNG THÀNH CÔNG!";
+          const orderErrorMessage = "❌ **LỖI TẠO ĐƠN HÀNG**";
+          if (result.output.includes(orderSuccessMessage)) {
+            shouldAdvance = true;
+            stepData.orderInitiated = true;
+            stepData.orderSuccess = true;
+          } else if (result.output.includes(orderErrorMessage)) {
+            this.workflowStateManager.errorWorkflow(sessionId, result.output);
+            return;
+          } else {
+            shouldAdvance = true;
+            stepData.orderInitiated = true;
+          }
         }
         break;
 
@@ -641,8 +619,17 @@ class ChatbotService {
     }
 
     // Check for completion
-    if (!this.workflowStateManager.shouldContinueWorkflow(sessionId)) {
-      const completedWorkflow = this.workflowStateManager.completeWorkflow(
+    if (stepData.orderSuccess) {
+      this.workflowStateManager.completeWorkflow(
+        sessionId,
+        {
+          finalOutput: result.output,
+          toolsUsed: toolsUsed,
+          totalSteps: workflow.currentStep,
+        }
+      );
+    } else if (!this.workflowStateManager.shouldContinueWorkflow(sessionId)) {
+      this.workflowStateManager.completeWorkflow(
         sessionId,
         {
           finalOutput: result.output,

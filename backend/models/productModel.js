@@ -68,10 +68,10 @@ const productSchema = new mongoose.Schema(
       max: [5, "Rating cannot exceed 5"],
       default: 0,
     },
-  numReviews: {
-    type: Number,
-    default: 0,
-  },
+    numReviews: {
+      type: Number,
+      default: 0,
+    },
   shippingInfo: {
     weight: {
       type: Number,

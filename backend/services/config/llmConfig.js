@@ -10,6 +10,7 @@ const llmConfig = {
   apiKey: process.env.GEMINI_API_KEY,
   temperature: 0.7,
   maxTokens: 4096, // Tăng để handle longer conversations
+  thinkingBudget: 2048,
 };
 
 const embeddingsConfig = {

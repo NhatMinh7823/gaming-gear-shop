@@ -1,10 +1,10 @@
 const { StructuredTool } = require("@langchain/core/tools");
 const { z } = require("zod");
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
-const User = require("../../../models/userModel");
-const Product = require("../../../models/productModel");
+const User = require("../../../models/userModel"); // Keep User for wishlist population
 const { llmConfig } = require("../../config/llmConfig");
 const { formatProductFromMetadata } = require("../../config/utils");
+const VectorStoreManager = require("../../chatbot/VectorStoreManager"); // Import VectorStoreManager
 
 /**
  * AISmartWishlistTool - AI-driven intelligent wishlist tool
@@ -18,6 +18,7 @@ class AISmartWishlistTool extends StructuredTool {
     this.description = this.getOptimizedDescription();
     this.userContext = userContext;
     this.llm = new ChatGoogleGenerativeAI(llmConfig);
+    this.vectorStoreManager = VectorStoreManager.getInstance(); // Initialize VectorStoreManager
     this.debugMode = process.env.CHATBOT_DEBUG === "true";
     
     this.schema = z.object({
@@ -29,7 +30,7 @@ class AISmartWishlistTool extends StructuredTool {
     return `🤖 AI SMART WISHLIST TOOL - Intelligent wishlist analysis and personalized recommendations using Gemini-2.0-flash.
 
 🎯 **WHEN TO USE:**
-- User asks about personal preferences, wishlist, or "tôi/mình"
+- User asks about personal preferences, wishlist items, or recommendations
 - Requests for personalized recommendations or advice
 - Questions about completing/upgrading their setup
 - Comparisons with current user equipment
@@ -42,7 +43,7 @@ class AISmartWishlistTool extends StructuredTool {
 - Setup completion suggestions
 - Preference pattern recognition
 
-⚡ **KEYWORDS:** wishlist, tôi, mình, tư vấn, gợi ý, đề xuất, setup, cá nhân, preferences
+⚡ **KEYWORDS:** wishlist, của tôi, của mình, gợi ý, đề xuất, setup, cá nhân
 
 Only works when user is authenticated (userId available).`;
   }
@@ -67,7 +68,7 @@ Only works when user is authenticated (userId available).`;
       // Get user data with populated wishlist
       const user = await User.findById(userId).populate({
         path: "wishlist",
-        select: "name price discountPrice brand category specifications features averageRating numReviews images stock",
+        select: "name price discountPrice brand category specifications features averageRating numReviews stock",
         populate: {
           path: "category",
           select: "name",
@@ -81,12 +82,6 @@ Only works when user is authenticated (userId available).`;
       const wishlist = user.wishlist || [];
       this.log(`User ${user.name} has ${wishlist.length} items in wishlist`);
 
-      // Get available products for recommendations
-      const availableProducts = await Product.find({ stock: { $gt: 0 } })
-        .populate("category", "name")
-        .lean();
-
-      // Prepare data for AI analysis
       const userData = {
         name: user.name,
         wishlistCount: wishlist.length,
@@ -105,25 +100,8 @@ Only works when user is authenticated (userId available).`;
         }))
       };
 
-      // Sample available products for recommendations (limit to prevent token overflow)
-      const sampleProducts = availableProducts
-        .sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
-        .slice(0, 50)
-        .map(product => ({
-          id: product._id.toString(),
-          name: product.name,
-          brand: product.brand || "N/A",
-          category: product.category?.name || "N/A",
-          price: product.price,
-          discountPrice: product.discountPrice || null,
-          effectivePrice: product.discountPrice || product.price,
-          rating: product.averageRating || 0,
-          features: product.features || [],
-          specifications: product.specifications || {}
-        }));
-
       // Create comprehensive AI prompt
-      const aiPrompt = this.createAIPrompt(query, userData, sampleProducts);
+      const aiPrompt = this.createAIPrompt(query, userData);
 
       this.log("Sending query to Gemini AI for analysis...");
       const aiResponse = await this.llm.invoke(aiPrompt);
@@ -147,10 +125,9 @@ Only works when user is authenticated (userId available).`;
         return this.fallbackResponse(query, userData);
       }
 
-      // Process AI recommendations if any
       let recommendedProducts = [];
-      if (aiResult.recommendations && Array.isArray(aiResult.recommendations)) {
-        recommendedProducts = await this.processRecommendations(aiResult.recommendations, availableProducts);
+      if (aiResult.responseType === 'recommendations' || aiResult.analysis?.userIntent?.includes('recommendations')) {
+        recommendedProducts = await this.getRecommendationsFromVectorStore(userData.wishlistItems, query);
       }
 
       // Generate final response
@@ -167,7 +144,7 @@ Only works when user is authenticated (userId available).`;
     }
   }
 
-  createAIPrompt(query, userData, sampleProducts) {
+  createAIPrompt(query, userData) {
     return `Bạn là AI chuyên gia tư vấn gaming gear thông minh. Phân tích yêu cầu của khách hàng và đưa ra phản hồi cá nhân hóa.
 
 **THÔNG TIN KHÁCH HÀNG:**
@@ -176,9 +153,6 @@ Only works when user is authenticated (userId available).`;
 
 **WISHLIST HIỆN TẠI:**
 ${JSON.stringify(userData.wishlistItems, null, 2)}
-
-**SẢN PHẨM CÓ SẴN (mẫu):**
-${JSON.stringify(sampleProducts.slice(0, 20), null, 2)}
 
 **YÊU CẦU KHÁCH HÀNG:** "${query}"
 
@@ -191,7 +165,7 @@ ${JSON.stringify(sampleProducts.slice(0, 20), null, 2)}
 **LOẠI PHẢN HỒI CÓ THỂ:**
 - **wishlist_info**: Hiển thị thông tin wishlist hiện tại
 - **preferences_analysis**: Phân tích sở thích và pattern
-- **recommendations**: Đề xuất sản phẩm dựa trên wishlist
+- **recommendations**: Đề xuất sản phẩm dựa trên wishlist. Khi user yêu cầu đề xuất, ưu tiên đưa ra ngay các sản phẩm đề xuất mà không hỏi thêm về wishlist hiện tại hay sở thích.
 - **setup_completion**: Gợi ý hoàn thiện gaming setup
 - **comparison**: So sánh sản phẩm với wishlist
 - **general_advice**: Tư vấn chung
@@ -202,6 +176,7 @@ ${JSON.stringify(sampleProducts.slice(0, 20), null, 2)}
 - Phân tích pattern từ wishlist để hiểu sở thích
 - Đề xuất tối đa 3-5 sản phẩm để tránh overwhelm
 - Sử dụng ngôn ngữ thân thiện và cá nhân hóa
+- Khi đề xuất sản phẩm, hãy tập trung vào việc giới thiệu các sản phẩm được tìm thấy, không hỏi thêm thông tin từ người dùng.
 
 **ĐỊNH DẠNG PHẢN HỒI JSON:**
 {
@@ -234,43 +209,27 @@ ${JSON.stringify(sampleProducts.slice(0, 20), null, 2)}
 Phân tích và trả về JSON hợp lệ:`;
   }
 
-  async processRecommendations(aiRecommendations, availableProducts) {
-    const recommendations = [];
-    
-    for (const rec of aiRecommendations.slice(0, 5)) {
-      const product = availableProducts.find(p => p._id.toString() === rec.productId);
-      if (product) {
-        recommendations.push({
-          metadata: {
-            id: product._id.toString(),
-            name: product.name,
-            price: product.price,
-            discountPrice: product.discountPrice || null,
-            category: product.category?.name || "N/A",
-            brand: product.brand || "N/A",
-            inStock: product.stock > 0,
-            specifications: product.specifications || {},
-            features: product.features || [],
-            averageRating: product.averageRating || 0,
-            numReviews: product.numReviews || 0,
-            imageUrl: product.images?.[0]?.url || ""
-          },
-          aiScore: rec.score || 0,
-          reason: rec.reason || "",
-          fitWithWishlist: rec.fitWithWishlist || ""
-        });
-      }
-    }
-    
-    return recommendations;
-  }
-
   generateResponse(aiResult, userData, recommendedProducts) {
-    const { analysis, response, nextSteps } = aiResult;
-    
+    const { response, nextSteps } = aiResult;
     let result = `🤖 **AI Smart Analysis cho ${userData.name}**\n\n`;
-    
-    // Add main response
+
+    if (recommendedProducts.length > 0) {
+      result += `## 🎯 **AI Recommendations:**\n\n`;
+      result += `Dựa trên yêu cầu của bạn, AI nhận định đây là những đề xuất phù hợp nhất. Việc tư vấn sẽ dựa trên các sản phẩm này mà không cần hỏi thêm:\n\n`;
+      
+      recommendedProducts.forEach((rec, index) => {
+        const formatted = formatProductFromMetadata(rec.metadata);
+        result += `${formatted}\n\n💡 **Lý do:** ${rec.reason}\n\n`;
+        if (index < recommendedProducts.length - 1) {
+          result += "---\n\n";
+        }
+      });
+
+      result += `Hy vọng những gợi ý này sẽ giúp bạn có lựa chọn tốt nhất! Nếu cần thông tin chi tiết về sản phẩm nào, bạn chỉ cần hỏi.`;
+      return result;
+    }
+
+    // Fallback to general response if no recommendations or other response types
     if (response?.title) {
       result += `## ${response.title}\n\n`;
     }
@@ -299,18 +258,6 @@ Phân tích và trả về JSON hợp lệ:`;
       result += '\n';
     }
 
-    // Add recommendations
-    if (recommendedProducts.length > 0) {
-      result += `## 🎯 **AI Recommendations:**\n\n`;
-      recommendedProducts.forEach((rec, index) => {
-        const formatted = formatProductFromMetadata(rec.metadata);
-        result += `${formatted}\n\n🤖 **AI Score:** ${rec.aiScore}/100\n💡 **Lý do:** ${rec.reason}\n🎯 **Độ phù hợp:** ${rec.fitWithWishlist}\n\n`;
-        if (index < recommendedProducts.length - 1) {
-          result += "---\n\n";
-        }
-      });
-    }
-
     // Add advice
     if (response?.advice) {
       result += `## 💡 **Lời khuyên AI:**\n${response.advice}\n\n`;
@@ -323,7 +270,7 @@ Phân tích và trả về JSON hợp lệ:`;
         result += `${index + 1}. ${step}\n`;
       });
     }
-
+    
     return result;
   }
 
@@ -354,6 +301,90 @@ Phân tích và trả về JSON hợp lệ:`;
 - "Gợi ý sản phẩm phù hợp"
 - "Setup của tôi còn thiếu gì?"
 - "So sánh [tên sản phẩm] với wishlist của tôi"`;
+  }
+  async getRecommendationsFromVectorStore(wishlistItems, query) {
+    const recommendedProducts = [];
+    const categoriesInWishlist = [...new Set(wishlistItems.map(item => item.category))];
+    let targetCategory = null;
+
+    // Case 1: User mentioned a specific category in the query
+    const mentionedCategory = this.detectCategoryInQuery(query, categoriesInWishlist);
+    if (mentionedCategory) {
+      targetCategory = mentionedCategory;
+      this.log(`User mentioned category: ${targetCategory}`);
+    } else if (categoriesInWishlist.length > 0) {
+      // Case 2: User didn't mention any category, pick the first category from wishlist
+      targetCategory = categoriesInWishlist[0];
+      this.log(`No category mentioned, picking first wishlist category: ${targetCategory}`);
+    } else {
+      // Case 3: User mentioned a category not in wishlist or no wishlist items, pick "gaming pcs"
+      targetCategory = "Gaming PCs"; // Default category
+      this.log(`No relevant category found, defaulting to: ${targetCategory}`);
+    }
+
+    if (targetCategory) {
+      let queryText = `${targetCategory}`;
+
+      // Extract specifications from a relevant wishlist item in the target category
+      const relevantWishlistItems = wishlistItems.filter(
+        (item) => item.category === targetCategory
+      );
+      
+      if (relevantWishlistItems.length > 0) {
+        const firstRelevantItem = relevantWishlistItems[0];
+        if (firstRelevantItem.specifications) {
+          // Extract values from the Map and join them
+          const specsValues = [...firstRelevantItem.specifications.values()]
+            .join(" ");
+          if (specsValues) {
+            queryText += ` ${specsValues}`;
+          }
+        }
+      }
+
+      this.log(
+        `Searching for similar products with query: "${queryText}" in category: "${targetCategory}"`
+      );
+
+      const results = await this.vectorStoreManager.similaritySearch(
+        queryText,
+        3,
+        {
+          "metadata.category.name": targetCategory,
+        }
+      );
+
+      for (const result of results) {
+        recommendedProducts.push({
+          metadata: result.metadata,
+          aiScore: 0, // Placeholder, AI will determine this
+          reason: `Sản phẩm đề xuất trong danh mục ${targetCategory}`,
+          fitWithWishlist: "N/A", // Can be refined with more complex logic
+        });
+      }
+    }
+    
+    return recommendedProducts;
+  }
+
+  // Helper to detect category in query (simplified for this example)
+  detectCategoryInQuery(query, availableCategories) {
+    const lowerQuery = query.toLowerCase();
+    for (const category of availableCategories) {
+      if (lowerQuery.includes(category.toLowerCase())) {
+        return category;
+      }
+    }
+    // Add common Vietnamese category names if not directly from wishlist
+    if (lowerQuery.includes("máy tính") || lowerQuery.includes("pc"))
+      return "Gaming PCs";
+    if (lowerQuery.includes("chuột")) return "Mouse";
+    if (lowerQuery.includes("bàn phím")) return "Mechanical Keyboard";
+    if (lowerQuery.includes("tai nghe")) return "Headset";
+    if (lowerQuery.includes("màn hình")) return "Monitor";
+    if (lowerQuery.includes("laptop")) return "Gaming Laptop";
+    if (lowerQuery.includes("laptop gaming")) return "Gaming Laptop";
+    return null;
   }
 }
 

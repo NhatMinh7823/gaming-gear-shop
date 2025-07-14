@@ -24,7 +24,7 @@ class AIProductSearchTool extends StructuredTool {
 
   name = "ai_product_search";
   description =
-    "🤖 Tìm kiếm sản phẩm thông minh sử dụng AI Gemini-2.0-flash. AI sẽ phân tích yêu cầu và tự động chọn sản phẩm phù hợp nhất dựa trên tên, mô tả, thương hiệu, giá cả, thông số kỹ thuật, và ngữ cảnh tự nhiên.";
+    "Tìm kiếm sản phẩm chung dựa trên các tiêu chí khách quan như tên, danh mục, hoặc thông số kỹ thuật. Dùng khi người dùng muốn xem danh sách sản phẩm mà không cần tư vấn cá nhân. **KHÔNG DÙNG** khi người dùng hỏi về sản phẩm 'phù hợp', 'dành cho tôi', hoặc cần tư vấn dựa trên sở thích. Trong trường hợp đó, hãy dùng 'ai_smart_wishlist'. Khi người dùng để cặp đến tìm kiếm dựa trên giá cả (đặt biệt là giá đắt nhất và rẻ nhất), hãy điều chỉnh QUERY với 2 từ khóa 'most expensive - cheapest' tương ứng và chỉ cần chọn limit là 2. Khi người dùng hỏi về các thông số kỹ thuật hay các tính năng cụ thể, hãy dịch yêu cầu đó của người dùng sang từ khóa tiếng Anh để tìm kiếm";
 
   async _call(input) {
     try {
@@ -204,8 +204,7 @@ ${result.matchReasons.map((reason) => `✅ ${reason}`).join("\n")}
       // Build comprehensive response
       const analysis = aiResult.analysis || {};
 
-      const response = `🤖 **AI Gemini-2.0-flash Phân Tích Thông Minh**
-
+      const response = `
 🔍 **Truy vấn:** "${query}"
 🎯 **Ý định tìm kiếm:** ${analysis.searchIntent || "Tìm kiếm sản phẩm gaming"}
 ${

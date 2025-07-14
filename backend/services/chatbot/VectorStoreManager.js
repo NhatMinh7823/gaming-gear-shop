@@ -1,6 +1,8 @@
 const { GoogleGenerativeAIEmbeddings } = require("@langchain/google-genai");
 const { FaissStore } = require("@langchain/community/vectorstores/faiss");
 const Product = require("../../models/productModel");
+const Category = require("../../models/categoryModel");
+const { getProductsWithPriceLabels } = require("../../controllers/productController");
 const { embeddingsConfig } = require("../config/llmConfig");
 const path = require("path");
 const fs = require("fs");
@@ -123,6 +125,12 @@ class VectorStoreManager {
     const englishCategoryName =
       VI_EN_CATEGORY_MAP[vietnameseCategoryName] || vietnameseCategoryName;
 
+    // Handle price labels for "cheapest" or "most expensive"
+    let priceLabelContent = "";
+    if (product.priceLabel) {
+      priceLabelContent = `product is the ${product.priceLabel} in ${englishCategoryName}`;
+    }
+
     const productName = product.name || "";
     const brandName = product.brand || "Unknown Brand";
 
@@ -156,6 +164,7 @@ class VectorStoreManager {
       englishCategoryName.repeat(2), // English category.
       brandName.repeat(2),
       contextualKeywords.join(" ").repeat(2),
+      priceLabelContent, // Add the price label here
     ];
     if (product.features && product.features.length > 0) {
       highPriority.push(product.features.join(" "));
@@ -203,33 +212,50 @@ class VectorStoreManager {
       // Useful for testing changes in `createSearchableContent`.
       // await this.forceRebuildVectorStore();
 
-      // Always reload to ensure data consistency between database and vector store
-      const currentCount = await this.getProductCount();
+      // Fetch all products from the database to get the total count
+      const allProductsFromDB = products;
+      const totalDbCount = allProductsFromDB.length;
 
-      if (currentCount > 0) {
+      const currentVectorCount = await this.getProductCount();
+
+      if (currentVectorCount > 0 && currentVectorCount === totalDbCount) {
         console.log(
-          `🔄 FAISS store has ${currentCount} products, but database has ${products.length} products`
+          `✅ FAISS store is up-to-date with ${currentVectorCount} products. Skipping reload.`
         );
-
-        // If counts don't match, we need to rebuild the vector store
-        if (currentCount !== products.length) {
-          console.log(
-            `📊 Rebuilding vector store to sync with current database (${currentCount} -> ${products.length})`
-          );
-
-          // Force rebuild vector store (delete old files and create new store)
-          await this.forceRebuildVectorStore();
-        } else {
-          console.log(
-            `✅ FAISS store already has ${currentCount} products loaded, skipping reload`
-          );
-          return;
-        }
+        return;
       }
 
-      console.log(`Loading ${products.length} products to FAISS vector store...`);
-      
-      const documents = products.map((product) => ({
+      console.log(
+        `📊 Rebuilding vector store. DB count: ${totalDbCount}, Vector count: ${currentVectorCount}`
+      );
+      await this.forceRebuildVectorStore();
+
+      // --- Fetch and label products ---
+      const categories = await Category.find({});
+      const categoryIds = categories.map((c) => c._id);
+
+      // Get the cheapest/most expensive products
+      const labeledProducts = await getProductsWithPriceLabels(categoryIds);
+      const labeledProductIds = new Set(
+        labeledProducts.map((p) => p._id.toString())
+      );
+
+      // Get all other products, excluding the labeled ones
+      const otherProducts = allProductsFromDB.filter(
+        (p) => !labeledProductIds.has(p._id.toString())
+      );
+
+      // Combine the lists
+      const allProductsToLoad = [...labeledProducts, ...otherProducts];
+
+      console.log(
+        `Loading ${allProductsToLoad.length} products to FAISS vector store...`
+      );
+      console.log(
+        `(${labeledProducts.length} labeled, ${otherProducts.length} others)`
+      );
+
+      const documents = allProductsToLoad.map((product) => ({
         pageContent: this.createSearchableContent(product),
         metadata: {
           id: product._id.toString(),
@@ -300,10 +326,13 @@ class VectorStoreManager {
     }
 
     // 1. Detect category and get the English-translated query
-    const { detectedCategory, modifiedQuery } = this.detectCategoryFromQuery(query);
+    const { detectedCategory, modifiedQuery } =
+      this.detectCategoryFromQuery(query);
 
     console.log(
-      `🔍 Searching for: "${query}" (Translated to: "${modifiedQuery}", Category: ${detectedCategory || 'N/A'})`
+      `🔍 Searching for: "${query}" (Translated to: "${modifiedQuery}", Category: ${
+        detectedCategory || "N/A"
+      })`
     );
 
     // 2. If no category is detected, use the original query and old behavior
@@ -334,7 +363,8 @@ class VectorStoreManager {
         if (itemVietnameseCategory) {
           // Map the item's Vietnamese category to English for comparison
           const itemEnglishCategory =
-            VI_EN_CATEGORY_MAP[itemVietnameseCategory] || itemVietnameseCategory;
+            VI_EN_CATEGORY_MAP[itemVietnameseCategory] ||
+            itemVietnameseCategory;
           if (itemEnglishCategory === detectedCategory) {
             correctCategory.push(item);
           } else {
@@ -346,11 +376,7 @@ class VectorStoreManager {
       }
 
       // Combine the lists, prioritizing the correct category
-      const finalResults = [
-        ...correctCategory,
-        ...others,
-      ].slice(0, limit);
-
+      const finalResults = [...correctCategory, ...others].slice(0, limit);
 
       // Debug log
       console.log(
@@ -360,7 +386,9 @@ class VectorStoreManager {
         console.log(`🎯 Search results:`);
         finalResults.forEach((result, index) => {
           console.log(
-            `  ${index + 1}. ${result.metadata.name} (${result.metadata.brand}) [${result.metadata.category}]`
+            `  ${index + 1}. ${result.metadata.name} (${
+              result.metadata.brand
+            }) [${result.metadata.category}]`
           );
         });
       } else {
@@ -428,8 +456,6 @@ class VectorStoreManager {
       throw error;
     }
   }
-
- 
 }
 
 module.exports = VectorStoreManager;

@@ -130,6 +130,49 @@ exports.getProducts = async (req, res) => {
   }
 };
 
+/**
+ * Gets the most expensive and cheapest product for each given category ID.
+ * This is an internal utility function, not an API endpoint.
+ * @param {string[]} categoryIds - An array of category IDs.
+ * @returns {Promise<Product[]>} - A promise that resolves to an array of products with price labels.
+ */
+exports.getProductsWithPriceLabels = async (categoryIds) => {
+  const labeledProducts = [];
+  const foundProductIds = new Set();
+
+  for (const categoryId of categoryIds) {
+    // Find the most expensive product in the category
+    const mostExpensiveProduct = await Product.findOne({ category: categoryId })
+      .sort({ price: -1 })
+      .limit(1)
+      .populate("category", "name");
+
+    if (mostExpensiveProduct && !foundProductIds.has(mostExpensiveProduct._id.toString())) {
+      labeledProducts.push({
+        ...mostExpensiveProduct.toObject(),
+        priceLabel: "most expensive",
+      });
+      foundProductIds.add(mostExpensiveProduct._id.toString());
+    }
+
+    // Find the cheapest product in the category
+    const cheapestProduct = await Product.findOne({ category: categoryId })
+      .sort({ price: 1 })
+      .limit(1)
+      .populate("category", "name");
+
+    if (cheapestProduct && !foundProductIds.has(cheapestProduct._id.toString())) {
+      labeledProducts.push({
+        ...cheapestProduct.toObject(),
+        priceLabel: "cheapest",
+      });
+      foundProductIds.add(cheapestProduct._id.toString());
+    }
+  }
+
+  return labeledProducts;
+};
+
 // @desc    Get single product
 // @route   GET /api/products/:id
 // @access  Public
