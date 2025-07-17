@@ -12,7 +12,6 @@ const InventoryValidator = require("./InventoryValidator");
 const ghnService = require("../../ghnService");
 const { llmConfig } = require("../../config/llmConfig");
 const OrderMessageFormatter = require('./utils/OrderMessageFormatter');
-const { DEFAULT_VALUES } = require("./utils/OrderConstants");
 
 /**
  * AIOrderTool - An AI-driven, intelligent tool for managing the entire order process.
@@ -249,14 +248,18 @@ Phân tích và trả về JSON hợp lệ.`;
 
     try {
         const cart = context.cart;
-        const totalWeight = cart.items.reduce((weight, item) => weight + ((item.product?.weight || DEFAULT_VALUES.DEFAULT_PRODUCT_WEIGHT) * item.quantity), 0);
+        const totalWeight = cart.items.reduce(
+          (weight, item) =>
+            weight + (item.product?.weight || 500) * item.quantity,
+          0
+        );
         const totalValue = cart.totalPrice;
 
         const shippingRequest = {
             service_type_id: 2,
             to_district_id: user.address.district.id,
             to_ward_code: user.address.ward.code,
-            weight: Math.max(totalWeight, DEFAULT_VALUES.MIN_WEIGHT),
+            weight: Math.max(totalWeight, 500),
             insurance_value: totalValue
         };
 
@@ -266,15 +269,17 @@ Phân tích và trả về JSON hợp lệ.`;
         let shippingInfo;
         if (!shippingResult.success) {
             this.log('GHN API failed, using fallback shipping fee');
-            shippingInfo = { fee: shippingResult.fallbackFee || DEFAULT_VALUES.DEFAULT_SHIPPING_FEE };
+            shippingInfo = { fee: shippingResult.fallbackFee || 29000 };
             return response.message || `Rất tiếc, không thể kết nối với đơn vị vận chuyển. Tạm tính phí giao hàng mặc định là ${shippingInfo.fee.toLocaleString('vi-VN')}đ. Bạn có muốn tiếp tục không?`;
         } else {
-            shippingInfo = { fee: shippingResult.data?.data?.service_fee || DEFAULT_VALUES.DEFAULT_SHIPPING_FEE };
+            shippingInfo = {
+              fee: shippingResult.data?.data?.service_fee || 29000,
+            };
             return response.message || `Phí vận chuyển tới địa chỉ của bạn là ${shippingInfo.fee.toLocaleString('vi-VN')}đ. Bạn có muốn tiếp tục thanh toán không?`;
         }
     } catch (error) {
         this.log("Error calculating shipping:", error);
-        const fallbackFee = DEFAULT_VALUES.DEFAULT_SHIPPING_FEE;
+        const fallbackFee = 29000;
         return `❌ Lỗi khi tính phí vận chuyển. Sử dụng phí mặc định ${fallbackFee.toLocaleString('vi-VN')}đ. Bạn muốn tiếp tục chứ?`;
     }
   }
@@ -307,7 +312,7 @@ Phân tích và trả về JSON hợp lệ.`;
             to_ward_code: user.address.ward.code,
             weight: Math.max(cart.items.reduce((w, i) => w + ((i.product?.weight || 100) * i.quantity), 0), 100),
             insurance_value: cart.totalPrice
-        })).data?.data?.service_fee || DEFAULT_VALUES.DEFAULT_SHIPPING_FEE;
+        })).data?.data?.service_fee || 29000;
 
         const totalAmount = cart.totalPrice + shippingFee;
 
@@ -321,7 +326,7 @@ Phân tích và trả về JSON hợp lệ.`;
                 product: item.product._id
             })),
             shippingAddress: user.address,
-            paymentMethod: parameters.paymentMethod || 'CashOnDelivery', // Default to COD
+            paymentMethod: parameters.paymentMethod || 'COD', // Default to COD
             shippingPrice: shippingFee,
             totalPrice: totalAmount,
             chatbotOrder: true,
@@ -347,7 +352,7 @@ Phân tích và trả về JSON hợp lệ.`;
         const orderNumber = order._id.toString().slice(-6).toUpperCase();
         
         // Luôn trả về thông báo thành công để đảm bảo chatbot nhận biết
-        return `✅ **ĐẶT HÀNG THÀNH CÔNG!**\n\nMã đơn hàng của bạn là **#${orderNumber}**.\nTổng số tiền: ${totalAmount.toLocaleString('vi-VN')}đ.\nCảm ơn bạn đã mua sắm!`;
+        return response || `✅ **ĐẶT HÀNG THÀNH CÔNG!**\n\nMã đơn hàng của bạn là **#${orderNumber}**.\nTổng số tiền: ${totalAmount.toLocaleString('vi-VN')}đ.\nCảm ơn bạn đã mua sắm!`;
 
     } catch (error) {
         this.log("Error confirming order:", error);
