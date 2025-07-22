@@ -71,11 +71,19 @@ const specificationController = {
         query.category = category;
       }
 
-      // Price range filter
+      // Price range filter (ưu tiên discountPrice nếu có, fallback price nếu không)
       if (priceRange && (priceRange.min || priceRange.max)) {
-        query.price = {};
-        if (priceRange.min) query.price.$gte = priceRange.min;
-        if (priceRange.max) query.price.$lte = priceRange.max;
+        const priceCond = {};
+        if (priceRange.min) priceCond.$gte = priceRange.min;
+        if (priceRange.max) priceCond.$lte = priceRange.max;
+        query.$or = [
+          { discountPrice: priceCond },
+          { $and: [
+              { $or: [{ discountPrice: { $exists: false } }, { discountPrice: null }] },
+              { price: priceCond }
+            ]
+          }
+        ];
       }
 
       // Fetch products
@@ -135,15 +143,15 @@ const specificationController = {
         });
       }
 
-      // Sort products
+      // Sort products (ưu tiên discountPrice nếu có, fallback price nếu không)
       analyzed.sort((a, b) => {
         let aValue = a[sortBy];
         let bValue = b[sortBy];
 
-        // Handle price sorting
-        if (sortBy === 'price') {
-          aValue = a.price || 0;
-          bValue = b.price || 0;
+        // Handle price/discoutPrice sorting
+        if (sortBy === 'price' || sortBy === 'discountPrice') {
+          aValue = a.discountPrice != null ? a.discountPrice : a.price || 0;
+          bValue = b.discountPrice != null ? b.discountPrice : b.price || 0;
         }
 
         // Handle name sorting
@@ -368,7 +376,14 @@ const specificationController = {
       let query = {};
       if (category) query.category = category;
       if (budget) {
-        query.price = { $lte: budget };
+        query.$or = [
+          { discountPrice: { $lte: budget } },
+          { $and: [
+              { $or: [{ discountPrice: { $exists: false } }, { discountPrice: null }] },
+              { price: { $lte: budget } }
+            ]
+          }
+        ];
       }
 
       const products = await Product.find(query).populate('category').lean();
@@ -409,21 +424,25 @@ const specificationController = {
           return { ...product, recommendationScore: score };
         });
 
-        // Sort by score and price
+        // Sort by score and price/discountPrice
         recommendations.sort((a, b) => {
           if (a.recommendationScore !== b.recommendationScore) {
             return b.recommendationScore - a.recommendationScore;
           }
-          return (a.price || 0) - (b.price || 0);
+          const aEff = a.discountPrice != null ? a.discountPrice : a.price || 0;
+          const bEff = b.discountPrice != null ? b.discountPrice : b.price || 0;
+          return aEff - bEff;
         });
       } else {
-        // Default sorting by performance tier and price
+        // Default sorting by performance tier and price/discountPrice
         recommendations.sort((a, b) => {
           const tierOrder = { high: 3, mid: 2, entry: 1 };
           if (tierOrder[a.performanceTier] !== tierOrder[b.performanceTier]) {
             return tierOrder[b.performanceTier] - tierOrder[a.performanceTier];
           }
-          return (a.price || 0) - (b.price || 0);
+          const aEff = a.discountPrice != null ? a.discountPrice : a.price || 0;
+          const bEff = b.discountPrice != null ? b.discountPrice : b.price || 0;
+          return aEff - bEff;
         });
       }
 

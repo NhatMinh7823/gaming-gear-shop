@@ -6,6 +6,67 @@ class GamingChatbot {
     this.chatHistory = [];
     this.sessionId = null;
     this.isTyping = false;
+    this.userId = null;
+    this.sessionPersistenceKey = 'gaming_chatbot_session';
+    
+    // Try to restore session from localStorage
+    this.restoreSession();
+  }
+
+  // Restore session from localStorage
+  restoreSession() {
+    try {
+      const savedSession = localStorage.getItem(this.sessionPersistenceKey);
+      if (savedSession) {
+        const sessionData = JSON.parse(savedSession);
+        const now = Date.now();
+        const sessionAge = now - sessionData.timestamp;
+        const maxSessionAge = 30 * 60 * 1000; // 30 minutes
+        
+        if (sessionAge < maxSessionAge) {
+          this.sessionId = sessionData.sessionId;
+          this.userId = sessionData.userId;
+          this.chatHistory = sessionData.chatHistory || [];
+          console.log('🔄 Session restored from localStorage:', this.sessionId);
+        } else {
+          console.log('🕐 Saved session expired, starting fresh');
+          this.clearPersistedSession();
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error restoring session:', error);
+      this.clearPersistedSession();
+    }
+  }
+
+  // Save session to localStorage
+  persistSession() {
+    try {
+      const sessionData = {
+        sessionId: this.sessionId,
+        userId: this.userId,
+        chatHistory: this.chatHistory.slice(-20), // Keep last 20 messages
+        timestamp: Date.now()
+      };
+      localStorage.setItem(this.sessionPersistenceKey, JSON.stringify(sessionData));
+    } catch (error) {
+      console.error('❌ Error persisting session:', error);
+    }
+  }
+
+  // Clear persisted session
+  clearPersistedSession() {
+    try {
+      localStorage.removeItem(this.sessionPersistenceKey);
+    } catch (error) {
+      console.error('❌ Error clearing persisted session:', error);
+    }
+  }
+
+  // Set user information
+  setUser(userInfo) {
+    this.userId = userInfo?._id || userInfo?.id;
+    this.persistSession();
   } // Send message to backend chatbot
   async sendMessage(message, userInfo = null) {
     if (!message.trim()) {
@@ -55,6 +116,9 @@ class GamingChatbot {
         // Add messages to local history
         this.addToHistory("user", message, timestamp);
         this.addToHistory("bot", botResponse, timestamp);
+        
+        // Persist session after successful message exchange
+        this.persistSession();
 
         return {
           response: botResponse,
@@ -109,6 +173,33 @@ class GamingChatbot {
   clearHistory() {
     this.chatHistory = [];
     this.sessionId = null;
+    this.userId = null;
+    this.clearPersistedSession();
+  }
+
+  // Get user ID
+  getUserId() {
+    return this.userId;
+  }
+
+  // Check if session is valid and not expired
+  isSessionValid() {
+    if (!this.sessionId) return false;
+    
+    try {
+      const savedSession = localStorage.getItem(this.sessionPersistenceKey);
+      if (savedSession) {
+        const sessionData = JSON.parse(savedSession);
+        const now = Date.now();
+        const sessionAge = now - sessionData.timestamp;
+        const maxSessionAge = 30 * 60 * 1000; // 30 minutes
+        return sessionAge < maxSessionAge;
+      }
+    } catch (error) {
+      console.error('❌ Error checking session validity:', error);
+    }
+    
+    return false;
   }
 
   // Get typing status

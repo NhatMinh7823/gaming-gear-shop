@@ -5,7 +5,8 @@ const AddressSelector = ({
   selectedAddress, 
   onAddressChange, 
   showDetailedAddress = true,
-  required = false 
+  required = false,
+  theme = "dark"
 }) => {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -171,18 +172,32 @@ const AddressSelector = ({
     onAddressChange(newAddress);
   };
 
+  // theme-based classes
+  const labelClass = theme === "light"
+    ? "block text-sm font-medium text-gray-700 mb-2"
+    : "block text-sm font-medium text-gray-200 mb-2";
+  const selectClass = theme === "light"
+    ? "w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:border-blue-500"
+    : "w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500";
+  const selectClassDisabled = theme === "light"
+    ? "disabled:opacity-50"
+    : "disabled:opacity-50";
+  const inputClass = theme === "light"
+    ? "w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:border-blue-500"
+    : "w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500";
+
   return (
     <div className="space-y-4">
       {/* Province Selector */}
       <div>
-        <label className="block text-sm font-medium text-gray-200 mb-2">
+        <label className={labelClass}>
           Tỉnh/Thành phố {required && <span className="text-red-500">*</span>}
         </label>
         <select
           value={selectedAddress?.province?.id || ''}
           onChange={handleProvinceChange}
           disabled={loading.provinces}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
+          className={`${selectClass}`}
           required={required}
         >
           <option value="">-- Chọn Tỉnh/Thành phố --</option>
@@ -199,14 +214,14 @@ const AddressSelector = ({
 
       {/* District Selector */}
       <div>
-        <label className="block text-sm font-medium text-gray-200 mb-2">
+        <label className={labelClass}>
           Quận/Huyện {required && <span className="text-red-500">*</span>}
         </label>
         <select
           value={selectedAddress?.district?.id || ''}
           onChange={handleDistrictChange}
           disabled={loading.districts || !selectedAddress?.province?.id}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+          className={`${selectClass} ${selectClassDisabled}`}
           required={required}
         >
           <option value="">-- Chọn Quận/Huyện --</option>
@@ -223,14 +238,14 @@ const AddressSelector = ({
 
       {/* Ward Selector */}
       <div>
-        <label className="block text-sm font-medium text-gray-200 mb-2">
+        <label className={labelClass}>
           Phường/Xã {required && <span className="text-red-500">*</span>}
         </label>
         <select
           value={selectedAddress?.ward?.code || ''}
           onChange={handleWardChange}
           disabled={loading.wards || !selectedAddress?.district?.id}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+          className={`${selectClass} ${selectClassDisabled}`}
           required={required}
         >
           <option value="">-- Chọn Phường/Xã --</option>
@@ -248,7 +263,7 @@ const AddressSelector = ({
       {/* Detailed Address */}
       {showDetailedAddress && (
         <div>
-          <label className="block text-sm font-medium text-gray-200 mb-2">
+          <label className={labelClass}>
             Địa chỉ chi tiết {required && <span className="text-red-500">*</span>}
           </label>
           <input
@@ -256,7 +271,7 @@ const AddressSelector = ({
             value={selectedAddress?.street || ''}
             onChange={handleStreetChange}
             placeholder="Số nhà, tên đường..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-500"
+            className={inputClass}
             required={required}
           />
         </div>

@@ -1,4 +1,5 @@
 const User = require("../models/userModel");
+const Review = require("../models/reviewModel"); // Import Review model
 const { generateCouponCode } = require("../utils/couponUtils");
 
 // @desc    Register a new user
@@ -130,7 +131,6 @@ exports.getUserProfile = async (req, res) => {
         name: freshUser.name,
         email: freshUser.email,
         role: freshUser.role,
-        phone: freshUser.phone,
         address: freshUser.address,
         wishlist: freshUser.wishlist || [], // Đảm bảo wishlist luôn tồn tại
         coupon: freshUser.coupon || null, // Trả về thông tin coupon
@@ -178,7 +178,6 @@ exports.updateUserProfile = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        phone: user.phone,
         address: user.address,
         wishlist: user.wishlist || [],
         createdAt: user.createdAt,
@@ -658,5 +657,109 @@ exports.getUserAddress = async (req, res) => {
       message: 'Error fetching address',
       error: error.message
     });
+  }
+};
+
+// ===============================================
+// ADMIN CONTROLLERS FOR USER DATA
+// ===============================================
+
+// @desc    Get user reviews by user ID (Admin)
+// @route   GET /api/users/:userId/reviews
+// @access  Private/Admin
+exports.getReviewsByUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const reviews = await Review.find({ user: userId }).populate('product', 'name images');
+    
+    if (!reviews) {
+      return res.status(404).json({ success: false, message: 'No reviews found for this user' });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: reviews.length,
+      reviews,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+  }
+};
+
+
+// @desc    Get user addresses by user ID (Admin)
+// @route   GET /api/users/:userId/addresses
+// @access  Private/Admin
+exports.getUserAddressesByAdmin = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).select('address');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    // The model currently supports one address, so we return it in an array for consistency
+    const addresses = user.address && user.address.isComplete ? [user.address] : [];
+    res.status(200).json({ success: true, addresses });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Update a user's address by ID (Admin)
+// @route   PUT /api/users/:userId/addresses/:addressId
+// @access  Private/Admin
+exports.updateAddressByAdmin = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { street, ward, district, province, isDefault } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Since there's only one address, we update it directly.
+    // The addressId param is kept for future-proofing if the model changes to support multiple addresses.
+    user.address = {
+      street: street || '',
+      ward: ward,
+      district: district,
+      province: province,
+      isDefault: isDefault !== undefined ? isDefault : true,
+      isComplete: !!(street && ward.code && district.id && province.id)
+    };
+
+    await user.save();
+    res.status(200).json({ success: true, message: 'Address updated successfully', address: user.address });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error updating address', error: error.message });
+  }
+};
+
+// @desc    Delete a user's address by ID (Admin)
+// @route   DELETE /api/users/:userId/addresses/:addressId
+// @access  Private/Admin
+exports.deleteAddressByAdmin = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // To "delete" the single address, we can set it to an empty object or clear its fields
+    user.address = {
+        street: '',
+        ward: {},
+        district: {},
+        province: {},
+        isDefault: false,
+        isComplete: false
+    };
+
+    await user.save();
+    res.status(200).json({ success: true, message: 'Address deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error deleting address', error: error.message });
   }
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { toast } from 'react-toastify';
 import { FaBoxOpen, FaCheck } from 'react-icons/fa';
+import AvailableCoupons from './AvailableCoupons';
 
 const CartItems = ({ 
   cartItems, 
@@ -107,7 +108,7 @@ const CartItems = ({
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-700 text-gray-200"
           />
           <button
-            onClick={onApplyCoupon}
+            onClick={() => onApplyCoupon()}
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
           >
             Áp dụng
@@ -130,6 +131,13 @@ const CartItems = ({
             </button>
           </div>
         )}
+
+        <AvailableCoupons 
+          onSelectCoupon={(code) => {
+            onApplyCoupon(undefined, code);
+          }}
+          appliedCoupon={appliedCoupon}
+        />
       </div>
     </div>
   );

@@ -65,30 +65,45 @@ export const useCart = () => {
     }
   };
 
-  const handleApplyCoupon = async (onFreeshipChange) => {
-    if (!couponCode.trim()) {
+  const handleApplyCoupon = async (onFreeshipChange, codeOverride) => {
+    const codeToApply = codeOverride || couponCode;
+    
+    if (!codeToApply.trim()) {
       toast.error('Vui lòng nhập mã giảm giá');
       return;
     }
 
     try {
-      const upperCode = couponCode.toUpperCase();
+      const upperCode = codeToApply.toUpperCase();
       
-      // Handle freeship coupon on frontend
+      // Handle freeship coupon via API to check minOrder
       if (upperCode === 'FREESHIP') {
-        setAppliedCoupon({
-          code: 'FREESHIP',
-          discount: 0,
-          type: 'freeship'
-        });
-        setDiscountAmount(0);
-        
-        // Notify parent component about freeship status
-        if (onFreeshipChange) {
-          onFreeshipChange(true);
+        try {
+          const { data } = await applyCoupon({
+            couponCode: upperCode,
+            totalPrice
+          });
+          
+          if (data.success && data.couponData) {
+            setCouponCode(upperCode);
+            setAppliedCoupon({
+              code: 'FREESHIP',
+              discount: 0,
+              type: 'freeship'
+            });
+            setDiscountAmount(0);
+            
+            // Notify parent component about freeship status
+            if (onFreeshipChange) {
+              onFreeshipChange(true);
+            }
+            
+            toast.success('🚚 Mã miễn phí vận chuyển đã được áp dụng!');
+          }
+        } catch (error) {
+          const errorMessage = error.response?.data?.message || 'Lỗi khi áp dụng mã giảm giá';
+          toast.error(errorMessage);
         }
-        
-        toast.success('🚚 Mã miễn phí vận chuyển đã được áp dụng!');
         return;
       }
 
@@ -99,6 +114,7 @@ export const useCart = () => {
       });
 
       if (data.success && data.couponData) {
+        setCouponCode(upperCode); // Update couponCode state
         setDiscountAmount(data.couponData.discountAmount);
         setAppliedCoupon({
           code: data.couponData.code,
@@ -114,14 +130,9 @@ export const useCart = () => {
         toast.success(`Mã giảm giá ${data.couponData.code} đã được áp dụng!`);
       }
     } catch (error) {
-      // Chỉ xử lý error, không có client-side fallback
-      if (error.response?.status === 400) {
-        toast.error('Mã giảm giá đã được sử dụng');
-      } else if (error.response?.status === 404) {
-        toast.error('Mã giảm giá không hợp lệ');
-      } else {
-        toast.error('Lỗi khi áp dụng mã giảm giá');
-      }
+      // Hiển thị thông báo lỗi từ server hoặc thông báo mặc định
+      const errorMessage = error.response?.data?.message || 'Lỗi khi áp dụng mã giảm giá';
+      toast.error(errorMessage);
     }
   };
 

@@ -61,6 +61,7 @@ exports.getProducts = async (req, res) => {
       }
     }
 
+    // Lọc theo discountPrice nếu có, fallback price nếu không có discountPrice
     const priceCondition = {};
     if (minPrice !== undefined && minPrice !== "") {
       const parsedMinPrice = parseFloat(minPrice);
@@ -70,8 +71,16 @@ exports.getProducts = async (req, res) => {
       const parsedMaxPrice = parseFloat(maxPrice);
       if (!isNaN(parsedMaxPrice)) priceCondition.$lte = parsedMaxPrice;
     }
-    if (Object.keys(priceCondition).length > 0)
-      queryConditions.price = priceCondition;
+    if (Object.keys(priceCondition).length > 0) {
+      queryConditions.$or = [
+        { discountPrice: priceCondition },
+        { $and: [
+            { $or: [{ discountPrice: { $exists: false } }, { discountPrice: null }] },
+            { price: priceCondition }
+          ]
+        }
+      ];
+    }
     Object.keys(otherFilters).forEach((key) => {
       const value = otherFilters[key];
       if (value !== "" && value !== undefined) {
@@ -84,8 +93,19 @@ exports.getProducts = async (req, res) => {
 
     let query = Product.find(queryConditions).populate("category", "name slug");
 
-    if (sort) query = query.sort(sort.split(",").join(" "));
-    else query = query.sort("-createdAt");
+    // Sắp xếp theo discountPrice nếu có, fallback price nếu không
+    if (sort && (sort.includes("price") || sort.includes("-price"))) {
+      const sortFields = sort.split(",").map(field => {
+        if (field === "price") return "discountPrice price";
+        if (field === "-price") return "-discountPrice -price";
+        return field;
+      }).join(" ");
+      query = query.sort(sortFields);
+    } else if (sort) {
+      query = query.sort(sort.split(",").join(" "));
+    } else {
+      query = query.sort("-createdAt");
+    }
 
     if (fields) query = query.select(fields.split(",").join(" "));
     else query = query.select("-__v");
@@ -141,9 +161,9 @@ exports.getProductsWithPriceLabels = async (categoryIds) => {
   const foundProductIds = new Set();
 
   for (const categoryId of categoryIds) {
-    // Find the most expensive product in the category
+    // Find the most expensive product in the category (ưu tiên discountPrice)
     const mostExpensiveProduct = await Product.findOne({ category: categoryId })
-      .sort({ price: -1 })
+      .sort({ discountPrice: -1, price: -1 })
       .limit(1)
       .populate("category", "name");
 
@@ -155,9 +175,9 @@ exports.getProductsWithPriceLabels = async (categoryIds) => {
       foundProductIds.add(mostExpensiveProduct._id.toString());
     }
 
-    // Find the cheapest product in the category
+    // Find the cheapest product in the category (ưu tiên discountPrice)
     const cheapestProduct = await Product.findOne({ category: categoryId })
-      .sort({ price: 1 })
+      .sort({ discountPrice: 1, price: 1 })
       .limit(1)
       .populate("category", "name");
 
@@ -237,8 +257,7 @@ exports.createProduct = async (req, res) => {
       typeof productData.specifications === "string"
     ) {
       try {
-        const specsObj = JSON.parse(productData.specifications);
-        productData.specifications = new Map(Object.entries(specsObj));
+        productData.specifications = JSON.parse(productData.specifications);
       } catch (error) {
         console.error("Error parsing specifications:", error);
       }
@@ -395,8 +414,7 @@ exports.updateProduct = async (req, res) => {
       typeof updatedData.specifications === "string"
     ) {
       try {
-        const specsObj = JSON.parse(updatedData.specifications);
-        updatedData.specifications = new Map(Object.entries(specsObj));
+        updatedData.specifications = JSON.parse(updatedData.specifications);
       } catch (error) {
         console.error("Error parsing specifications:", error);
       }
@@ -599,11 +617,19 @@ exports.searchProducts = async (req, res) => {
     if (category && category !== "") {
       query.category = category;
     }
-    if (minPrice) {
-      query.price = { $gte: Number(minPrice) };
-    }
-    if (maxPrice) {
-      query.price = { ...query.price, $lte: Number(maxPrice) };
+    // Lọc theo discountPrice nếu có, fallback price nếu không có discountPrice
+    if (minPrice || maxPrice) {
+      const priceCond = {};
+      if (minPrice) priceCond.$gte = Number(minPrice);
+      if (maxPrice) priceCond.$lte = Number(maxPrice);
+      query.$or = [
+        { discountPrice: priceCond },
+        { $and: [
+            { $or: [{ discountPrice: { $exists: false } }, { discountPrice: null }] },
+            { price: priceCond }
+          ]
+        }
+      ];
     }
     if (brand) {
       query.brand = { $regex: brand, $options: "i" };
@@ -765,9 +791,9 @@ exports.getChatbotProductData = async (req, res) => {
       {
         $group: {
           _id: null,
-          minPrice: { $min: "$price" },
-          maxPrice: { $max: "$price" },
-          avgPrice: { $avg: "$price" },
+          minPrice: { $min: { $ifNull: ["$discountPrice", "$price"] } },
+          maxPrice: { $max: { $ifNull: ["$discountPrice", "$price"] } },
+          avgPrice: { $avg: { $ifNull: ["$discountPrice", "$price"] } },
         },
       },
     ]);

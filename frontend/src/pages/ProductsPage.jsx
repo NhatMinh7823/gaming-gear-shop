@@ -25,6 +25,30 @@ function ProductsPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [minPriceUnit, setMinPriceUnit] = useState('trieu');
+  const [maxPriceUnit, setMaxPriceUnit] = useState('trieu');
+
+  // Helper: convert number + unit to VND
+  const priceToVND = (value, unit) => {
+    if (!value) return '';
+    const num = parseFloat(value);
+    if (isNaN(num)) return '';
+    if (unit === 'trieu') return num * 1_000_000;
+    if (unit === 'chuc_trieu') return num * 10_000_000;
+    return num;
+  };
+
+  // Helper: convert VND to {value, unit}
+  // Always keep current unit if possible, only convert value
+  const vndToPriceUnit = (vnd, currentUnit = 'trieu') => {
+    if (!vnd) return { value: '', unit: currentUnit };
+    const num = parseInt(vnd, 10);
+    if (currentUnit === 'chuc_trieu') {
+      return { value: num / 10_000_000, unit: 'chuc_trieu' };
+    }
+    // default to 'trieu'
+    return { value: num / 1_000_000, unit: 'trieu' };
+  };
   const [brand, setBrand] = useState('');
   const [loading, setLoading] = useState(false);
   const [expandFilters, setExpandFilters] = useState(false);
@@ -37,8 +61,16 @@ function ProductsPage() {
     if (params.keyword) setSearch(params.keyword);
     if (params.sort) setSort(params.sort);
     if (params.category) setCategory(params.category);
-    if (params.minPrice) setMinPrice(params.minPrice);
-    if (params.maxPrice) setMaxPrice(params.maxPrice);
+    if (params.minPrice) {
+      const { value } = vndToPriceUnit(params.minPrice, minPriceUnit);
+      setMinPrice(value);
+      // giữ nguyên minPriceUnit
+    }
+    if (params.maxPrice) {
+      const { value } = vndToPriceUnit(params.maxPrice, maxPriceUnit);
+      setMaxPrice(value);
+      // giữ nguyên maxPriceUnit
+    }
     if (params.brand) setBrand(params.brand);
     if (params.stockStatus) setStockStatus(params.stockStatus);
   }, [searchParams]);
@@ -183,30 +215,34 @@ function ProductsPage() {
   const handleSearch = (e) => {
     e.preventDefault();
     setShowSuggestions(false);
+    const minPriceVND = minPrice ? priceToVND(minPrice, minPriceUnit) : '';
+    const maxPriceVND = maxPrice ? priceToVND(maxPrice, maxPriceUnit) : '';
     setSearchParams({
       ...(search && { keyword: search }),
       page: 1,
       ...(sort && { sort }),
       ...(category && { category }),
-      ...(minPrice && { minPrice }),
-      ...(maxPrice && { maxPrice }),
+      ...(minPriceVND && { minPrice: minPriceVND }),
+      ...(maxPriceVND && { maxPrice: maxPriceVND }),
       ...(brand && { brand }),
-      ...(stockStatus && { stockStatus })  // Thêm tình trạng tồn kho vào tham số tìm kiếm
+      ...(stockStatus && { stockStatus })
     });
   };
 
   const handleSuggestionClick = (suggestion) => {
     setSearch(suggestion.name);
     setShowSuggestions(false);
+    const minPriceVND = minPrice ? priceToVND(minPrice, minPriceUnit) : '';
+    const maxPriceVND = maxPrice ? priceToVND(maxPrice, maxPriceUnit) : '';
     setSearchParams({
       keyword: suggestion.name,
       page: 1,
       ...(sort && { sort }),
       ...(category && { category }),
-      ...(minPrice && { minPrice }),
-      ...(maxPrice && { maxPrice }),
+      ...(minPriceVND && { minPrice: minPriceVND }),
+      ...(maxPriceVND && { maxPrice: maxPriceVND }),
       ...(brand && { brand }),
-      ...(stockStatus && { stockStatus })  // Thêm tình trạng tồn kho vào tham số tìm kiếm
+      ...(stockStatus && { stockStatus })
     });
   };
 
@@ -250,22 +286,24 @@ function ProductsPage() {
     });
   };
 
-  const handleFilterChange = () => {
+  // Auto-update filters when any filter field changes (except search)
+  useEffect(() => {
+    // Avoid infinite loop: only update if not from searchParams change
     const params = Object.fromEntries(searchParams);
+    const minPriceVND = minPrice ? priceToVND(minPrice, minPriceUnit) : '';
+    const maxPriceVND = maxPrice ? priceToVND(maxPrice, maxPriceUnit) : '';
     setSearchParams({
-      ...params,
-      ...(minPrice && { minPrice }),
-      ...(maxPrice && { maxPrice }),
+      ...(params.keyword && { keyword: params.keyword }),
+      page: 1,
+      ...(sort && { sort }),
+      ...(category && { category }),
+      ...(minPriceVND && { minPrice: minPriceVND }),
+      ...(maxPriceVND && { maxPrice: maxPriceVND }),
       ...(brand && { brand }),
-      ...(stockStatus && { stockStatus }),  // Thêm tình trạng tồn kho vào tham số lọc
-      page: 1
+      ...(stockStatus && { stockStatus })
     });
-
-    // Only close filters on mobile after applying
-    if (window.innerWidth < 768) {
-      setExpandFilters(false);
-    }
-  };
+    // eslint-disable-next-line
+  }, [minPrice, minPriceUnit, maxPrice, maxPriceUnit, brand, stockStatus, category, sort]);
 
   const clearFilters = () => {
     setMinPrice('');
@@ -420,79 +458,99 @@ function ProductsPage() {
             {/* Quick Filters Grid */}
             <div className="grid grid-cols-1 gap-3 mb-4">
               {/* Category & Stock in one row */}
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <div className="flex items-center gap-1 mb-1">
-                    <FaTags className="text-blue-400 text-xs" />
-                    <label className="font-medium text-gray-200 text-xs">Danh mục</label>
-                  </div>
-                  <select
-                    value={category}
-                    onChange={handleCategoryChange}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
+                      <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <div className="flex items-center gap-1 mb-1">
+                        <FaTags className="text-blue-400 text-xs" />
+                        <label className="font-medium text-gray-200 text-xs">Danh mục</label>
+                        </div>
+                        <select
+                        value={category}
+                        onChange={handleCategoryChange}
+                        className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
                              focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
                              hover:border-gray-500 appearance-none cursor-pointer"
-                  >
-                    <option value="">Tất cả</option>
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat._id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
+                        >
+                        <option value="">Tất cả</option>
+                        {categories.map((cat) => (
+                          <option key={cat._id} value={cat._id}>{cat.name}</option>
+                        ))}
+                        </select>
+                      </div>
 
-                <div>
-                  <div className="flex items-center gap-1 mb-1">
-                    <FaBoxOpen className="text-blue-400 text-xs" />
-                    <label className="font-medium text-gray-200 text-xs">Kho hàng</label>
-                  </div>
-                  <select
-                    value={stockStatus}
-                    onChange={handleStockStatusChange}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
+                      <div>
+                        <div className="flex items-center gap-1 mb-1">
+                        <FaBoxOpen className="text-blue-400 text-xs" />
+                        <label className="font-medium text-gray-200 text-xs">Kho hàng</label>
+                        </div>
+                        <select
+                        value={stockStatus}
+                        onChange={handleStockStatusChange}
+                        className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
                              focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
                              hover:border-gray-500 appearance-none cursor-pointer"
-                  >
-                    <option value="">Tất cả</option>
-                    <option value="in_stock">Còn hàng</option>
-                    <option value="low_stock">Sắp hết hàng</option>
-                    <option value="out_of_stock">Hết hàng</option>
-                  </select>
-                </div>
-              </div>
+                        >
+                        <option value="">Tất cả</option>
+                        <option value="in_stock">Còn hàng</option>
+                        <option value="low_stock">Sắp hết hàng</option>
+                        <option value="out_of_stock">Hết hàng</option>
+                        </select>
+                      </div>
+                      </div>
 
-              {/* Price Range */}
-              <div>
-                <div className="flex items-center gap-1 mb-2">
-                  <FaDollarSign className="text-blue-400 text-xs" />
-                  <label className="font-medium text-gray-200 text-xs">Khoảng giá</label>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={minPrice}
-                      onChange={(e) => setMinPrice(e.target.value)}
-                      placeholder="Tối thiểu"
-                      className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
-                               focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
-                               hover:border-gray-500 placeholder-gray-400"
-                    />
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={maxPrice}
-                      onChange={(e) => setMaxPrice(e.target.value)}
-                      placeholder="Tối đa"
-                      className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
-                               focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
-                               hover:border-gray-500 placeholder-gray-400"
-                    />
-                  </div>
-                </div>
-              </div>
+                      {/* Price Range with unit dropdown */}
+                      <div>
+                      <div className="flex items-center gap-1 mb-2">
+                        <FaDollarSign className="text-blue-400 text-xs" />
+                        <label className="font-medium text-gray-200 text-xs">Khoảng giá</label>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* Min Price */}
+                        <div className="relative flex items-center">
+                          <input
+                            type="number"
+                            value={minPrice}
+                            onChange={(e) => setMinPrice(e.target.value)}
+                            placeholder="Tối thiểu"
+                            className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
+                                 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
+                                 hover:border-gray-500 placeholder-gray-400 pr-14"
+                          />
+                          <select
+                            value={minPriceUnit}
+                            onChange={(e) => setMinPriceUnit(e.target.value)}
+                            className="absolute right-1 top-1/2 -translate-y-1/2 bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-xs text-gray-300 focus:outline-none"
+                            style={{ width: '60px' }}
+                          >
+                            <option value="trieu">triệu</option>
+                            <option value="chuc_trieu">chục triệu</option>
+                          </select>
+                        </div>
+                        {/* Max Price */}
+                        <div className="relative flex items-center">
+                          <input
+                            type="number"
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(e.target.value)}
+                            placeholder="Tối đa"
+                            className="w-full bg-gray-700 border border-gray-600 rounded-md px-2 py-1.5 text-white text-xs
+                                 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all duration-200
+                                 hover:border-gray-500 placeholder-gray-400 pr-14"
+                          />
+                          <select
+                            value={maxPriceUnit}
+                            onChange={(e) => setMaxPriceUnit(e.target.value)}
+                            className="absolute right-1 top-1/2 -translate-y-1/2 bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-xs text-gray-300 focus:outline-none"
+                            style={{ width: '60px' }}
+                          >
+                            <option value="trieu">triệu</option>
+                            <option value="chuc_trieu">chục triệu</option>
+                          </select>
+                        </div>
+                      </div>
+                      </div>
 
-              {/* Brand & Sort in one row */}
+                      {/* Brand & Sort in one row */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <div className="flex items-center gap-1 mb-1">
@@ -523,8 +581,8 @@ function ProductsPage() {
                              hover:border-gray-500 appearance-none cursor-pointer"
                   >
                     <option value="-createdAt">Mới nhất</option>
-                    <option value="price">Giá tăng dần</option>
-                    <option value="-price">Giá giảm dần</option>
+                    <option value="discountPrice">Giá tăng dần</option>
+                    <option value="-discountPrice">Giá giảm dần</option>
                     <option value="-averageRating">Đánh giá cao</option>
                   </select>
                 </div>
@@ -532,16 +590,7 @@ function ProductsPage() {
             </div>
 
             {/* Apply Filters Button */}
-            <button
-              onClick={handleFilterChange}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 
-                       text-white px-4 py-2 rounded-lg transition-all duration-300 font-medium text-sm
-                       shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]
-                       flex items-center justify-center gap-2 border border-blue-500/20 mb-3"
-            >
-              <FaCheckCircle className="w-3 h-3" />
-              <span>Áp dụng bộ lọc</span>
-            </button>
+            
 
             {/* Active Filters Display */}
             {filterCount > 0 && (
@@ -638,8 +687,8 @@ function ProductsPage() {
                              focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white transition-all duration-200"
                   >
                     <option value="-createdAt">Mới nhất</option>
-                    <option value="price">Giá tăng dần</option>
-                    <option value="-price">Giá giảm dần</option>
+                    <option value="discountPrice">Giá tăng dần</option>
+                    <option value="-discountPrice">Giá giảm dần</option>
                     <option value="-averageRating">Đánh giá cao</option>
                   </select>
                 </div>
@@ -740,4 +789,3 @@ function ProductsPage() {
 }
 
 export default ProductsPage;
-

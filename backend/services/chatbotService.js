@@ -6,6 +6,7 @@ const UserContext = require("./chatbot/UserContext");
 const WorkflowStateManager = require("./chatbot/WorkflowStateManager");
 const WorkflowUpdater = require("./chatbot/WorkflowUpdater");
 const WorkflowIntentDetector = require("./chatbot/WorkflowIntentDetector");
+const SimpleActionDetector = require("./chatbot/SimpleActionDetector");
 const tools = require("./tools");
 const ToolContextManager = require("./chatbot/ToolContextManager");
 const Product = require("../models/productModel");
@@ -30,6 +31,7 @@ class ChatbotService {
     this.isInitialized = false;
     this.debugMode = CHATBOT_DEBUG;
     this.io = null;
+    this.lastUserId = null; // Track last user to avoid unnecessary tool updates
   }
 
   setSocketIO(io) {
@@ -104,26 +106,65 @@ await ToolContextManager.createFreshToolsAndUpdateAgent(
     try {
       this.log(`Message: "${message}"`);
 
+      // Optimize tool updates - only update if user changed or agent not ready
+      const userChanged = this.lastUserId !== userId;
+      const needsToolUpdate = userChanged || !this.agentManager.isAgentReady();
+
       if (userId) {
         this.userContext.setUser(userId);
-        await ToolContextManager.createFreshToolsAndUpdateAgent(
-          this.agentManager,
-          this.userContext,
-          this.log.bind(this)
-        );
+        if (needsToolUpdate) {
+          await ToolContextManager.createFreshToolsAndUpdateAgent(
+            this.agentManager,
+            this.userContext,
+            this.log.bind(this)
+          );
+          this.lastUserId = userId;
+        } else {
+          this.log(`🚀 Same user (${userId}), skipping tool update (performance optimization)`);
+        }
       } else {
         this.log(`No userId provided, clearing user context`);
         this.userContext.clearUser();
-        await ToolContextManager.createFreshToolsAndUpdateAgent(
-          this.agentManager,
-          this.userContext,
-          this.log.bind(this)
-        );
+        if (needsToolUpdate) {
+          await ToolContextManager.createFreshToolsAndUpdateAgent(
+            this.agentManager,
+            this.userContext,
+            this.log.bind(this)
+          );
+          this.lastUserId = null;
+        } else {
+          this.log(`🚀 No user context change, skipping tool update`);
+        }
       }
 
       const { history, sessionId: actualSessionId } =
         this.chatHistoryManager.getOrCreateChatHistory(sessionId, userId);
 
+      // Check for simple actions that can bypass AI processing
+      const simpleAction = SimpleActionDetector.detectSimpleAction(message);
+      if (simpleAction && userId) {
+        this.log(`🚀 Simple action detected: ${simpleAction.actionName}, bypassing AI processing`);
+        
+        try {
+          const result = await this.executeSimpleAction(simpleAction, userId, actualSessionId, history);
+          if (result) {
+            const totalDuration = Date.now() - startTime;
+            return {
+              text: result.output || result,
+              sessionId: actualSessionId,
+              simpleAction: true,
+              actionName: simpleAction.actionName,
+              executionTime: totalDuration,
+              bypassedAI: true
+            };
+          }
+        } catch (error) {
+          this.log(`Simple action failed, falling back to AI: ${error.message}`);
+          // Continue with normal AI processing
+        }
+      }
+
+      // Continue with normal AI processing
       const workflowIntent = WorkflowIntentDetector.detectWorkflowIntent(
         message
       );
@@ -268,6 +309,38 @@ await ToolContextManager.createFreshToolsAndUpdateAgent(
       }
     }
   }
+
+  /**
+   * Execute simple actions without AI processing
+   */
+  async executeSimpleAction(simpleAction, userId, sessionId, history) {
+    try {
+      this.log(`Executing simple action: ${simpleAction.tool}.${simpleAction.action}`);
+      
+      // Get tools with proper user context
+      this.userContext.setUser(userId);
+      const toolsWithContext = tools.getToolsWithContext(this.userContext);
+      const tool = toolsWithContext.find(t => t.name === simpleAction.tool);
+      
+      if (!tool) {
+        throw new Error(`Tool ${simpleAction.tool} not found`);
+      }
+
+      // Execute the tool directly
+      const result = await tool._call({ query: simpleAction.originalMessage });
+      
+      // Add to chat history
+      await history.addUserMessage(simpleAction.originalMessage);
+      await history.addAIMessage(result);
+      
+      return result;
+    } catch (error) {
+      this.logError(`Error executing simple action:`, error);
+      throw error;
+    }
+  }
+
+  // Performance monitoring removed for demo project
 }
 
 module.exports = new ChatbotService();

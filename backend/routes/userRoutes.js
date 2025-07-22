@@ -20,6 +20,12 @@ const {
   markCouponAsUsed,
   updateAddress,
   getUserAddress,
+  // Admin address management
+  getUserAddressesByAdmin,
+  updateAddressByAdmin,
+  deleteAddressByAdmin,
+  // User reviews
+  getReviewsByUser,
 } = require("../controllers/userController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -46,5 +52,26 @@ router.get("/recent", protect, authorize("admin"), getRecentUsers);
 router.get("/:id", protect, authorize("admin"), getUserById);
 router.put("/:id", protect, authorize("admin"), updateUser);
 router.delete("/:id", protect, authorize("admin"), deleteUser);
+
+// Admin - User specific data management
+router.get("/:userId/reviews", protect, authorize("admin"), getReviewsByUser);
+router.get(
+  "/:userId/addresses",
+  protect,
+  authorize("admin"),
+  getUserAddressesByAdmin
+);
+router.put(
+  "/:userId/addresses/:addressId",
+  protect,
+  authorize("admin"),
+  updateAddressByAdmin
+);
+router.delete(
+  "/:userId/addresses/:addressId",
+  protect,
+  authorize("admin"),
+  deleteAddressByAdmin
+);
 
 module.exports = router;

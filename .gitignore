@@ -1,5 +1,6 @@
 guideDoc/
 .vscode/
+.vercel/
 #uploads
 uploads/
 backend/data/

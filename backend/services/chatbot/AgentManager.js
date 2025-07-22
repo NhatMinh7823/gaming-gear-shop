@@ -16,6 +16,7 @@ class AgentManager {
     this.agentExecutor = null;
     this.isInitialized = false;
     this.debugMode = process.env.CHATBOT_DEBUG === "true";
+    this.currentToolsHash = null; // Track current tools to avoid unnecessary updates
   }
 
   log(message, ...args) {
@@ -86,11 +87,20 @@ class AgentManager {
    */
   async updateAgentTools(freshTools) {
     try {
-      this.log("Updating agent with fresh tools...");
-
       if (!Array.isArray(freshTools) || freshTools.length === 0) {
         throw new Error("Fresh tools array is required");
       }
+
+      // Create hash of tools to check if update is needed
+      const toolsHash = this.createToolsHash(freshTools);
+      
+      // Skip update if tools haven't changed
+      if (this.currentToolsHash === toolsHash && this.agentExecutor) {
+        this.log("🚀 Tools unchanged, skipping agent update (performance optimization)");
+        return;
+      }
+
+      this.log("Updating agent with fresh tools...");
 
       // Validate tools
       for (const tool of freshTools) {
@@ -117,7 +127,8 @@ class AgentManager {
         handleParsingErrors: agentConfig.handleParsingErrors,
       });
 
-      this.log("Agent updated successfully");
+      this.currentToolsHash = toolsHash;
+      this.log(`Agent updated successfully`);
     } catch (error) {
       this.logError("Error updating agent tools:", error.message);
       throw new Error(`Failed to update agent tools: ${error.message}`);
@@ -137,8 +148,29 @@ class AgentManager {
       throw new Error("Agent executor not initialized");
     }
 
-    // Pass options (such as callbacks) to agentExecutor.invoke if provided
-    return await this.agentExecutor.invoke(input, options);
+    const result = await this.agentExecutor.invoke(input, options);
+
+    // Custom logic to handle successful tool execution and stop the agent
+    if (agentConfig.returnIntermediateSteps && result.intermediateSteps?.length > 0) {
+      const lastStep = result.intermediateSteps[result.intermediateSteps.length - 1];
+      const observation = lastStep.observation;
+
+      if (typeof observation === 'string' && observation.startsWith('[ACTION_SUCCESS]')) {
+        this.log('Action success detected. Stopping agent execution.');
+        // Return a final answer structure, KEEPING the prefix for downstream logic
+        // Also set the output as the final answer to prevent further iterations
+        return {
+          ...result,
+          output: observation.trim(),
+          // Force the agent to stop by setting this as the final answer
+          returnValues: {
+            output: observation.trim()
+          }
+        };
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -177,6 +209,23 @@ class AgentManager {
   getAgentExecutor() {
     return this.agentExecutor;
   }
+
+  /**
+   * Create a hash of tools to detect changes
+   */
+  createToolsHash(tools) {
+    const toolsSignature = tools.map(tool => `${tool.name}:${tool.description}`).sort().join('|');
+    // Simple hash function
+    let hash = 0;
+    for (let i = 0; i < toolsSignature.length; i++) {
+      const char = toolsSignature.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return hash.toString();
+  }
+
+  // Performance monitoring removed for demo project
 }
 
 module.exports = AgentManager;

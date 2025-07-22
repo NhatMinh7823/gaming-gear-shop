@@ -172,11 +172,23 @@ class VectorStoreManager {
 
     // MEDIUM PRIORITY: Detailed specifications.
     const mediumPriority = [];
-    if (product.specifications) {
-      const specsText = Object.entries(product.specifications)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(", ");
-      mediumPriority.push(specsText.repeat(2));
+    if (product.specifications && typeof product.specifications === 'object' && product.specifications !== null) {
+      const specsEntries = Object.entries(product.specifications);
+      if (specsEntries.length > 0) {
+        const specsText = specsEntries
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(", ");
+        mediumPriority.push(specsText.repeat(2));
+        
+        // Debug logging for specifications
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`📋 Product "${productName}" specifications:`, specsText);
+        }
+      } else {
+        console.warn(`⚠️ Product "${productName}" has empty specifications object`);
+      }
+    } else {
+      console.warn(`⚠️ Product "${productName}" has no specifications field`);
     }
 
     // LOW PRIORITY: Description (original language is fine here).
@@ -255,23 +267,36 @@ class VectorStoreManager {
         `(${labeledProducts.length} labeled, ${otherProducts.length} others)`
       );
 
-      const documents = allProductsToLoad.map((product) => ({
-        pageContent: this.createSearchableContent(product),
-        metadata: {
-          id: product._id.toString(),
-          name: product.name,
-          price: product.price,
-          discountPrice: product.discountPrice || null,
-          category: product.category?.name || "N/A",
-          brand: product.brand || "N/A",
-          inStock: product.stock > 0,
-          specifications: product.specifications || {},
-          features: product.features || [],
-          averageRating: product.averageRating || 0,
-          numReviews: product.numReviews || 0,
-          isFeatured: product.isFeatured || false,
-        },
-      }));
+      const documents = allProductsToLoad.map((product) => {
+        // Enhanced specifications handling for metadata
+        let processedSpecs = {};
+        if (product.specifications && typeof product.specifications === 'object' && product.specifications !== null) {
+          processedSpecs = { ...product.specifications };
+        }
+        
+        // Debug logging for products with missing specifications
+        if (Object.keys(processedSpecs).length === 0 && process.env.NODE_ENV === 'development') {
+          console.warn(`⚠️ Product "${product.name}" (ID: ${product._id}) has no specifications in vector store`);
+        }
+        
+        return {
+          pageContent: this.createSearchableContent(product),
+          metadata: {
+            id: product._id.toString(),
+            name: product.name,
+            price: product.price,
+            discountPrice: product.discountPrice || null,
+            category: product.category?.name || "N/A",
+            brand: product.brand || "N/A",
+            inStock: product.stock > 0,
+            specifications: processedSpecs,
+            features: product.features || [],
+            averageRating: product.averageRating || 0,
+            numReviews: product.numReviews || 0,
+            isFeatured: product.isFeatured || false,
+          },
+        };
+      });
 
       if (documents.length > 0) {
         await this.vectorStore.addDocuments(documents);

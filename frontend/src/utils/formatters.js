@@ -155,28 +155,6 @@ export const formatFileSize = (bytes) => {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 };
 
-/**
- * Format phone number with Vietnamese format
- * @param {string} phoneNumber - Phone number to format
- * @returns {string} Formatted phone number
- */
-export const formatPhoneNumber = (phoneNumber) => {
-  if (!phoneNumber) return '';
-
-  // Remove all non-numeric characters
-  const cleaned = phoneNumber.replace(/\D/g, '');
-
-  // Vietnamese phone number format: (+84) xxx xxx xxx
-  if (cleaned.length === 10 && cleaned.startsWith('0')) {
-    return `(+84) ${cleaned.slice(1, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
-  }
-  
-  if (cleaned.length === 9) {
-    return `(+84) ${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
-  }
-
-  return phoneNumber; // Return original if can't format
-};
 
 /**
  * Truncate text with ellipsis
@@ -238,7 +216,6 @@ export default {
   formatDate,
   formatRelativeTime,
   formatFileSize,
-  formatPhoneNumber,
   truncateText,
   formatCouponCode,
   formatStockStatus

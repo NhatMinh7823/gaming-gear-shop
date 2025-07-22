@@ -36,16 +36,65 @@ const io = new Server(server, {
 // Pass io instance to chatbotService
 chatbotService.setSocketIO(io);
 
+// Store active sessions for reconnection handling
+const activeSessions = new Map(); // sessionId -> { socketId, lastActivity, userId }
+
 // Handle Socket.IO connections
 io.on("connection", (socket) => {
   console.log("🔌 A user connected with socket ID:", socket.id);
 
   // Handle joining session room
-  socket.on("join_session", (sessionId) => {
+  socket.on("join_session", (data) => {
+    const { sessionId, userId } = typeof data === 'string' ? { sessionId: data, userId: null } : data;
+    
     if (sessionId) {
       socket.join(sessionId);
-      console.log(`🔌 Socket ${socket.id} joined session room: ${sessionId}`);
-      socket.emit("session_joined", { sessionId, socketId: socket.id });
+      socket.sessionId = sessionId;
+      socket.userId = userId;
+      
+      // Store session info for reconnection handling
+      activeSessions.set(sessionId, {
+        socketId: socket.id,
+        userId: userId
+      });
+      
+      console.log(`🔌 Socket ${socket.id} joined session room: ${sessionId}${userId ? ` (User: ${userId})` : ''}`);
+      socket.emit("session_joined", { 
+        sessionId, 
+        socketId: socket.id, 
+        reconnected: false 
+      });
+    }
+  });
+
+  // Handle session reconnection
+  socket.on("reconnect_session", (data) => {
+    const { sessionId, userId } = data;
+    
+    if (sessionId && activeSessions.has(sessionId)) {
+      const sessionInfo = activeSessions.get(sessionId);
+      
+      // Update session with new socket
+      socket.join(sessionId);
+      socket.sessionId = sessionId;
+      socket.userId = userId || sessionInfo.userId;
+      
+      activeSessions.set(sessionId, {
+        socketId: socket.id,
+        userId: userId || sessionInfo.userId
+      });
+      
+      console.log(`🔄 Socket ${socket.id} reconnected to session: ${sessionId}`);
+      
+      socket.emit("reconnection_success", {
+        sessionId,
+        message: "Session reconnected successfully"
+      });
+    } else {
+      socket.emit("reconnection_failed", {
+        sessionId,
+        message: "Session not found or expired"
+      });
     }
   });
 
@@ -53,14 +102,28 @@ io.on("connection", (socket) => {
   socket.on("leave_session", (sessionId) => {
     if (sessionId) {
       socket.leave(sessionId);
+      activeSessions.delete(sessionId);
       console.log(`🔌 Socket ${socket.id} left session room: ${sessionId}`);
     }
   });
 
-  socket.on("disconnect", () => {
-    console.log("🔌 User disconnected with socket ID:", socket.id);
+
+
+  socket.on("disconnect", (reason) => {
+    console.log(`🔌 User disconnected with socket ID: ${socket.id}, reason: ${reason}`);
+    
+    // Find and remove session
+    for (const [sessionId, sessionInfo] of activeSessions.entries()) {
+      if (sessionInfo.socketId === socket.id) {
+        activeSessions.delete(sessionId);
+        console.log(`🗑️ Removed session ${sessionId}`);
+        break;
+      }
+    }
   });
 });
+
+
 
 // Apply middleware
 app.use(

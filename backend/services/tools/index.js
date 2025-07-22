@@ -40,18 +40,18 @@ const initialize = async (vsManager, userContext) => {
  * @param {UserContext} userContext - Current user context
  * @returns {Array} Array of tool instances with fresh UserContext
  */
-const createFreshTools = (userContext) => {
+const createFreshTools = (userContext, sessionContext = null) => {
   if (!globalToolInstances) {
     throw new Error("Global tools not initialized. Call initialize() first.");
   }
 
-  // Create fresh tool set with current UserContext
+  // Create fresh tool set with current UserContext and optional sessionContext
   const freshTools = [
     ...globalToolInstances, // Non-user-specific tools (reuse)
-    new AISmartWishlistTool(userContext), // AI-driven wishlist tool with current UserContext
-    new AISmartCartTool(userContext), // NEW: AI-driven cart tool with current UserContext
-    new AIOrderTool(userContext), // NEW: AI-driven order tool with current UserContext
-    // new OrderTool(userContext), // Legacy OrderTool - commented out for migration
+    new AISmartWishlistTool(userContext),
+    new AISmartCartTool(userContext),
+    new AIOrderTool(userContext, sessionContext), // Pass sessionContext to AIOrderTool
+    // new OrderTool(userContext),
   ];
 
   return freshTools;
@@ -74,8 +74,8 @@ const getAllTools = () => {
  * @param {UserContext} userContext - Current user context
  * @returns {Array} Array of tool instances with correct UserContext
  */
-const getToolsWithContext = (userContext) => {
-  return createFreshTools(userContext);
+const getToolsWithContext = (userContext, sessionContext = null) => {
+  return createFreshTools(userContext, sessionContext);
 };
 
 /**

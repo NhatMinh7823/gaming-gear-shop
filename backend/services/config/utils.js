@@ -45,20 +45,39 @@ const formatProductFromDB = (product) => {
   const effectivePriceFormatted = formatPrice(effectivePrice);
   const originalPriceFormatted = formatPrice(product.price);
 
+  // Xử lý category
+  let categoryName = "N/A";
+  if (typeof product.category === "object" && product.category?.name) {
+    categoryName = product.category.name;
+  } else if (typeof product.category === "string") {
+    categoryName = product.category;
+  }
+
+  // Xử lý specifications (object)
+  let specs = {};
+  if (typeof product.specifications === "object" && product.specifications !== null) {
+    specs = product.specifications;
+  }
+
+  // Xử lý features
+  let features = Array.isArray(product.features)
+    ? product.features.join(", ")
+    : "N/A";
+
   return `🎮 **${product.name}**
    💰 Giá: ${effectivePriceFormatted} VND${
     product.discountPrice
       ? ` ⚡ GIẢM TỪ ${originalPriceFormatted} VND - TIẾT KIỆM ${formatPrice(product.price - product.discountPrice)} VND`
       : ""
   }
-   📁 Danh mục: ${product.category?.name || "N/A"}
+   📁 Danh mục: ${categoryName}
    🏷️ Thương hiệu: ${product.brand || "N/A"}
    📦 Tình trạng: ${product.stock > 0 ? "✅ Còn hàng" : "❌ Hết hàng"}
    🌟 Đánh giá: ${product.averageRating}/5 (${product.numReviews} lượt)
-   ⚙️ Thông số: ${Object.entries(product.specifications || {})
+   ⚙️ Thông số: ${Object.entries(specs)
      .map(([k, v]) => `${k}: ${v}`)
      .join(", ")}
-   ✨ Tính năng: ${product.features?.join(", ") || "N/A"}`;
+   ✨ Tính năng: ${features}`;
 };
 
 // /**
@@ -122,7 +141,7 @@ const formatProductFromDB = (product) => {
 module.exports = {
   formatPrice,
   formatProductFromMetadata,
-  // formatProductFromDB,
+  formatProductFromDB,
   // getSortOptions,
   // buildFilterSummary,
 };

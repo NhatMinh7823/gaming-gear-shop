@@ -73,7 +73,7 @@ function CartPage() {
                     onEmptyCart={handleEmptyCart}
                     couponCode={couponCode}
                     setCouponCode={setCouponCode}
-                    onApplyCoupon={() => handleApplyCoupon(handleFreeshipChange)}
+                    onApplyCoupon={(_, code) => handleApplyCoupon(handleFreeshipChange, code)}
                     appliedCoupon={appliedCoupon}
                     onRemoveCoupon={removeCoupon}
                   />

@@ -30,10 +30,6 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "admin"],
     default: "user",
   },
-  phone: {
-    type: String,
-    trim: true,
-  },
   address: {
     street: {
       type: String,

@@ -11,7 +11,7 @@ const Product = require("../../../models/productModel");
 const InventoryValidator = require("./InventoryValidator");
 const ghnService = require("../../ghnService");
 const { llmConfig } = require("../../config/llmConfig");
-const OrderMessageFormatter = require('./utils/OrderMessageFormatter');
+const OrderMessageFormatter = require("./utils/OrderMessageFormatter");
 
 /**
  * AIOrderTool - An AI-driven, intelligent tool for managing the entire order process.
@@ -19,17 +19,22 @@ const OrderMessageFormatter = require('./utils/OrderMessageFormatter');
  * to understand user intent and orchestrate the checkout flow.
  */
 class AIOrderTool extends StructuredTool {
-  constructor(userContext = null) {
+  constructor(userContext = null, sessionContext = null) {
     super();
     this.name = "ai_order_tool";
     this.description = this.getOptimizedDescription();
     this.userContext = userContext;
+    this.sessionContext = sessionContext || {}; // Trạng thái hội thoại tạm thời
     this.llm = new ChatGoogleGenerativeAI(llmConfig);
     this.ghnService = ghnService;
     this.debugMode = process.env.CHATBOT_DEBUG === "true";
 
     this.schema = z.object({
-      query: z.string().describe("User's natural language query about checkout, payment, shipping, order confirmation, or status checks."),
+      query: z
+        .string()
+        .describe(
+          "User's natural language query about checkout, payment, shipping, order confirmation, or status checks. Make sure to tell the user that the order will be processed automatically when order is confirmed."
+        ),
     });
   }
 
@@ -79,8 +84,13 @@ Only works when the user is authenticated.`;
       }
 
       // If cart is empty and user wants to checkout, guide them.
-      if (context.cart.items.length === 0 && query.match(/thanh toán|đặt hàng|checkout/i)) {
-        return `🛒 **GIỎ HÀNG TRỐNG**
+      // But skip this check if the query looks like order details (from agent's second call)
+      if (
+        context.cart.items.length === 0 &&
+        query.match(/thanh toán|đặt hàng|checkout/i) &&
+        !query.match(/Chi tiết đơn hàng|trạng thái|tổng tiền|ngày đặt|sản phẩm:/i)
+      ) {
+        return `[ACTION_SUCCESS] 🛒 **GIỎ HÀNG TRỐNG**
         
 Bạn chưa có sản phẩm nào để đặt hàng. Hãy thêm sản phẩm vào giỏ trước nhé!
 
@@ -89,23 +99,49 @@ Bạn chưa có sản phẩm nào để đặt hàng. Hãy thêm sản phẩm v�
 • "Mua chuột Logitech"`;
       }
 
+      // Kiểm tra trạng thái hội thoại: nếu đã hỏi phương thức thanh toán thì không hỏi lại
+      if (
+        this.sessionContext &&
+        this.sessionContext.askedPaymentMethod &&
+        !/COD|VNPay|tiền mặt|qua VNPay/i.test(query)
+      ) {
+        return "Vui lòng chọn COD hoặc VNPay để tiếp tục.";
+      }
+
       const aiPrompt = this.createOrderAIPrompt(query, context);
       this.log("Sending query to Gemini AI for order analysis...");
       const aiResponse = await this.llm.invoke(aiPrompt);
-      
+
       let aiResult;
       try {
         const jsonMatch = aiResponse.content.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error("No JSON found in AI response");
         aiResult = JSON.parse(jsonMatch[0]);
       } catch (parseError) {
-        this.log("AI JSON parsing error:", parseError, "Response was:", aiResponse.content);
+        this.log(
+          "AI JSON parsing error:",
+          parseError,
+          "Response was:",
+          aiResponse.content
+        );
         return "🤖 Rất tiếc, tôi gặp sự cố khi phân tích yêu cầu. Bạn có thể thử lại với câu hỏi đơn giản hơn không?";
+      }
+
+      // Nếu action là select_payment_method hoặc trả về câu hỏi chọn phương thức thanh toán, lưu trạng thái đã hỏi
+      if (
+        aiResult.action === "select_payment_method" ||
+        (aiResult.response &&
+          /phương thức thanh toán|COD|VNPay/i.test(
+            aiResult.response.message || ""
+          ))
+      ) {
+        if (this.sessionContext) this.sessionContext.askedPaymentMethod = true;
+      } else {
+        if (this.sessionContext) this.sessionContext.askedPaymentMethod = false;
       }
 
       this.log("AI Result:", JSON.stringify(aiResult, null, 2));
       return await this.executeAIAction(aiResult, userId, context);
-
     } catch (error) {
       this.log("Error in AIOrderTool:", error);
       return `❌ Lỗi xử lý đơn hàng: ${error.message}`;
@@ -113,23 +149,31 @@ Bạn chưa có sản phẩm nào để đặt hàng. Hãy thêm sản phẩm v�
   }
 
   async getOrderContext(userId) {
-    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+    const cart = await Cart.findOne({ user: userId }).populate("items.product");
     const user = await User.findById(userId);
-    const recentOrders = await Order.find({ user: userId }).sort({ createdAt: -1 }).limit(5);
+    const recentOrders = await Order.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .limit(5);
 
     return {
       user: {
         name: user.name,
         email: user.email,
-        address: user.address ? {
-          street: user.address.street,
-          ward: user.address.ward?.name,
-          district: user.address.district?.name,
-          province: user.address.province?.name,
-        } : null,
+        address: user.address
+          ? {
+              street: user.address.street,
+              ward: user.address.ward?.name,
+              district: user.address.district?.name,
+              province: user.address.province?.name,
+            }
+          : null,
       },
       cart: cart, // Pass the entire populated cart object
-      recentOrders: recentOrders.map(o => ({ id: o._id.toString(), status: o.status, total: o.totalPrice }))
+      recentOrders: recentOrders.map((o) => ({
+        id: o._id.toString(),
+        status: o.status,
+        total: o.totalPrice,
+      })),
     };
   }
 
@@ -138,12 +182,14 @@ Bạn chưa có sản phẩm nào để đặt hàng. Hãy thêm sản phẩm v�
     const aiContextCart = {
       itemCount: context.cart ? context.cart.items.length : 0,
       totalPrice: context.cart ? context.cart.totalPrice : 0,
-      items: context.cart ? context.cart.items.map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        stock: item.product ? item.product.stock : 0, // Ensure stock is accessed safely
-      })) : [],
+      items: context.cart
+        ? context.cart.items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            stock: item.product ? item.product.stock : 0, // Ensure stock is accessed safely
+          }))
+        : [],
     };
 
     return `Bạn là AI chuyên gia xử lý đơn hàng thông minh cho một cửa hàng gaming gear. Nhiệm vụ của bạn là phân tích yêu cầu của khách hàng và điều phối quy trình đặt hàng một cách tự nhiên.
@@ -209,7 +255,10 @@ Phân tích và trả về JSON hợp lệ.`;
       case "check_order_status":
         return this.handleCheckOrderStatus(userId, parameters, response);
       case "answer_question":
-        return response.message || "Tôi có thể giúp gì khác cho bạn về việc đặt hàng không?";
+        return `[ACTION_SUCCESS] ${
+          response.message ||
+          "Tôi có thể giúp gì khác cho bạn về việc đặt hàng không?"
+        }`;
       default:
         this.log("Unknown AI action:", action);
         return "Rất tiếc, tôi chưa hiểu rõ yêu cầu của bạn. Bạn có thể nói rõ hơn về việc đặt hàng được không?";
@@ -219,68 +268,76 @@ Phân tích và trả về JSON hợp lệ.`;
   // --- HANDLER FUNCTIONS ---
 
   async handleStartCheckout(userId, context, response) {
-    // Logic from InitiateOrderStep
-    this.log("Cart items before inventory validation:", JSON.stringify(context.cart.items.map(item => ({
-      _id: item._id,
-      product_id: item.product ? item.product._id : 'NOT_POPULATED',
-      product_name: item.product ? item.product.name : item.name,
-      quantity: item.quantity,
-      isProductPopulated: !!item.product
-    })), null, 2));
-
-    const validation = await InventoryValidator.validateCartInventory(context.cart.items);
+    const validation = await InventoryValidator.validateCartInventory(
+      context.cart.items
+    );
     if (!validation.success) {
-      // For simplicity, we won't auto-fix here. We'll just report.
-      return `⚠️ **VẤN ĐỀ VỚI GIỎ HÀNG**\n\n${validation.summary.message}\n\nVui lòng điều chỉnh giỏ hàng của bạn trước khi tiếp tục.`;
+      return `[ACTION_SUCCESS] ⚠️ **VẤN ĐỀ VỚI GIỎ HÀNG**\n\n${validation.summary.message}\n\nVui lòng điều chỉnh giỏ hàng của bạn trước khi tiếp tục.`;
     }
-    
+
     // If validation is successful, ask the next logical question.
-    return response.message || "Giỏ hàng của bạn đã sẵn sàng. Bạn muốn giao hàng đến địa chỉ mặc định và tính phí vận chuyển chứ?";
+    return (
+      response.message ||
+      "Giỏ hàng của bạn đã sẵn sàng. Bạn muốn giao hàng đến địa chỉ mặc định và tính phí vận chuyển chứ?"
+    );
   }
 
   async handleCalculateShipping(userId, context, response) {
-    // Full logic from CalculateShippingStep
     if (!context.user.address?.street) {
-        return "📍 Bạn chưa có địa chỉ mặc định. Vui lòng cập nhật địa chỉ trong hồ sơ của bạn trước nhé.";
+      return "[ACTION_SUCCESS] 📍 Bạn chưa có địa chỉ mặc định. Vui lòng cập nhật địa chỉ trong hồ sơ của bạn trước nhé.";
     }
 
-    const user = await User.findById(userId); // Need full user object for district/ward IDs
+    const user = await User.findById(userId); //lấy địa chỉ của người dùng
 
     try {
-        const cart = context.cart;
-        const totalWeight = cart.items.reduce(
-          (weight, item) =>
-            weight + (item.product?.weight || 500) * item.quantity,
-          0
+      const cart = context.cart;
+      const totalWeight = cart.items.reduce(
+        (weight, item) =>
+          weight + (item.product?.weight || 500) * item.quantity,
+        0
+      );
+      const totalValue = cart.totalPrice;
+
+      const shippingRequest = {
+        service_type_id: 2,
+        to_district_id: user.address.district.id,
+        to_ward_code: user.address.ward.code,
+        weight: Math.max(totalWeight, 500),
+        insurance_value: totalValue,
+      };
+
+      // this.log('Calculating shipping with GHN:', shippingRequest);
+      const shippingResult = await this.ghnService.calculateShippingFee(
+        shippingRequest
+      );
+
+      let shippingInfo;
+      if (!shippingResult.success) {
+        this.log("GHN API failed, using fallback shipping fee");
+        shippingInfo = { fee: shippingResult.fallbackFee || 29000 };
+        return (
+          response.message ||
+          `Rất tiếc, không thể kết nối với đơn vị vận chuyển. Tạm tính phí giao hàng mặc định là ${shippingInfo.fee.toLocaleString(
+            "vi-VN"
+          )}đ. Bạn có muốn tiếp tục không?`
         );
-        const totalValue = cart.totalPrice;
-
-        const shippingRequest = {
-            service_type_id: 2,
-            to_district_id: user.address.district.id,
-            to_ward_code: user.address.ward.code,
-            weight: Math.max(totalWeight, 500),
-            insurance_value: totalValue
+      } else {
+        shippingInfo = {
+          fee: shippingResult.data?.data?.service_fee || 29000,
         };
-
-        this.log('Calculating shipping with GHN:', shippingRequest);
-        const shippingResult = await this.ghnService.calculateShippingFee(shippingRequest);
-
-        let shippingInfo;
-        if (!shippingResult.success) {
-            this.log('GHN API failed, using fallback shipping fee');
-            shippingInfo = { fee: shippingResult.fallbackFee || 29000 };
-            return response.message || `Rất tiếc, không thể kết nối với đơn vị vận chuyển. Tạm tính phí giao hàng mặc định là ${shippingInfo.fee.toLocaleString('vi-VN')}đ. Bạn có muốn tiếp tục không?`;
-        } else {
-            shippingInfo = {
-              fee: shippingResult.data?.data?.service_fee || 29000,
-            };
-            return response.message || `Phí vận chuyển tới địa chỉ của bạn là ${shippingInfo.fee.toLocaleString('vi-VN')}đ. Bạn có muốn tiếp tục thanh toán không?`;
-        }
+        return (
+          response.message ||
+          `Phí vận chuyển tới địa chỉ của bạn là ${shippingInfo.fee.toLocaleString(
+            "vi-VN"
+          )}đ. Bạn có muốn tiếp tục thanh toán không?`
+        );
+      }
     } catch (error) {
-        this.log("Error calculating shipping:", error);
-        const fallbackFee = 29000;
-        return `❌ Lỗi khi tính phí vận chuyển. Sử dụng phí mặc định ${fallbackFee.toLocaleString('vi-VN')}đ. Bạn muốn tiếp tục chứ?`;
+      this.log("Error calculating shipping:", error);
+      const fallbackFee = 29000;
+      return `❌ Lỗi khi tính phí vận chuyển. Sử dụng phí mặc định ${fallbackFee.toLocaleString(
+        "vi-VN"
+      )}đ. Bạn muốn tiếp tục chứ?`;
     }
   }
 
@@ -290,73 +347,100 @@ Phân tích và trả về JSON hợp lệ.`;
     if (!paymentMethod) {
       return "Bạn muốn thanh toán bằng COD (tiền mặt) hay qua VNPay?";
     }
-    return response.message || `Đã chọn thanh toán bằng ${paymentMethod}.`;
+    return `[ACTION_SUCCESS] ${
+      response.message || `Đã chọn thanh toán bằng ${paymentMethod}.`
+    }`;
   }
 
   async handleConfirmOrder(userId, context, parameters, response) {
     // Full logic from ShowSummaryStep and ConfirmOrderStep
     try {
-        const user = await User.findById(userId);
-        const cart = await Cart.findOne({ user: userId }).populate('items.product');
+      const user = await User.findById(userId);
+      const cart = await Cart.findOne({ user: userId }).populate(
+        "items.product"
+      );
 
-        // 1. Final inventory check
-        const finalValidation = await InventoryValidator.validateCartInventory(cart.items);
-        if (!finalValidation.success) {
-            return `❌ **THAY ĐỔI TỒN KHO**\n\nCó sản phẩm trong giỏ hàng đã thay đổi tình trạng. ${finalValidation.summary.message}\n\nVui lòng bắt đầu lại quy trình thanh toán.`;
-        }
+      // 1. Final inventory check
+      const finalValidation = await InventoryValidator.validateCartInventory(
+        cart.items
+      );
+      if (!finalValidation.success) {
+        return `[ACTION_SUCCESS] ❌ **THAY ĐỔI TỒN KHO**\n\nCó sản phẩm trong giỏ hàng đã thay đổi tình trạng. ${finalValidation.summary.message}\n\nVui lòng bắt đầu lại quy trình thanh toán.`;
+      }
 
-        // 2. Prepare order data (re-calculating shipping for accuracy)
-        const shippingFee = (await this.ghnService.calculateShippingFee({
+      // 2. Prepare order data (re-calculating shipping for accuracy)
+      const shippingFee =
+        (
+          await this.ghnService.calculateShippingFee({
             service_type_id: 2,
             to_district_id: user.address.district.id,
             to_ward_code: user.address.ward.code,
-            weight: Math.max(cart.items.reduce((w, i) => w + ((i.product?.weight || 100) * i.quantity), 0), 100),
-            insurance_value: cart.totalPrice
-        })).data?.data?.service_fee || 29000;
+            weight: Math.max(
+              cart.items.reduce(
+                (w, i) => w + (i.product?.weight || 100) * i.quantity,
+                0
+              ),
+              100
+            ),
+            insurance_value: cart.totalPrice,
+          })
+        ).data?.data?.service_fee || 29000;
 
-        const totalAmount = cart.totalPrice + shippingFee;
+      const totalAmount = cart.totalPrice + shippingFee;
 
-        const orderData = {
-            user: userId,
-            orderItems: cart.items.map(item => ({
-                name: item.product.name,
-                quantity: item.quantity,
-                image: item.product.images?.[0]?.url || "",
-                price: item.price,
-                product: item.product._id
-            })),
-            shippingAddress: user.address,
-            paymentMethod: parameters.paymentMethod || 'COD', // Default to COD
-            shippingPrice: shippingFee,
-            totalPrice: totalAmount,
-            chatbotOrder: true,
-            orderSource: 'chatbot' // Corrected to match enum in orderModel.js
-        };
+      const orderData = {
+        user: userId,
+        orderItems: cart.items.map((item) => ({
+          name: item.product.name,
+          quantity: item.quantity,
+          image: item.product.images?.[0]?.url || "",
+          price: item.price,
+          product: item.product._id,
+        })),
+        shippingAddress: user.address,
+        paymentMethod: parameters.paymentMethod || "COD", // Default to COD
+        shippingPrice: shippingFee,
+        totalPrice: totalAmount,
+        chatbotOrder: true,
+        orderSource: "chatbot",
+      };
 
-        // 3. Create order
-        const order = await Order.create(orderData);
+      // 3. Create order
+      const order = await Order.create(orderData);
 
-        // 4. Update product stock
-        for (const item of cart.items) {
-            await Product.updateOne({ _id: item.product._id }, {
-                $inc: {
-                    stock: -item.quantity,
-                    sold: +item.quantity
-                }
-            });
-        }
+      // 4. Update product stock
+      for (const item of cart.items) {
+        await Product.updateOne(
+          { _id: item.product._id },
+          {
+            $inc: {
+              stock: -item.quantity,
+              sold: +item.quantity,
+            },
+          }
+        );
+      }
 
-        // 5. Clear cart
-        await Cart.findByIdAndDelete(cart._id);
+      // 5. Clear cart
+      await Cart.findByIdAndDelete(cart._id);
 
-        const orderNumber = order._id.toString().slice(-6).toUpperCase();
-        
-        // Luôn trả về thông báo thành công để đảm bảo chatbot nhận biết
-        return response || `✅ **ĐẶT HÀNG THÀNH CÔNG!**\n\nMã đơn hàng của bạn là **#${orderNumber}**.\nTổng số tiền: ${totalAmount.toLocaleString('vi-VN')}đ.\nCảm ơn bạn đã mua sắm!`;
+      // 6. Lưu orderId vào sessionContext nếu có
+      if (this.sessionContext) {
+        this.sessionContext.lastOrderId = order._id.toString();
+      }
 
+      const orderNumber = order._id.toString().slice(-6).toUpperCase();
+
+      // Luôn trả về thông báo thành công để đảm bảo chatbot nhận biết
+      const successMessage =
+        response?.message ||
+        `✅ **ĐẶT HÀNG THÀNH CÔNG!**\n\nMã đơn hàng của bạn là **#${orderNumber}**.\nTổng số tiền: ${totalAmount.toLocaleString(
+          "vi-VN"
+        )}đ.\nCảm ơn bạn đã mua sắm!`;
+      return `[ACTION_SUCCESS] ${successMessage}`;
     } catch (error) {
-        this.log("Error confirming order:", error);
-        return `❌ **LỖI TẠO ĐƠN HÀNG**\n\nCó lỗi xảy ra: ${error.message}. Vui lòng thử lại sau.`;
+      this.log("Error confirming order:", error);
+      return `❌ **LỖI TẠO ĐƠN HÀNG**\n\nCó lỗi xảy ra: ${error.message}. Vui lòng thử lại sau.`;
     }
   }
 
@@ -364,16 +448,23 @@ Phân tích và trả về JSON hợp lệ.`;
     // Logic from CheckStatusStep
     const { orderId } = parameters;
     if (!orderId) {
-      const recentOrders = await Order.find({ user: userId }).sort({ createdAt: -1 }).limit(5);
-      if (recentOrders.length === 0) return "Bạn chưa có đơn hàng nào.";
-      return OrderMessageFormatter.formatOrdersList(recentOrders);
+      const recentOrders = await Order.find({ user: userId })
+        .sort({ createdAt: -1 })
+        .limit(5);
+      if (recentOrders.length === 0)
+        return "[ACTION_SUCCESS] Bạn chưa có đơn hàng nào.";
+      return `[ACTION_SUCCESS] ${OrderMessageFormatter.formatOrdersList(
+        recentOrders
+      )}`;
     }
 
     const order = await Order.findById(orderId);
     if (!order || order.user.toString() !== userId) {
-      return `❌ Không tìm thấy đơn hàng ${orderId}.`;
+      return `[ACTION_SUCCESS] ❌ Không tìm thấy đơn hàng ${orderId}.`;
     }
-    return OrderMessageFormatter.formatOrderDetails(order);
+    return `[ACTION_SUCCESS] ${OrderMessageFormatter.formatOrderDetails(
+      order
+    )}`;
   }
 }
 

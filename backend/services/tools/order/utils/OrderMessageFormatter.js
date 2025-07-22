@@ -166,7 +166,7 @@ Nhập **"Có"** để xác nhận hoặc **"Không"** để hủy`;
   static formatOrdersList(orders) {
     let ordersList = "📦 **ĐƠN HÀNG CỦA BẠN**\n\n";
     orders.forEach((order, index) => {
-      const orderNumber = `#DH${String(order._id).slice(-6).toUpperCase()}`;
+      const orderNumber = `#${String(order._id).toUpperCase()}`;
       const statusEmoji = OrderEmojiHelper.getStatusEmoji(order.status);
       ordersList += `${index + 1}. ${statusEmoji} **${orderNumber}**\n`;
       ordersList += `   💰 ${order.totalPrice.toLocaleString()}đ - ${order.status}\n`;
@@ -183,17 +183,54 @@ Nhập **"Có"** để xác nhận hoặc **"Không"** để hủy`;
   static formatOrderDetails(order) {
     const orderNumber = `#DH${String(order._id).slice(-6).toUpperCase()}`;
     const statusEmoji = OrderEmojiHelper.getStatusEmoji(order.status);
-    
+
+    // Format order items
+    let itemsSection = '';
+    if (Array.isArray(order.orderItems) && order.orderItems.length > 0) {
+      itemsSection = '\n🛒 **Sản phẩm đã đặt:**\n';
+      order.orderItems.forEach((item, idx) => {
+        itemsSection += `${idx + 1}. **${item.name}** x${item.quantity} - ${item.price.toLocaleString()}đ\n`;
+        if (item.image) {
+          itemsSection += `   🖼️ ${item.image}\n`;
+        }
+      });
+    }
+
+    // Format shipping address
+    let addressSection = '';
+    if (order.shippingAddress) {
+      const addr = order.shippingAddress;
+      addressSection = `\n📍 **Địa chỉ giao hàng:**\n${addr.street || ''}${addr.city ? ', ' + addr.city : ''}${addr.state ? ', ' + addr.state : ''}${addr.postalCode ? ', ' + addr.postalCode : ''}${addr.country ? ', ' + addr.country : ''}`;
+    }
+
+    // Format payment method
+    let paymentMethodSection = '';
+    if (order.paymentMethod) {
+      paymentMethodSection = `\n💳 **Phương thức thanh toán:** ${order.paymentMethod}`;
+    }
+
+    // Format tax, shipping, delivery, notes
+    let extraSection = '';
+    extraSection += `\n🧾 **Thuế:** ${order.taxPrice ? order.taxPrice.toLocaleString() : 0}đ`;
+    extraSection += `\n🚚 **Phí vận chuyển:** ${order.shippingPrice ? order.shippingPrice.toLocaleString() : 0}đ`;
+    extraSection += `\n📦 **Đã giao:** ${order.isDelivered ? '✅ Đã giao' : '⏳ Chưa giao'}`;
+    if (order.notes) {
+      extraSection += `\n📝 **Ghi chú:** ${order.notes}`;
+    }
+
     let statusMessage = `📦 **CHI TIẾT ĐƠN HÀNG ${orderNumber}**
 
+👤 **Mã khách hàng:** ${order.user && order.user.$oid ? order.user.$oid : ''}
 ${statusEmoji} **Trạng thái:** ${order.status}
 💰 **Tổng tiền:** ${order.totalPrice.toLocaleString()}đ
-📅 **Ngày đặt:** ${order.createdAt.toLocaleDateString('vi-VN')}
+📅 **Ngày đặt:** ${order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : ''}
 💳 **Thanh toán:** ${order.isPaid ? '✅ Đã thanh toán' : '⏳ Chưa thanh toán'}`;
 
     if (order.trackingNumber) {
       statusMessage += `\n📮 **Mã vận đơn:** ${order.trackingNumber}`;
     }
+
+    statusMessage += itemsSection + addressSection + paymentMethodSection + extraSection;
 
     return statusMessage;
   }

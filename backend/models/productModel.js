@@ -50,8 +50,8 @@ const productSchema = new mongoose.Schema(
       },
     ],
     specifications: {
-      type: Map,
-      of: mongoose.Schema.Types.Mixed,
+      type: Object,
+      default: {},
     },
     features: [String],
     isFeatured: {

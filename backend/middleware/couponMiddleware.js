@@ -25,19 +25,24 @@ exports.validateCoupon = async (req, res, next) => {
         code: 'WELCOME10', 
         discountPercent: 10, 
         type: 'percentage',
-        description: 'Giảm 10% cho đơn hàng'
+        description: 'Giảm 10% cho đơn hàng',
+        minOrder: 200000,
+        maxDiscount: 100000
       },
       'SAVE20': { 
         code: 'SAVE20', 
         discountPercent: 20, 
         type: 'percentage',
-        description: 'Giảm 20% cho đơn hàng'
+        description: 'Giảm 20% cho đơn hàng',
+        minOrder: 500000,
+        maxDiscount: 200000
       },
       'FREESHIP': { 
         code: 'FREESHIP', 
         discountAmount: 0, 
         type: 'freeship',
-        description: 'Miễn phí vận chuyển'
+        description: 'Miễn phí vận chuyển',
+        minOrder: 100000
       }
     };
 
@@ -46,9 +51,21 @@ exports.validateCoupon = async (req, res, next) => {
       const coupon = fixedCoupons[upperCode];
       const { totalPrice = 0 } = req.body;
       
+      // Kiểm tra minOrder
+      if (totalPrice < coupon.minOrder) {
+        return res.status(400).json({
+          success: false,
+          message: `Đơn hàng tối thiểu ${coupon.minOrder.toLocaleString('vi-VN')}đ để sử dụng mã này`,
+        });
+      }
+      
       let discountAmount;
       if (coupon.type === 'percentage') {
         discountAmount = (totalPrice * coupon.discountPercent) / 100;
+        // Áp dụng maxDiscount nếu có
+        if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+          discountAmount = coupon.maxDiscount;
+        }
       } else if (coupon.type === 'fixed') {
         discountAmount = coupon.discountAmount;
       } else if (coupon.type === 'freeship') {
@@ -62,7 +79,9 @@ exports.validateCoupon = async (req, res, next) => {
         discountAmount: discountAmount || 0,
         type: coupon.type,
         isFixed: true,
-        shippingDiscount: coupon.type === 'freeship'
+        shippingDiscount: coupon.type === 'freeship',
+        minOrder: coupon.minOrder,
+        maxDiscount: coupon.maxDiscount
       };
 
       return next();

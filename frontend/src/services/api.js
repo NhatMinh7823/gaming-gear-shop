@@ -83,6 +83,7 @@ export const calculateShippingFee = (shippingData) => api.post("/ghn/calculate-f
 // Coupon APIs
 export const generateCoupon = () => api.post("/users/generate-coupon");
 export const applyCoupon = (couponData) => api.post("/coupons/apply", couponData);
+export const getAvailableCoupons = () => api.get("/coupons/available");
 export const markCouponAsUsed = (code, orderId) =>
   api.post("/users/mark-coupon-used", { code, orderId });
 

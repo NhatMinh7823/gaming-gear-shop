@@ -271,12 +271,12 @@ Phân tích và trả về JSON hợp lệ:`;
       });
     }
     
-    return result;
+    return `[ACTION_SUCCESS] ${result}`;
   }
 
   fallbackResponse(query, userData) {
     if (userData.wishlistCount === 0) {
-      return `👋 Xin chào ${userData.name}!
+      return `[ACTION_SUCCESS] 👋 Xin chào ${userData.name}!
 
 🤔 **Câu hỏi của bạn:** "${query}"
 
@@ -288,7 +288,7 @@ Phân tích và trả về JSON hợp lệ:`;
 - Chia sẻ tầm giá và nhu cầu sử dụng để đề xuất phù hợp`;
     }
 
-    return `👋 Xin chào ${userData.name}!
+    return `[ACTION_SUCCESS] 👋 Xin chào ${userData.name}!
 
 🤔 **Câu hỏi của bạn:** "${query}"
 
@@ -333,8 +333,8 @@ Phân tích và trả về JSON hợp lệ:`;
       if (relevantWishlistItems.length > 0) {
         const firstRelevantItem = relevantWishlistItems[0];
         if (firstRelevantItem.specifications) {
-          // Extract values from the Map and join them
-          const specsValues = [...firstRelevantItem.specifications.values()]
+          // Extract values from the object and join them
+          const specsValues = Object.values(firstRelevantItem.specifications)
             .join(" ");
           if (specsValues) {
             queryText += ` ${specsValues}`;
