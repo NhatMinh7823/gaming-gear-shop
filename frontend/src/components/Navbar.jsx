@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/slices/userSlice';
 import { clearCart } from '../redux/slices/cartSlice';
+import { clearChat } from '../redux/slices/chatbotSlice';
+import { clearChatbotService } from '../utils/chatbotStateManager';
 import { 
   FiShoppingBag, 
   FiShoppingCart, 
@@ -26,6 +28,11 @@ function Navbar() {
   const dropdownTimeoutRef = useRef(null);
 
   const handleLogout = () => {
+    // Clear chatbot trước khi logout
+    dispatch(clearChat());
+    clearChatbotService();
+    
+    // Logout bình thường
     dispatch(logout());
     dispatch(clearCart());
     navigate('/login');

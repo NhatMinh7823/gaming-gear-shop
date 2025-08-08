@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { FaTicketAlt } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { COUPON, formatToastMessage } from '../../utils/toastMessages';
 import { generateCoupon, getProfile } from '../../services/api';
 import { setCredentials } from '../../redux/slices/userSlice';
 import { formatDate, copyCouponToClipboard } from '../../utils';
@@ -44,13 +45,13 @@ function ExistingCoupon({ userInfo, dispatch }) {
         }));
 
         if (data.user.coupon.used) {
-          toast.info('Mã giảm giá của bạn đã được sử dụng.');
+          toast.info(COUPON.ALREADY_USED);
         } else {
-          toast.success('Mã giảm giá của bạn vẫn có thể sử dụng!');
+          toast.success(COUPON.STILL_AVAILABLE);
         }
       }
     } catch (error) {
-      toast.error('Không thể cập nhật trạng thái mã giảm giá.');
+      toast.error(COUPON.UPDATE_STATUS_ERROR);
     } finally {
       setRefreshing(false);
     }
@@ -118,9 +119,9 @@ function CouponCode({ coupon }) {
   const handleCopyCode = async () => {
     const success = await copyCouponToClipboard(coupon.code);
     if (success) {
-      toast.success('Mã giảm giá đã được sao chép!');
+      toast.success(COUPON.COPY_SUCCESS);
     } else {
-      toast.error('Không thể sao chép mã giảm giá');
+      toast.error(COUPON.COPY_ERROR);
     }
   };
 
@@ -201,10 +202,10 @@ function CreateCoupon({ userInfo, dispatch }) {
           ...userInfo,
           coupon: data.coupon
         }));
-        toast.success('Đã tạo mã giảm giá 30% thành công!');
+        toast.success(COUPON.CREATE_SUCCESS);
       }
     } catch (error) {
-      toast.error('Không thể tạo mã giảm giá. Vui lòng thử lại sau!');
+      toast.error(COUPON.CREATE_ERROR);
     } finally {
       setGenerating(false);
     }

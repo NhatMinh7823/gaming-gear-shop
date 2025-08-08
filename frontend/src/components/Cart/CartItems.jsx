@@ -12,7 +12,8 @@ const CartItems = ({
   setCouponCode,
   onApplyCoupon,
   appliedCoupon,
-  onRemoveCoupon
+  onRemoveCoupon,
+  userInfo
 }) => {
   const getStockStatusClass = (stock) => {
     if (stock <= 0) return 'text-red-500';
@@ -120,7 +121,13 @@ const CartItems = ({
             <div className="flex items-center">
               <FaCheck className="text-green-500 mr-2" />
               <span className="text-sm text-green-400">
-                Đã áp dụng mã {appliedCoupon.code} - {appliedCoupon.type === 'percentage' ? `Giảm ${appliedCoupon.discount}%` : `Giảm ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appliedCoupon.discount)}`}
+                Đã áp dụng mã {appliedCoupon.code} - {appliedCoupon.type === 'percentage'
+                  ? `Giảm ${appliedCoupon.discount}%`
+                  : appliedCoupon.type === 'amount'
+                    ? `Giảm ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appliedCoupon.discount)}`
+                    : appliedCoupon.type === 'freeship'
+                      ? 'Miễn phí vận chuyển'
+                      : ''}
               </span>
             </div>
             <button
@@ -137,6 +144,7 @@ const CartItems = ({
             onApplyCoupon(undefined, code);
           }}
           appliedCoupon={appliedCoupon}
+          userInfo={userInfo}
         />
       </div>
     </div>

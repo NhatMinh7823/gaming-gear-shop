@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
+import { PROFILE } from '../../utils/toastMessages';
 import { updateProfile } from '../../services/api';
 import { setCredentials } from '../../redux/slices/userSlice';
 
@@ -33,12 +34,12 @@ function ProfileForm({ userInfo, initialName, initialEmail }) {
     e.preventDefault();
     
     if (!name.trim()) {
-      toast.error('Please enter your name');
+      toast.error(PROFILE.NAME_REQUIRED);
       return;
     }
     
     if (!email.trim()) {
-      toast.error('Please enter your email');
+      toast.error(PROFILE.EMAIL_REQUIRED);
       return;
     }
 
@@ -46,9 +47,9 @@ function ProfileForm({ userInfo, initialName, initialEmail }) {
     try {
       const { data } = await updateProfile({ name, email });
       dispatch(setCredentials({ ...data.user, token: userInfo.token }));
-      toast.success('Profile updated successfully');
+      toast.success(PROFILE.UPDATE_SUCCESS);
     } catch (error) {
-      toast.error('Error updating profile');
+      toast.error(PROFILE.UPDATE_ERROR);
       console.error('Profile update error:', error);
     } finally {
       setIsSubmitting(false);

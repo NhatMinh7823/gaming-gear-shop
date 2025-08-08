@@ -2,62 +2,29 @@ const { StructuredTool } = require("@langchain/core/tools");
 const { z } = require("zod");
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
 const mongoose = require("mongoose");
-
-// Import models and services
+const Order = require("../../../models/orderModel");
 const Cart = require("../../../models/cartModel");
 const User = require("../../../models/userModel");
-const Order = require("../../../models/orderModel");
 const Product = require("../../../models/productModel");
-const InventoryValidator = require("./InventoryValidator");
 const ghnService = require("../../ghnService");
 const { llmConfig } = require("../../config/llmConfig");
-const OrderMessageFormatter = require("./utils/OrderMessageFormatter");
 
 /**
- * AIOrderTool - An AI-driven, intelligent tool for managing the entire order process.
- * This tool simplifies the previous state-machine-based OrderTool by leveraging an LLM
- * to understand user intent and orchestrate the checkout flow.
+ * AIOrderTool - AI-driven tool for intelligent order management.
+ * Handles order creation, payment method selection, shipping calculation, and order tracking.
  */
 class AIOrderTool extends StructuredTool {
-  constructor(userContext = null, sessionContext = null) {
+  constructor(userContext = null) {
     super();
     this.name = "ai_order_tool";
-    this.description = this.getOptimizedDescription();
+    this.description = `Quản lý đơn hàng thông minh. Sử dụng khi người dùng muốn đặt hàng, thanh toán, xem đơn hàng, tính phí ship. Từ khóa: đặt hàng, thanh toán, COD, VNPay, phí ship, đơn hàng, order, checkout. Chỉ hoạt động khi đã đăng nhập.`;
     this.userContext = userContext;
-    this.sessionContext = sessionContext || {}; // Trạng thái hội thoại tạm thời
     this.llm = new ChatGoogleGenerativeAI(llmConfig);
-    this.ghnService = ghnService;
     this.debugMode = process.env.CHATBOT_DEBUG === "true";
-
+    
     this.schema = z.object({
-      query: z
-        .string()
-        .describe(
-          "User's natural language query about checkout, payment, shipping, order confirmation, or status checks. Make sure to tell the user that the order will be processed automatically when order is confirmed."
-        ),
+      query: z.string().describe("User's natural language query about order operations."),
     });
-  }
-
-  getOptimizedDescription() {
-    return `🤖 AI ORDER TOOL - Intelligent order management using Gemini for natural language understanding.
-
-🛒 **WHEN TO USE:**
-- User wants to checkout or place an order: "thanh toán", "đặt hàng", "checkout", "place order"
-- User asks about shipping: "phí ship bao nhiêu?", "giao hàng tới đâu?"
-- User wants to select payment method: "trả bằng tiền mặt", "thanh toán qua VNPay"
-- User confirms the order: "đồng ý", "xác nhận đơn hàng"
-- User wants to check order status: "đơn hàng của tôi sao rồi?", "check my order"
-
-🔍 **AI CAPABILITIES:**
-- Understands the entire checkout flow from a single query.
-- Extracts key information like address, payment method from natural language.
-- Can answer questions about shipping fees and delivery times.
-- Handles order confirmation and status checks.
-- Guides the user through the necessary steps if information is missing.
-
-⚡ **KEYWORDS:** đặt hàng, thanh toán, checkout, order, mua, ship, giao hàng, địa chỉ, xác nhận, trạng thái.
-
-Only works when the user is authenticated.`;
   }
 
   log(message, ...args) {
@@ -70,401 +37,500 @@ Only works when the user is authenticated.`;
     try {
       const userId = this.userContext ? this.userContext.getUserId() : null;
       if (!userId) {
-        return "🔒 Để sử dụng chức năng đặt hàng, bạn cần đăng nhập.";
+        return "🔒 Để đặt hàng, bạn cần đăng nhập vào tài khoản.";
       }
 
-      this.log(`Processing order query: "${query}" for userId: ${userId}`);
+      this.log(`Processing query: "${query}" for userId: ${userId}`);
+      
+      // Get current context
+      const [currentCart, userInfo, recentOrders] = await Promise.all([
+        this.getCurrentCart(userId),
+        this.getUserInfo(userId),
+        this.getRecentOrders(userId)
+      ]);
 
-      // Get current context (cart, user info)
-      const context = await this.getOrderContext(userId);
+      const aiPrompt = this.createOrderAIPrompt(query, currentCart, userInfo, recentOrders);
 
-      // Check if cart is null, and initialize it if necessary
-      if (!context.cart) {
-        context.cart = { items: [], totalPrice: 0 };
-      }
-
-      // If cart is empty and user wants to checkout, guide them.
-      // But skip this check if the query looks like order details (from agent's second call)
-      if (
-        context.cart.items.length === 0 &&
-        query.match(/thanh toán|đặt hàng|checkout/i) &&
-        !query.match(/Chi tiết đơn hàng|trạng thái|tổng tiền|ngày đặt|sản phẩm:/i)
-      ) {
-        return `[ACTION_SUCCESS] 🛒 **GIỎ HÀNG TRỐNG**
-        
-Bạn chưa có sản phẩm nào để đặt hàng. Hãy thêm sản phẩm vào giỏ trước nhé!
-
-🔍 **Gợi ý:**
-• "Tìm laptop gaming"
-• "Mua chuột Logitech"`;
-      }
-
-      // Kiểm tra trạng thái hội thoại: nếu đã hỏi phương thức thanh toán thì không hỏi lại
-      if (
-        this.sessionContext &&
-        this.sessionContext.askedPaymentMethod &&
-        !/COD|VNPay|tiền mặt|qua VNPay/i.test(query)
-      ) {
-        return "Vui lòng chọn COD hoặc VNPay để tiếp tục.";
-      }
-
-      const aiPrompt = this.createOrderAIPrompt(query, context);
-      this.log("Sending query to Gemini AI for order analysis...");
+      this.log("Sending query to Gemini AI...");
       const aiResponse = await this.llm.invoke(aiPrompt);
-
+      
       let aiResult;
       try {
         const jsonMatch = aiResponse.content.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error("No JSON found in AI response");
         aiResult = JSON.parse(jsonMatch[0]);
       } catch (parseError) {
-        this.log(
-          "AI JSON parsing error:",
-          parseError,
-          "Response was:",
-          aiResponse.content
-        );
-        return "🤖 Rất tiếc, tôi gặp sự cố khi phân tích yêu cầu. Bạn có thể thử lại với câu hỏi đơn giản hơn không?";
+        this.log("AI JSON parsing error:", parseError, "Response:", aiResponse.content);
+        return this.fallbackResponse(query);
       }
 
-      // Nếu action là select_payment_method hoặc trả về câu hỏi chọn phương thức thanh toán, lưu trạng thái đã hỏi
-      if (
-        aiResult.action === "select_payment_method" ||
-        (aiResult.response &&
-          /phương thức thanh toán|COD|VNPay/i.test(
-            aiResult.response.message || ""
-          ))
-      ) {
-        if (this.sessionContext) this.sessionContext.askedPaymentMethod = true;
-      } else {
-        if (this.sessionContext) this.sessionContext.askedPaymentMethod = false;
+      if (!aiResult || !aiResult.action) {
+        this.log("Invalid AI result structure:", aiResult);
+        return this.fallbackResponse(query);
       }
 
-      this.log("AI Result:", JSON.stringify(aiResult, null, 2));
-      return await this.executeAIAction(aiResult, userId, context);
+      // DIRECT HANDLER EXECUTION - Results go directly to user
+      // No additional AI processing of handler results
+      return await this.executeAIAction(aiResult, userId, currentCart, userInfo);
+
     } catch (error) {
       this.log("Error in AIOrderTool:", error);
-      return `❌ Lỗi xử lý đơn hàng: ${error.message}`;
+      return `❌ Lỗi xử lý đơn hàng: ${error.message}. Vui lòng thử lại.`;
     }
   }
 
-  async getOrderContext(userId) {
-    const cart = await Cart.findOne({ user: userId }).populate("items.product");
-    const user = await User.findById(userId);
-    const recentOrders = await Order.find({ user: userId })
-      .sort({ createdAt: -1 })
-      .limit(5);
-
-    return {
-      user: {
-        name: user.name,
-        email: user.email,
-        address: user.address
-          ? {
-              street: user.address.street,
-              ward: user.address.ward?.name,
-              district: user.address.district?.name,
-              province: user.address.province?.name,
-            }
-          : null,
-      },
-      cart: cart, // Pass the entire populated cart object
-      recentOrders: recentOrders.map((o) => ({
-        id: o._id.toString(),
-        status: o.status,
-        total: o.totalPrice,
-      })),
-    };
-  }
-
-  createOrderAIPrompt(query, context) {
-    // Adjust the context for the AI to only include necessary product details
-    const aiContextCart = {
-      itemCount: context.cart ? context.cart.items.length : 0,
-      totalPrice: context.cart ? context.cart.totalPrice : 0,
-      items: context.cart
-        ? context.cart.items.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            stock: item.product ? item.product.stock : 0, // Ensure stock is accessed safely
-          }))
-        : [],
-    };
-
-    return `Bạn là AI chuyên gia xử lý đơn hàng thông minh cho một cửa hàng gaming gear. Nhiệm vụ của bạn là phân tích yêu cầu của khách hàng và điều phối quy trình đặt hàng một cách tự nhiên.
-
-**BỐI CẢNH HIỆN TẠI:**
-${JSON.stringify({ ...context, cart: aiContextCart }, null, 2)}
-
-**YÊU CẦU CỦA KHÁCH HÀNG:** "${query}"
-
-**NHIỆM VỤ:**
-1.  Phân tích ý định của khách hàng (muốn thanh toán, hỏi phí ship, xác nhận đơn, hay kiểm tra đơn hàng?).
-2.  Xác định hành động (action) cần thực hiện.
-3.  Trích xuất thông tin cần thiết (địa chỉ, phương thức thanh toán, mã đơn hàng).
-4.  Nếu thiếu thông tin, hãy đặt câu hỏi để làm rõ.
-
-**CÁC HÀNH ĐỘNG (ACTION) CÓ THỂ THỰC HIỆN:**
--   **start_checkout**: Bắt đầu quy trình thanh toán. Kiểm tra giỏ hàng và tồn kho.
--   **calculate_shipping**: Tính phí vận chuyển dựa trên địa chỉ mặc định.
--   **select_payment_method**: Chọn phương thức thanh toán (COD hoặc VNPay).
--   **confirm_order**: Chốt đơn hàng. Hiển thị tóm tắt cuối cùng và yêu cầu xác nhận.
--   **check_order_status**: Kiểm tra trạng thái của một đơn hàng cụ thể hoặc các đơn hàng gần đây.
--   **answer_question**: Trả lời các câu hỏi chung chung liên quan đến đặt hàng mà không cần hành động cụ thể.
-
-**QUY TẮC QUAN TRỌNG:**
--   **Tin tưởng vào giỏ hàng:** Luôn giả định rằng các sản phẩm trong giỏ hàng là chính xác và đã được người dùng hoặc các công cụ khác (như tìm kiếm sản phẩm rẻ nhất) lựa chọn. Đừng đặt câu hỏi xác nhận lại sản phẩm trong giỏ hàng trừ khi người dùng trực tiếp yêu cầu thay đổi.
--   Luôn kiểm tra tồn kho trước khi bắt đầu thanh toán.
--   Nếu người dùng hỏi phí ship mà chưa có địa chỉ, hãy yêu cầu họ cập nhật hồ sơ.
--   Quy trình chuẩn: start_checkout -> calculate_shipping -> select_payment_method -> confirm_order.
--   Tuy nhiên, người dùng có thể thực hiện không theo thứ tự. Ví dụ: "Giao hàng tới địa chỉ mặc định và thanh toán bằng COD". AI phải hiểu và gộp các bước.
-
-**ĐỊNH DẠNG PHẢN HỒI JSON (BẮT BUỘC):**
-{
-  "action": "tên_hành_động",
-  "intent": "Tóm tắt ý định của người dùng",
-  "confidence": "high/medium/low",
-  "parameters": {
-    "paymentMethod": "COD" | "VNPay" | null,
-    "useDefaultAddress": true | false,
-    "orderId": "mã đơn hàng nếu có"
-  },
-  "response": {
-    "message": "Câu trả lời hoặc câu hỏi cho người dùng.",
-    "reasoning": "Giải thích ngắn gọn tại sao AI chọn hành động này."
-  }
-}
-
-Phân tích và trả về JSON hợp lệ.`;
-  }
-
-  async executeAIAction(aiResult, userId, context) {
-    const { action, parameters, response } = aiResult;
-    this.log(`Executing AI action: ${action}`, parameters);
-
-    switch (action) {
-      case "start_checkout":
-        return this.handleStartCheckout(userId, context, response);
-      case "calculate_shipping":
-        return this.handleCalculateShipping(userId, context, response);
-      case "select_payment_method":
-        return this.handleSelectPaymentMethod(userId, parameters, response);
-      case "confirm_order":
-        return this.handleConfirmOrder(userId, context, parameters, response);
-      case "check_order_status":
-        return this.handleCheckOrderStatus(userId, parameters, response);
-      case "answer_question":
-        return `[ACTION_SUCCESS] ${
-          response.message ||
-          "Tôi có thể giúp gì khác cho bạn về việc đặt hàng không?"
-        }`;
-      default:
-        this.log("Unknown AI action:", action);
-        return "Rất tiếc, tôi chưa hiểu rõ yêu cầu của bạn. Bạn có thể nói rõ hơn về việc đặt hàng được không?";
-    }
-  }
-
-  // --- HANDLER FUNCTIONS ---
-
-  async handleStartCheckout(userId, context, response) {
-    const validation = await InventoryValidator.validateCartInventory(
-      context.cart.items
-    );
-    if (!validation.success) {
-      return `[ACTION_SUCCESS] ⚠️ **VẤN ĐỀ VỚI GIỎ HÀNG**\n\n${validation.summary.message}\n\nVui lòng điều chỉnh giỏ hàng của bạn trước khi tiếp tục.`;
-    }
-
-    // If validation is successful, ask the next logical question.
-    return (
-      response.message ||
-      "Giỏ hàng của bạn đã sẵn sàng. Bạn muốn giao hàng đến địa chỉ mặc định và tính phí vận chuyển chứ?"
-    );
-  }
-
-  async handleCalculateShipping(userId, context, response) {
-    if (!context.user.address?.street) {
-      return "[ACTION_SUCCESS] 📍 Bạn chưa có địa chỉ mặc định. Vui lòng cập nhật địa chỉ trong hồ sơ của bạn trước nhé.";
-    }
-
-    const user = await User.findById(userId); //lấy địa chỉ của người dùng
-
+  async getCurrentCart(userId) {
     try {
-      const cart = context.cart;
-      const totalWeight = cart.items.reduce(
-        (weight, item) =>
-          weight + (item.product?.weight || 500) * item.quantity,
-        0
-      );
-      const totalValue = cart.totalPrice;
-
-      const shippingRequest = {
-        service_type_id: 2,
-        to_district_id: user.address.district.id,
-        to_ward_code: user.address.ward.code,
-        weight: Math.max(totalWeight, 500),
-        insurance_value: totalValue,
-      };
-
-      // this.log('Calculating shipping with GHN:', shippingRequest);
-      const shippingResult = await this.ghnService.calculateShippingFee(
-        shippingRequest
-      );
-
-      let shippingInfo;
-      if (!shippingResult.success) {
-        this.log("GHN API failed, using fallback shipping fee");
-        shippingInfo = { fee: shippingResult.fallbackFee || 29000 };
-        return (
-          response.message ||
-          `Rất tiếc, không thể kết nối với đơn vị vận chuyển. Tạm tính phí giao hàng mặc định là ${shippingInfo.fee.toLocaleString(
-            "vi-VN"
-          )}đ. Bạn có muốn tiếp tục không?`
-        );
-      } else {
-        shippingInfo = {
-          fee: shippingResult.data?.data?.service_fee || 29000,
-        };
-        return (
-          response.message ||
-          `Phí vận chuyển tới địa chỉ của bạn là ${shippingInfo.fee.toLocaleString(
-            "vi-VN"
-          )}đ. Bạn có muốn tiếp tục thanh toán không?`
-        );
+      const cart = await Cart.findOne({ user: userId }).populate('items.product');
+      if (!cart || cart.items.length === 0) {
+        return { isEmpty: true, itemCount: 0, totalPrice: 0, items: [] };
       }
+
+      return {
+        isEmpty: false,
+        itemCount: cart.items.length,
+        totalPrice: cart.totalPrice,
+        items: cart.items.map(item => ({
+          productId: item.product?._id.toString(),
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image,
+          stock: item.product?.stock || 0
+        }))
+      };
     } catch (error) {
-      this.log("Error calculating shipping:", error);
-      const fallbackFee = 29000;
-      return `❌ Lỗi khi tính phí vận chuyển. Sử dụng phí mặc định ${fallbackFee.toLocaleString(
-        "vi-VN"
-      )}đ. Bạn muốn tiếp tục chứ?`;
+      this.log("Error getting current cart:", error);
+      return { isEmpty: true, itemCount: 0, totalPrice: 0, items: [] };
     }
   }
 
-  async handleSelectPaymentMethod(userId, parameters, response) {
-    // Logic from SelectPaymentStep
-    const { paymentMethod } = parameters;
-    if (!paymentMethod) {
-      return "Bạn muốn thanh toán bằng COD (tiền mặt) hay qua VNPay?";
-    }
-    return `[ACTION_SUCCESS] ${
-      response.message || `Đã chọn thanh toán bằng ${paymentMethod}.`
-    }`;
-  }
-
-  async handleConfirmOrder(userId, context, parameters, response) {
-    // Full logic from ShowSummaryStep and ConfirmOrderStep
+  async getUserInfo(userId) {
     try {
       const user = await User.findById(userId);
-      const cart = await Cart.findOne({ user: userId }).populate(
-        "items.product"
-      );
+      if (!user) return null;
 
-      // 1. Final inventory check
-      const finalValidation = await InventoryValidator.validateCartInventory(
-        cart.items
-      );
-      if (!finalValidation.success) {
-        return `[ACTION_SUCCESS] ❌ **THAY ĐỔI TỒN KHO**\n\nCó sản phẩm trong giỏ hàng đã thay đổi tình trạng. ${finalValidation.summary.message}\n\nVui lòng bắt đầu lại quy trình thanh toán.`;
-      }
-
-      // 2. Prepare order data (re-calculating shipping for accuracy)
-      const shippingFee =
-        (
-          await this.ghnService.calculateShippingFee({
-            service_type_id: 2,
-            to_district_id: user.address.district.id,
-            to_ward_code: user.address.ward.code,
-            weight: Math.max(
-              cart.items.reduce(
-                (w, i) => w + (i.product?.weight || 100) * i.quantity,
-                0
-              ),
-              100
-            ),
-            insurance_value: cart.totalPrice,
-          })
-        ).data?.data?.service_fee || 29000;
-
-      const totalAmount = cart.totalPrice + shippingFee;
-
-      const orderData = {
-        user: userId,
-        orderItems: cart.items.map((item) => ({
-          name: item.product.name,
-          quantity: item.quantity,
-          image: item.product.images?.[0]?.url || "",
-          price: item.price,
-          product: item.product._id,
-        })),
-        shippingAddress: user.address,
-        paymentMethod: parameters.paymentMethod || "COD", // Default to COD
-        shippingPrice: shippingFee,
-        totalPrice: totalAmount,
-        chatbotOrder: true,
-        orderSource: "chatbot",
+      return {
+        name: user.name,
+        email: user.email,
+        hasAddress: user.address && user.address.isComplete,
+        address: user.address,
+        preferredPaymentMethod: user.chatbotPreferences?.preferredPaymentMethod || 'VNPay',
+        coupon: user.coupon
       };
-
-      // 3. Create order
-      const order = await Order.create(orderData);
-
-      // 4. Update product stock
-      for (const item of cart.items) {
-        await Product.updateOne(
-          { _id: item.product._id },
-          {
-            $inc: {
-              stock: -item.quantity,
-              sold: +item.quantity,
-            },
-          }
-        );
-      }
-
-      // 5. Clear cart
-      await Cart.findByIdAndDelete(cart._id);
-
-      // 6. Lưu orderId vào sessionContext nếu có
-      if (this.sessionContext) {
-        this.sessionContext.lastOrderId = order._id.toString();
-      }
-
-      const orderNumber = order._id.toString().slice(-6).toUpperCase();
-
-      // Luôn trả về thông báo thành công để đảm bảo chatbot nhận biết
-      const successMessage =
-        response?.message ||
-        `✅ **ĐẶT HÀNG THÀNH CÔNG!**\n\nMã đơn hàng của bạn là **#${orderNumber}**.\nTổng số tiền: ${totalAmount.toLocaleString(
-          "vi-VN"
-        )}đ.\nCảm ơn bạn đã mua sắm!`;
-      return `[ACTION_SUCCESS] ${successMessage}`;
     } catch (error) {
-      this.log("Error confirming order:", error);
-      return `❌ **LỖI TẠO ĐƠN HÀNG**\n\nCó lỗi xảy ra: ${error.message}. Vui lòng thử lại sau.`;
+      this.log("Error getting user info:", error);
+      return null;
     }
   }
 
-  async handleCheckOrderStatus(userId, parameters, response) {
-    // Logic from CheckStatusStep
-    const { orderId } = parameters;
-    if (!orderId) {
-      const recentOrders = await Order.find({ user: userId })
+  async getRecentOrders(userId, limit = 3) {
+    try {
+      const orders = await Order.find({ user: userId })
         .sort({ createdAt: -1 })
-        .limit(5);
-      if (recentOrders.length === 0)
-        return "[ACTION_SUCCESS] Bạn chưa có đơn hàng nào.";
-      return `[ACTION_SUCCESS] ${OrderMessageFormatter.formatOrdersList(
-        recentOrders
-      )}`;
+        .limit(limit)
+        .select('_id status totalPrice paymentMethod createdAt trackingNumber');
+      
+      return orders.map(order => ({
+        id: order._id.toString(),
+        status: order.status,
+        totalPrice: order.totalPrice,
+        paymentMethod: order.paymentMethod,
+        createdAt: order.createdAt,
+        trackingNumber: order.trackingNumber
+      }));
+    } catch (error) {
+      this.log("Error getting recent orders:", error);
+      return [];
+    }
+  }
+
+  createOrderAIPrompt(query, currentCart, userInfo, recentOrders) {
+    return `Bạn là AI quản lý đơn hàng. Phân tích yêu cầu của khách hàng và thông tin hiện tại để quyết định hành động.
+
+**Giỏ hàng hiện tại:**
+${JSON.stringify(currentCart, null, 2)}
+
+**Thông tin khách hàng:**
+${JSON.stringify(userInfo, null, 2)}
+
+**Đơn hàng gần đây:**
+${JSON.stringify(recentOrders, null, 2)}
+
+**Yêu cầu khách hàng:** "${query}"
+
+**Hành động có thể thực hiện:**
+- **start_checkout**: Bắt đầu quy trình đặt hàng (khi có sản phẩm trong giỏ)
+- **calculate_shipping**: Tính phí vận chuyển
+- **select_payment_method**: Chọn phương thức thanh toán (COD hoặc VNPay)
+- **confirm_order**: Xác nhận và tạo đơn hàng
+- **check_order_status**: Kiểm tra trạng thái đơn hàng
+- **view_order_details**: Xem chi tiết đơn hàng cụ thể
+- **general_info**: Trả lời câu hỏi chung về đặt hàng
+
+**Trả về JSON với format:**
+{
+  "action": "<action_name>",
+  "params": {
+    "paymentMethod": "COD|VNPay" (nếu cần),
+    "orderId": "<order_id>" (nếu cần),
+    "message": "<explanation_message>"
+  },
+  "confidence": 0.9
+}
+
+**Lưu ý:**
+- Nếu giỏ hàng trống và người dùng muốn đặt hàng → hướng dẫn thêm sản phẩm
+- Nếu chưa có địa chỉ và cần tính phí ship → yêu cầu cập nhật địa chỉ
+- Ưu tiên phương thức thanh toán mặc định của user
+- Kiểm tra tồn kho trước khi xác nhận đơn hàng`;
+  }
+
+  async executeAIAction(aiResult, userId, currentCart, userInfo) {
+    const { action, params } = aiResult;
+    
+    switch (action) {
+      case 'start_checkout':
+        return await this.handleStartCheckout(userId, currentCart, userInfo);
+      
+      case 'calculate_shipping':
+        return await this.handleCalculateShipping(userId, userInfo);
+      
+      case 'select_payment_method':
+        return await this.handleSelectPaymentMethod(userId, params?.paymentMethod);
+      
+      case 'confirm_order':
+        return await this.handleConfirmOrder(userId, currentCart, userInfo, params);
+      
+      case 'check_order_status':
+        return await this.handleCheckOrderStatus(userId, params?.orderId);
+      
+      case 'view_order_details':
+        return await this.handleViewOrderDetails(userId, params?.orderId);
+      
+      case 'general_info':
+        return this.handleGeneralInfo(params?.message);
+      
+      default:
+        return this.fallbackResponse(aiResult.action);
+    }
+  }
+
+  async handleStartCheckout(userId, currentCart, userInfo) {
+    if (currentCart.isEmpty) {
+      return "🛒 Giỏ hàng của bạn đang trống. Hãy thêm sản phẩm vào giỏ hàng trước khi đặt hàng.\n\n💡 Bạn có thể nói: 'Mua chuột gaming' hoặc 'Thêm bàn phím cơ vào giỏ'";
     }
 
-    const order = await Order.findById(orderId);
-    if (!order || order.user.toString() !== userId) {
-      return `[ACTION_SUCCESS] ❌ Không tìm thấy đơn hàng ${orderId}.`;
+    // Check stock availability
+    const stockIssues = currentCart.items.filter(item => item.quantity > item.stock);
+    if (stockIssues.length > 0) {
+      const issueList = stockIssues.map(item => `- ${item.name}: còn ${item.stock}, bạn muốn ${item.quantity}`).join('\n');
+      return `⚠️ Một số sản phẩm trong giỏ hàng không đủ số lượng:\n${issueList}\n\nVui lòng cập nhật số lượng hoặc xóa sản phẩm hết hàng.`;
     }
-    return `[ACTION_SUCCESS] ${OrderMessageFormatter.formatOrderDetails(
-      order
-    )}`;
+
+    let response = `🛍️ **Bắt đầu đặt hàng**\n\n`;
+    response += `📦 **Sản phẩm trong giỏ (${currentCart.itemCount} món):**\n`;
+    
+    currentCart.items.forEach(item => {
+      response += `• ${item.name} x${item.quantity} - ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price * item.quantity)}\n`;
+    });
+    
+    response += `\n💰 **Tạm tính:** ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(currentCart.totalPrice)}\n\n`;
+
+    if (!userInfo.hasAddress) {
+      response += `📍 **Cần cập nhật địa chỉ giao hàng**\nVui lòng cập nhật địa chỉ trong tài khoản để tính phí vận chuyển.\n\n`;
+    } else {
+      try {
+        const shippingFee = await this.calculateShippingFee(userInfo.address);
+        response += `🚚 **Phí vận chuyển:** ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shippingFee)}\n`;
+        response += `💳 **Tổng cộng:** ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(currentCart.totalPrice + shippingFee)}\n\n`;
+      } catch (error) {
+        response += `🚚 **Phí vận chuyển:** Đang tính toán...\n\n`;
+      }
+    }
+
+    response += `💳 **Phương thức thanh toán:**\n`;
+    response += `• COD (Thanh toán khi nhận hàng)\n`;
+    response += `• VNPay (Thanh toán online)\n\n`;
+    response += `✅ Để tiếp tục, hãy chọn: "Thanh toán bằng COD" hoặc "Thanh toán qua VNPay"`;
+
+    return response;
+  }
+
+  async handleCalculateShipping(userId, userInfo) {
+    if (!userInfo.hasAddress) {
+      return "📍 Để tính phí vận chuyển, bạn cần cập nhật địa chỉ giao hàng trong tài khoản.\n\n💡 Vui lòng vào Tài khoản > Địa chỉ để cập nhật thông tin.";
+    }
+
+    try {
+      const shippingFee = await this.calculateShippingFee(userInfo.address);
+      const estimatedDays = 2; // Default estimation
+      
+      return `🚚 **Phí vận chuyển đến ${userInfo.address.province.name}:**\n\n` +
+             `💰 **Phí ship:** ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shippingFee)}\n` +
+             `⏱️ **Thời gian giao hàng:** ${estimatedDays}-3 ngày làm việc\n` +
+             `📍 **Địa chỉ:** ${userInfo.address.street}, ${userInfo.address.ward.name}, ${userInfo.address.district.name}, ${userInfo.address.province.name}`;
+    } catch (error) {
+      this.log("Error calculating shipping:", error);
+      return "❌ Không thể tính phí vận chuyển lúc này. Vui lòng thử lại sau.";
+    }
+  }
+
+  async handleSelectPaymentMethod(userId, paymentMethod) {
+    if (!paymentMethod || !['COD', 'VNPay'].includes(paymentMethod)) {
+      return "💳 **Chọn phương thức thanh toán:**\n\n" +
+             "• **COD** - Thanh toán khi nhận hàng (tiện lợi, không cần thẻ)\n" +
+             "• **VNPay** - Thanh toán online (nhanh chóng, bảo mật)\n\n" +
+             "Hãy nói: 'Tôi chọn COD' hoặc 'Thanh toán qua VNPay'";
+    }
+
+    // Update user preference
+    try {
+      await User.findByIdAndUpdate(userId, {
+        'chatbotPreferences.preferredPaymentMethod': paymentMethod
+      });
+    } catch (error) {
+      this.log("Error updating payment preference:", error);
+    }
+
+    const methodName = paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng (COD)' : 'Thanh toán online qua VNPay';
+    return `✅ **Đã chọn phương thức thanh toán:** ${methodName}\n\n` +
+           `🎯 Để hoàn tất đặt hàng, hãy nói: "Tôi đồng ý đặt hàng" hoặc "Xác nhận đơn hàng"`;
+  }
+
+  async handleConfirmOrder(userId, currentCart, userInfo, params) {
+    if (currentCart.isEmpty) {
+      return "🛒 Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi đặt hàng.";
+    }
+
+    if (!userInfo.hasAddress) {
+      return "📍 Vui lòng cập nhật địa chỉ giao hàng trước khi đặt hàng.";
+    }
+
+    try {
+      // Calculate shipping fee
+      const shippingFee = await this.calculateShippingFee(userInfo.address);
+      const paymentMethod = userInfo.preferredPaymentMethod;
+      
+      // Check stock again before creating order
+      const stockIssues = [];
+      for (const item of currentCart.items) {
+        const product = await Product.findById(item.productId);
+        if (!product || product.stock < item.quantity) {
+          stockIssues.push(item.name);
+        }
+      }
+
+      if (stockIssues.length > 0) {
+        return `⚠️ Sản phẩm sau đã hết hàng: ${stockIssues.join(', ')}. Vui lòng cập nhật giỏ hàng.`;
+      }
+
+      // Create order
+      const orderData = {
+        user: userId,
+        orderItems: currentCart.items.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          image: item.image,
+          price: item.price,
+          product: item.productId
+        })),
+        shippingAddress: userInfo.address,
+        paymentMethod: paymentMethod,
+        taxPrice: 0,
+        shippingPrice: shippingFee,
+        totalPrice: currentCart.totalPrice + shippingFee,
+        chatbotOrder: true,
+        orderSource: 'chatbot'
+      };
+
+      const order = await Order.create(orderData);
+
+      // Update product stock
+      for (const item of currentCart.items) {
+        await Product.findByIdAndUpdate(item.productId, {
+          $inc: { stock: -item.quantity, sold: item.quantity }
+        });
+      }
+
+      // Clear cart
+      await Cart.findOneAndDelete({ user: userId });
+
+      let response = `🎉 **Đặt hàng thành công!**\n\n`;
+      response += `📋 **Mã đơn hàng:** ${order._id}\n`;
+      response += `💰 **Tổng tiền:** ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.totalPrice)}\n`;
+      response += `💳 **Thanh toán:** ${paymentMethod === 'COD' ? 'Khi nhận hàng' : 'VNPay'}\n`;
+      response += `📍 **Giao đến:** ${userInfo.address.street}, ${userInfo.address.ward.name}\n`;
+      response += `⏱️ **Dự kiến giao:** 2-3 ngày làm việc\n\n`;
+      
+      if (paymentMethod === 'VNPay') {
+        response += `🔗 **Link thanh toán VNPay sẽ được gửi qua email.**\n\n`;
+      }
+      
+      response += `📞 **Cần hỗ trợ?** Liên hệ hotline hoặc nói "Kiểm tra đơn hàng ${order._id}"`;
+
+      return response;
+
+    } catch (error) {
+      this.log("Error confirming order:", error);
+      return `❌ Lỗi tạo đơn hàng: ${error.message}. Vui lòng thử lại.`;
+    }
+  }
+
+  async handleCheckOrderStatus(userId, orderId) {
+    try {
+      let orders;
+      
+      if (orderId) {
+        // Check specific order
+        const order = await Order.findOne({ _id: orderId, user: userId });
+        if (!order) {
+          return `❌ Không tìm thấy đơn hàng ${orderId} hoặc bạn không có quyền xem đơn hàng này.`;
+        }
+        orders = [order];
+      } else {
+        // Get recent orders
+        orders = await Order.find({ user: userId })
+          .sort({ createdAt: -1 })
+          .limit(3);
+      }
+
+      if (orders.length === 0) {
+        return "📦 Bạn chưa có đơn hàng nào. Hãy mua sắm ngay!";
+      }
+
+      let response = orderId ? `📋 **Chi tiết đơn hàng ${orderId}:**\n\n` : `📦 **Đơn hàng gần đây:**\n\n`;
+      
+      orders.forEach((order, index) => {
+        const statusEmoji = this.getStatusEmoji(order.status);
+        const statusText = this.getStatusText(order.status);
+        
+        response += `${statusEmoji} **Đơn ${order._id}**\n`;
+        response += `📅 ${new Date(order.createdAt).toLocaleDateString('vi-VN')}\n`;
+        response += `💰 ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.totalPrice)}\n`;
+        response += `📊 Trạng thái: ${statusText}\n`;
+        
+        if (order.trackingNumber) {
+          response += `🚚 Mã vận đơn: ${order.trackingNumber}\n`;
+        }
+        
+        if (index < orders.length - 1) response += `\n`;
+      });
+
+      return response;
+
+    } catch (error) {
+      this.log("Error checking order status:", error);
+      return "❌ Lỗi kiểm tra đơn hàng. Vui lòng thử lại.";
+    }
+  }
+
+  async handleViewOrderDetails(userId, orderId) {
+    if (!orderId) {
+      return "🔍 Vui lòng cung cấp mã đơn hàng. Ví dụ: 'Xem chi tiết đơn hàng 123456'";
+    }
+
+    try {
+      const order = await Order.findOne({ _id: orderId, user: userId })
+        .populate('orderItems.product', 'name images');
+      
+      if (!order) {
+        return `❌ Không tìm thấy đơn hàng ${orderId}.`;
+      }
+
+      const statusEmoji = this.getStatusEmoji(order.status);
+      const statusText = this.getStatusText(order.status);
+      
+      let response = `📋 **Chi tiết đơn hàng ${order._id}**\n\n`;
+      response += `📅 **Ngày đặt:** ${new Date(order.createdAt).toLocaleString('vi-VN')}\n`;
+      response += `${statusEmoji} **Trạng thái:** ${statusText}\n`;
+      response += `💳 **Thanh toán:** ${order.paymentMethod}\n\n`;
+      
+      response += `📦 **Sản phẩm:**\n`;
+      order.orderItems.forEach(item => {
+        response += `• ${item.name} x${item.quantity} - ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price * item.quantity)}\n`;
+      });
+      
+      response += `\n💰 **Tổng tiền:** ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.totalPrice)}\n`;
+      response += `🚚 **Phí ship:** ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.shippingPrice)}\n\n`;
+      
+      response += `📍 **Địa chỉ giao hàng:**\n${order.shippingAddress.street}, ${order.shippingAddress.ward.name}, ${order.shippingAddress.district.name}, ${order.shippingAddress.province.name}\n\n`;
+      
+      if (order.trackingNumber) {
+        response += `🚚 **Mã vận đơn:** ${order.trackingNumber}\n`;
+      }
+      
+      if (order.notes) {
+        response += `📝 **Ghi chú:** ${order.notes}\n`;
+      }
+
+      return response;
+
+    } catch (error) {
+      this.log("Error viewing order details:", error);
+      return "❌ Lỗi xem chi tiết đơn hàng. Vui lòng thử lại.";
+    }
+  }
+
+  handleGeneralInfo(message) {
+    return `🛍️ **Hướng dẫn đặt hàng tại Gaming Gear Shop:**\n\n` +
+           `1️⃣ **Thêm sản phẩm vào giỏ:** "Mua chuột gaming"\n` +
+           `2️⃣ **Xem giỏ hàng:** "Xem giỏ hàng"\n` +
+           `3️⃣ **Đặt hàng:** "Tôi muốn đặt hàng"\n` +
+           `4️⃣ **Chọn thanh toán:** COD hoặc VNPay\n` +
+           `5️⃣ **Xác nhận:** "Đồng ý đặt hàng"\n\n` +
+           `💳 **Phương thức thanh toán:**\n` +
+           `• COD: Thanh toán khi nhận hàng\n` +
+           `• VNPay: Thanh toán online an toàn\n\n` +
+           `🚚 **Giao hàng:** 2-3 ngày toàn quốc\n` +
+           `📞 **Hỗ trợ:** Liên hệ hotline 24/7`;
+  }
+
+  async calculateShippingFee(address) {
+    try {
+      const result = await ghnService.calculateShippingFee({
+        to_district_id: address.district.id,
+        to_ward_code: address.ward.code,
+        weight: 500, // Default weight
+        length: 30,
+        width: 20,
+        height: 10
+      });
+      
+      return result.data?.total || 30000; // Fallback fee
+    } catch (error) {
+      this.log("Error calculating shipping fee:", error);
+      return 30000; // Default shipping fee
+    }
+  }
+
+  getStatusEmoji(status) {
+    const statusMap = {
+      'Processing': '⏳',
+      'Shipped': '🚚',
+      'Delivered': '✅',
+      'Cancelled': '❌'
+    };
+    return statusMap[status] || '📦';
+  }
+
+  getStatusText(status) {
+    const statusMap = {
+      'Processing': 'Đang xử lý',
+      'Shipped': 'Đang giao hàng',
+      'Delivered': 'Đã giao hàng',
+      'Cancelled': 'Đã hủy'
+    };
+    return statusMap[status] || status;
+  }
+
+  fallbackResponse(query) {
+    return `🤖 Xin lỗi, tôi chưa hiểu yêu cầu "${query}".\n\n` +
+           `💡 **Bạn có thể thử:**\n` +
+           `• "Tôi muốn đặt hàng"\n` +
+           `• "Tính phí ship"\n` +
+           `• "Kiểm tra đơn hàng"\n` +
+           `• "Thanh toán bằng COD"`;
   }
 }
 

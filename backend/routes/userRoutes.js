@@ -4,6 +4,8 @@ const router = express.Router();
 const {
   registerUser,
   loginUser,
+  forgotPassword,
+  resetPassword,
   getUserProfile,
   updateUserProfile,
   updatePassword,
@@ -26,12 +28,16 @@ const {
   deleteAddressByAdmin,
   // User reviews
   getReviewsByUser,
+  // Admin user creation
+  createUserByAdmin,
 } = require("../controllers/userController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
 // Public routes
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.post("/forgot-password", forgotPassword);
+router.put("/reset-password", resetPassword);
 router.post("/apply-coupon", applyCoupon);
 
 // Protected routes (require authentication)
@@ -49,6 +55,7 @@ router.get("/address", protect, getUserAddress);
 // Admin routes
 router.get("/", protect, authorize("admin"), getAllUsers);
 router.get("/recent", protect, authorize("admin"), getRecentUsers);
+router.post("/admin/create", protect, authorize("admin"), createUserByAdmin);
 router.get("/:id", protect, authorize("admin"), getUserById);
 router.put("/:id", protect, authorize("admin"), updateUser);
 router.delete("/:id", protect, authorize("admin"), deleteUser);

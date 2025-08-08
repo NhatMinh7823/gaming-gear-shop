@@ -13,14 +13,25 @@ class ToolContextManager {
       const cachedTools = this.getCachedTools(userId);
       if (cachedTools && agentManager.isAgentReady()) {
         log("🚀 Using cached tools (performance optimization)");
-        // Just update user context in existing tools
-        await this.updateToolsUserContextLegacy(userContext, log);
+        // Update user context in cached tools
+        cachedTools.forEach(tool => {
+          if (tool.updateUserContext && typeof tool.updateUserContext === 'function') {
+            tool.updateUserContext(userContext);
+          }
+        });
         return;
       }
 
       log("🔄 Creating fresh tools and updating agent...");
 
       const freshTools = getToolsWithContext(userContext);
+
+      // Update userContext in tools that support it
+      freshTools.forEach(tool => {
+        if (tool.updateUserContext && typeof tool.updateUserContext === 'function') {
+          tool.updateUserContext(userContext);
+        }
+      });
 
       // Cache the tools
       this.setCachedTools(userId, freshTools);

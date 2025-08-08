@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { ADMIN_CATEGORY } from '../../utils/toastMessages';
 import CategoryForm from '../components/CategoryForm';
 import api from '../../services/api';
 
@@ -52,7 +53,7 @@ const CategoryFormPage = () => {
       navigate('/admin/categories'); // Redirect to the admin categories page after submission
     } catch (error) {
       console.error('Error saving category:', error);
-      toast.error(error.response?.data?.message || 'Failed to save category');
+      toast.error(error.response?.data?.message || ADMIN_CATEGORY.SAVE_ERROR);
     }
   };
 

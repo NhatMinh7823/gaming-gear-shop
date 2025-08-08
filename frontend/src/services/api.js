@@ -59,6 +59,9 @@ api.interceptors.response.use((response) => {
 // User APIs
 export const register = (data) => api.post("/users/register", data);
 export const login = (data) => api.post("/users/login", data);
+export const forgotPassword = (data) =>
+  api.post("/users/forgot-password", data);
+export const resetPassword = (data) => api.put("/users/reset-password", data);
 export const getProfile = () => api.get("/users/profile");
 export const updateProfile = (data) => api.put("/users/profile", data);
 export const addToWishlist = async (productId) => {
@@ -72,17 +75,21 @@ export const getWishlist = async () => {
 };
 // Address APIs
 export const getUserAddress = () => api.get("/users/address");
-export const updateUserAddress = (addressData) => api.put("/users/address", addressData);
+export const updateUserAddress = (addressData) =>
+  api.put("/users/address", addressData);
 
 // GHN APIs
 export const getProvinces = () => api.get("/ghn/provinces");
-export const getDistricts = (provinceId) => api.get(`/ghn/districts/${provinceId}`);
+export const getDistricts = (provinceId) =>
+  api.get(`/ghn/districts/${provinceId}`);
 export const getWards = (districtId) => api.get(`/ghn/wards/${districtId}`);
-export const calculateShippingFee = (shippingData) => api.post("/ghn/calculate-fee", shippingData);
+export const calculateShippingFee = (shippingData) =>
+  api.post("/ghn/calculate-fee", shippingData);
 
 // Coupon APIs
 export const generateCoupon = () => api.post("/users/generate-coupon");
-export const applyCoupon = (couponData) => api.post("/coupons/apply", couponData);
+export const applyCoupon = (couponData) =>
+  api.post("/coupons/apply", couponData);
 export const getAvailableCoupons = () => api.get("/coupons/available");
 export const markCouponAsUsed = (code, orderId) =>
   api.post("/users/mark-coupon-used", { code, orderId });

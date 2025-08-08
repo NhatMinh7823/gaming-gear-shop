@@ -41,7 +41,7 @@ class SimpleActionDetector {
         /^(đơn\s*hàng|orders?)$/i,
         /^(lịch\s*sử|history)\s*(đơn\s*hàng|orders?)$/i
       ],
-      tool: 'ai_order_tool',
+      tool: 'optimized_ai_order_tool',
       action: 'view_orders'
     }
   };

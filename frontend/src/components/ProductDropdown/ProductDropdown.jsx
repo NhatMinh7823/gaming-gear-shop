@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  FiShoppingBag, 
-  FiMonitor, 
+import {
+  FiShoppingBag,
+  FiMonitor,
   FiDollarSign,
   FiSettings,
   FiFilter,
@@ -21,14 +21,14 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
   const dropdownRef = useRef(null);
 
 
-  // Price ranges in VND
+  // Price ranges in VND - Updated based on product analysis
   const priceRanges = [
-    { label: 'Dưới 1 triệu', min: 0, max: 1000000, icon: FiDollarSign },
-    { label: '1-2 triệu', min: 1000000, max: 2000000, icon: FiDollarSign },
-    { label: '2-5 triệu', min: 2000000, max: 5000000, icon: FiDollarSign },
-    { label: '5-8 triệu', min: 5000000, max: 8000000, icon: FiDollarSign },
-    { label: '8-10 triệu', min: 8000000, max: 10000000, icon: FiDollarSign },
-    { label: 'Trên 10 triệu', min: 10000000, max: null, icon: FiDollarSign }
+    { label: 'Dưới 5 triệu', min: 0, max: 5000000, icon: FiDollarSign },
+    { label: '15-25 triệu', min: 15000000, max: 25000000, icon: FiDollarSign },
+    { label: '25-40 triệu', min: 25000000, max: 40000000, icon: FiDollarSign },
+    { label: '40-60 triệu', min: 40000000, max: 60000000, icon: FiDollarSign },
+    { label: '60-90 triệu', min: 60000000, max: 90000000, icon: FiDollarSign },
+    { label: 'Trên 90 triệu', min: 90000000, max: null, icon: FiDollarSign }
   ];
 
 
@@ -138,7 +138,7 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
               <FiShoppingBag className="w-5 h-5 text-blue-400" />
               <h3 className="text-lg font-semibold text-white">Danh mục sản phẩm</h3>
             </div>
-            
+
             <div className="space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
               {loading ? (
                 <div className="space-y-2">
@@ -183,7 +183,7 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
               <FiDollarSign className="w-5 h-5 text-green-400" />
               <h3 className="text-lg font-semibold text-white">Khoảng giá</h3>
             </div>
-            
+
             <div className="space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
               {priceRanges.map((range, index) => (
                 <button
@@ -214,7 +214,7 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
               <FiSettings className="w-5 h-5 text-purple-400" />
               <h3 className="text-lg font-semibold text-white">Thông số kỹ thuật</h3>
             </div>
-            
+
             <div className="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
               {selectedCategory ? (
                 <>
@@ -247,28 +247,28 @@ const ProductDropdown = ({ isVisible, onMouseEnter, onMouseLeave }) => {
                         <div key={specKey} className="space-y-1">
                           <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wide px-2">
                             {specKey === 'type' ? 'Loại' :
-                             specKey === 'switches' ? 'Switch' :
-                             specKey === 'connectivity' ? 'Kết nối' :
-                             specKey === 'backlight' ? 'Đèn nền' :
-                             specKey === 'layout' ? 'Layout' :
-                             specKey === 'sensor' ? 'Cảm biến' :
-                             specKey === 'weight' ? 'Trọng lượng' :
-                             specKey === 'dpi' ? 'DPI' :
-                             specKey === 'battery' ? 'Pin' :
-                             specKey === 'microphone' ? 'Micro' :
-                             specKey === 'frequency' ? 'Tần số' :
-                             specKey === 'size' ? 'Kích thước' :
-                             specKey === 'resolution' ? 'Độ phân giải' :
-                             specKey === 'refresh_rate' ? 'Tần số quét' :
-                             specKey === 'response_time' ? 'Thời gian phản hồi' :
-                             specKey === 'panel' ? 'Panel' :
-                             specKey === 'processor' ? 'CPU' :
-                             specKey === 'graphics' ? 'GPU' :
-                             specKey === 'memory' ? 'RAM' :
-                             specKey === 'storage' ? 'Lưu trữ' :
-                             specKey === 'display' ? 'Màn hình' :
-                             specKey === 'motherboard' ? 'Mainboard' :
-                             specKey}
+                              specKey === 'switches' ? 'Switch' :
+                                specKey === 'connectivity' ? 'Kết nối' :
+                                  specKey === 'backlight' ? 'Đèn nền' :
+                                    specKey === 'layout' ? 'Layout' :
+                                      specKey === 'sensor' ? 'Cảm biến' :
+                                        specKey === 'weight' ? 'Trọng lượng' :
+                                          specKey === 'dpi' ? 'DPI' :
+                                            specKey === 'battery' ? 'Pin' :
+                                              specKey === 'microphone' ? 'Micro' :
+                                                specKey === 'frequency' ? 'Tần số' :
+                                                  specKey === 'size' ? 'Kích thước' :
+                                                    specKey === 'resolution' ? 'Độ phân giải' :
+                                                      specKey === 'refresh_rate' ? 'Tần số quét' :
+                                                        specKey === 'response_time' ? 'Thời gian phản hồi' :
+                                                          specKey === 'panel' ? 'Panel' :
+                                                            specKey === 'processor' ? 'CPU' :
+                                                              specKey === 'graphics' ? 'GPU' :
+                                                                specKey === 'memory' ? 'RAM' :
+                                                                  specKey === 'storage' ? 'Lưu trữ' :
+                                                                    specKey === 'display' ? 'Màn hình' :
+                                                                      specKey === 'motherboard' ? 'Mainboard' :
+                                                                        specKey}
                           </h4>
                           <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
                             {specValues.slice(0, 5).map((value, index) => (

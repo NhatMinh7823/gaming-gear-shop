@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { PROFILE, REVIEW, WISHLIST } from '../utils/toastMessages';
 import { getProfile, getMyReviews, getWishlist, removeFromWishlist } from '../services/api';
 import { updateWishlist, setCredentials } from '../redux/slices/userSlice';
 import { setWishlist } from '../redux/slices/wishlistSlice';
@@ -46,7 +47,7 @@ function ProfilePage() {
         });
         dataLoadedRef.current.profile = true;
       } catch (error) {
-        toast.error('Lỗi khi lấy thông tin hồ sơ');
+        toast.error(PROFILE.LOAD_ERROR);
         console.error('Profile fetch error:', error);
       }
     };
@@ -59,7 +60,7 @@ function ProfilePage() {
         setMyReviews(data.reviews);
         dataLoadedRef.current.reviews = true;
       } catch (error) {
-        toast.error('Lỗi khi lấy đánh giá');
+        toast.error(REVIEW.LOAD_ERROR);
         console.error('Reviews fetch error:', error);
       }
     };
@@ -93,7 +94,7 @@ function ProfilePage() {
         dataLoadedRef.current.wishlist = true;
       } catch (error) {
         console.error('Error fetching wishlist:', error);
-        toast.error('Lỗi khi tải danh sách yêu thích');
+        toast.error(WISHLIST.LOAD_ERROR);
       } finally {
         setLoadingWishlist(false);
       }
@@ -109,7 +110,7 @@ function ProfilePage() {
   const handleRemoveFromWishlist = async (productId) => {
     try {
       await removeFromWishlist(productId);
-      toast.success('Đã xóa khỏi danh sách yêu thích');
+      toast.success(WISHLIST.REMOVED_SUCCESS);
 
       // Remove product from local state immediately for UI responsiveness
       setWishlistProducts(prev => prev.filter(item => item._id !== productId));
@@ -119,7 +120,7 @@ function ProfilePage() {
       dispatch(updateWishlist(updatedWishlistIds));
       dispatch(setWishlist(updatedWishlistIds));
     } catch (error) {
-      toast.error('Lỗi khi xóa khỏi danh sách yêu thích');
+      toast.error(WISHLIST.UPDATE_ERROR);
       console.error('Wishlist removal error:', error);
     }
   };

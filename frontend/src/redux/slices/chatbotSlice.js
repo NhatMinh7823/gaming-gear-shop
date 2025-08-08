@@ -4,7 +4,8 @@ import { loadChatbotState } from '../middleware/persistenceMiddleware';
 // Load initial state from localStorage or use defaults
 const initialState = {
   ...loadChatbotState(),
-  intermediateSteps: [],
+  isProcessing: false, // Track if a request is being processed
+  currentRequestId: null, // Track current request ID for cancellation
 };
 
 const chatbotSlice = createSlice({
@@ -47,6 +48,32 @@ const chatbotSlice = createSlice({
       state.isLoading = action.payload;
     },
 
+    // Set processing state
+    setProcessing: (state, action) => {
+      state.isProcessing = action.payload;
+    },
+
+    // Set current request ID
+    setCurrentRequestId: (state, action) => {
+      state.currentRequestId = action.payload;
+    },
+
+    // Cancel current request
+    cancelCurrentRequest: (state) => {
+      state.isProcessing = false;
+      state.isLoading = false;
+      state.currentRequestId = null;
+      // Add a system message about cancellation
+      const cancelMessage = {
+        id: 'cancel_' + Date.now(),
+        text: '⏹️ Yêu cầu đã được dừng lại.',
+        sender: 'system',
+        timestamp: new Date().toISOString()
+      };
+      state.messages.push(cancelMessage);
+      state.lastActivity = new Date().toISOString();
+    },
+
     // Toggle chatbot open/close
     toggleChatbot: (state) => {
       state.isOpen = !state.isOpen;
@@ -78,7 +105,6 @@ const chatbotSlice = createSlice({
       state.sessionId = null;
       state.isLoading = false;
       state.lastActivity = new Date().toISOString();
-      state.intermediateSteps = []; // Clear intermediate steps on clear chat
     },
 
     // Update suggestions
@@ -114,7 +140,11 @@ const chatbotSlice = createSlice({
 
     // Reset chatbot to initial state
     resetChatbot: (state) => {
-      return { ...loadChatbotState(), intermediateSteps: [] };
+      return { 
+        ...loadChatbotState(), 
+        isProcessing: false,
+        currentRequestId: null
+      };
     },
 
     // Update last activity timestamp
@@ -122,76 +152,18 @@ const chatbotSlice = createSlice({
       state.lastActivity = new Date().toISOString();
     },
 
-    // Real-time streaming reducers
-    addIntermediateStep: (state, action) => {
-      state.intermediateSteps.push({
-        ...action.payload,
-        status: action.payload.status || 'running',
-        timestamp: new Date().toISOString(),
-      });
-    },
 
-    updateIntermediateStep: (state, action) => {
-      const { id, runId, output, status } = action.payload;
-      
-      // Find step by id or runId
-      const stepIndex = state.intermediateSteps.findIndex((step) => 
-        step.id === id || step.runId === runId
-      );
-      
-      if (stepIndex !== -1) {
-        state.intermediateSteps[stepIndex] = {
-          ...state.intermediateSteps[stepIndex],
-          output: output,
-          status: status || 'completed',
-          timestamp: new Date().toISOString(),
-        };
-      }
-    },
-
-    // Clear intermediate steps when starting new message
-    clearIntermediateSteps: (state) => {
-      state.intermediateSteps = [];
-    },
-
-    // Add thinking step for LLM processing
-    addThinkingStep: (state, action) => {
-      state.intermediateSteps.push({
-        ...action.payload,
-        tool: 'AI Thinking',
-        status: 'thinking',
-        timestamp: new Date().toISOString(),
-      });
-    },
-
-    // Update thinking step
-    updateThinkingStep: (state, action) => {
-      const { id, runId, status } = action.payload;
-      const stepIndex = state.intermediateSteps.findIndex((step) => 
-        (step.id === id || step.runId === runId) && step.tool === 'AI Thinking'
-      );
-      
-      if (stepIndex !== -1) {
-        state.intermediateSteps[stepIndex] = {
-          ...state.intermediateSteps[stepIndex],
-          status: status || 'completed',
-          timestamp: new Date().toISOString(),
-        };
-      }
-    },
   },
 });
 
 export const {
   setWelcomeMessage,
   addMessage,
-  addIntermediateStep,
-  updateIntermediateStep,
-  clearIntermediateSteps,
-  addThinkingStep,
-  updateThinkingStep,
   addMessages,
   setLoading,
+  setProcessing,
+  setCurrentRequestId,
+  cancelCurrentRequest,
   toggleChatbot,
   setChatbotOpen,
   setSessionId,

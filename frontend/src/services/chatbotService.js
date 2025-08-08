@@ -68,7 +68,7 @@ class GamingChatbot {
     this.userId = userInfo?._id || userInfo?.id;
     this.persistSession();
   } // Send message to backend chatbot
-  async sendMessage(message, userInfo = null) {
+  async sendMessage(message, userInfo = null, abortSignal = null) {
     if (!message.trim()) {
       throw new Error("Message cannot be empty");
     }
@@ -98,7 +98,13 @@ class GamingChatbot {
 
       console.log("🔍 Sending request body:", requestBody);
 
-      const response = await api.post("/chatbot/chat", requestBody);
+      // Add abort signal to request config if provided
+      const requestConfig = {};
+      if (abortSignal) {
+        requestConfig.signal = abortSignal;
+      }
+
+      const response = await api.post("/chatbot/chat", requestBody, requestConfig);
 
       if (response.data.success) {
         const {
@@ -130,6 +136,11 @@ class GamingChatbot {
         throw new Error("Failed to get response from chatbot");
       }
     } catch (error) {
+      // Re-throw AbortError to be handled by the caller
+      if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+        throw error;
+      }
+
       console.error("❌ Error sending message to chatbot:", error);
 
       // Return a fallback response
@@ -215,12 +226,10 @@ class GamingChatbot {
   // Quick responses for common questions
   getQuickResponses() {
     return [
-      "Tôi cần tư vấn chuột gaming",
-      "Bàn phím cơ nào tốt?",
-      "Tai nghe gaming trong tầm giá 1 triệu",
-      "Setup gaming budget 20 triệu",
-      "Màn hình gaming 144Hz",
-      "Laptop gaming sinh viên",
+      "Xem giỏ hàng",
+      "Thêm Bàn phím cơ rẻ nhất vào giỏ hàng",
+      "Bạn biết gì về sở thích gaming của tôi?",
+      "Đặt hàng"
     ];
   }
 

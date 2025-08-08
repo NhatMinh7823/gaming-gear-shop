@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaStar, FaRegStar, FaEdit, FaTrash } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { REVIEW } from '../../utils/toastMessages';
 import { updateReview, deleteReview } from '../../services/api';
 
 function ReviewsSection({ reviews, onReviewsUpdate }) {
@@ -86,17 +87,17 @@ function ReviewItem({ review, onReviewsUpdate }) {
     e.preventDefault();
     
     if (editData.rating < 1 || editData.rating > 5) {
-      toast.error('Please select a rating between 1 and 5');
+      toast.error(REVIEW.RATING_REQUIRED);
       return;
     }
     
     if (!editData.title.trim()) {
-      toast.error('Please provide a review title');
+      toast.error(REVIEW.TITLE_REQUIRED);
       return;
     }
     
     if (!editData.comment.trim()) {
-      toast.error('Please provide a review comment');
+      toast.error(REVIEW.COMMENT_REQUIRED);
       return;
     }
 
@@ -105,9 +106,9 @@ function ReviewItem({ review, onReviewsUpdate }) {
       const { data } = await updateReview(review._id, editData);
       onReviewsUpdate(data.review);
       setIsEditing(false);
-      toast.success('Đánh giá đã được cập nhật thành công');
+      toast.success(REVIEW.UPDATE_SUCCESS);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Lỗi khi cập nhật đánh giá');
+      toast.error(error.response?.data?.message || REVIEW.UPDATE_ERROR);
     } finally {
       setIsSubmitting(false);
     }
@@ -121,9 +122,9 @@ function ReviewItem({ review, onReviewsUpdate }) {
     try {
       await deleteReview(review._id);
       onReviewsUpdate(null, review._id); // Pass null for updated review, reviewId for deletion
-      toast.success('Đánh giá đã được xóa thành công');
+      toast.success(REVIEW.DELETE_SUCCESS);
     } catch (error) {
-      toast.error('Lỗi khi xóa đánh giá');
+      toast.error(REVIEW.DELETE_ERROR);
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { ADMIN_CATEGORY } from '../../utils/toastMessages';
 import api from '../../services/api';
 
 const AdminCategoriesPage = () => {
@@ -93,11 +94,11 @@ const AdminCategoriesPage = () => {
       try {
         setBulkDeleting(true);
         await Promise.all(selectedCategories.map(id => api.delete(`/categories/${id}`)));
-        toast.success('Categories deleted successfully');
+        toast.success(ADMIN_CATEGORY.DELETE_MULTIPLE_SUCCESS);
         setSelectedCategories([]);
         fetchCategories();
       } catch (err) {
-        toast.error(err.response?.data?.message || 'Failed to delete categories');
+        toast.error(err.response?.data?.message || ADMIN_CATEGORY.DELETE_MULTIPLE_ERROR);
       } finally {
         setBulkDeleting(false);
       }
@@ -108,7 +109,7 @@ const AdminCategoriesPage = () => {
     try {
       setDeleting(categoryId);
       await api.delete(`/categories/${categoryId}`);
-      toast.success('Category deleted successfully');
+      toast.success(ADMIN_CATEGORY.DELETE_SUCCESS);
       setCategories(prevCategories => prevCategories.filter(c => c._id !== categoryId));
       setShowDeleteModal(false);
       setCategoryToDelete(null);
@@ -116,7 +117,7 @@ const AdminCategoriesPage = () => {
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to delete category');
       console.error("Error deleting category:", err);
-      toast.error(err.response?.data?.message || 'Failed to delete category');
+      toast.error(err.response?.data?.message || ADMIN_CATEGORY.DELETE_ERROR);
     } finally {
       setDeleting(null);
     }

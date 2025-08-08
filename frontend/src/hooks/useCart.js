@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
+import { CART, COUPON, formatToastMessage } from '../utils/toastMessages';
 import { getCart, updateCartItem, removeCartItem, clearCart, applyCoupon, markCouponAsUsed } from '../services/api';
 import { setCart, clearCart as clearCartAction } from '../redux/slices/cartSlice';
 
@@ -20,7 +21,7 @@ export const useCart = () => {
           const { data } = await getCart();
           dispatch(setCart(data.cart));
         } catch (error) {
-          toast.error('Error fetching cart');
+          toast.error(CART.FETCH_ERROR);
         }
       };
       fetchCart();
@@ -30,16 +31,16 @@ export const useCart = () => {
   const handleUpdateQuantity = async (itemId, quantity, stock) => {
     if (quantity < 1) return;
     if (quantity > stock) {
-      toast.error(`Only ${stock} items available in stock`);
+      toast.error(formatToastMessage(CART.INSUFFICIENT_STOCK, { stock }));
       return;
     }
 
     try {
       const { data } = await updateCartItem(itemId, { quantity });
       dispatch(setCart(data.cart));
-      toast.success('Cart updated');
+      toast.success(CART.UPDATE_SUCCESS);
     } catch (error) {
-      toast.error('Error updating cart');
+      toast.error(CART.UPDATE_ERROR);
     }
   };
 
@@ -47,9 +48,9 @@ export const useCart = () => {
     try {
       const { data } = await removeCartItem(itemId);
       dispatch(setCart(data.cart));
-      toast.success('Item removed from cart');
+      toast.success(CART.REMOVE_SUCCESS);
     } catch (error) {
-      toast.error('Error removing item');
+      toast.error(CART.REMOVE_ERROR);
     }
   };
 
@@ -58,9 +59,9 @@ export const useCart = () => {
       try {
         await clearCart();
         dispatch(clearCartAction());
-        toast.success('Cart emptied successfully');
+        toast.success(CART.EMPTY_SUCCESS);
       } catch (error) {
-        toast.error('Error emptying cart');
+        toast.error(CART.EMPTY_ERROR);
       }
     }
   };
@@ -69,7 +70,7 @@ export const useCart = () => {
     const codeToApply = codeOverride || couponCode;
     
     if (!codeToApply.trim()) {
-      toast.error('Vui lòng nhập mã giảm giá');
+      toast.error(COUPON.CODE_REQUIRED);
       return;
     }
 
@@ -98,7 +99,7 @@ export const useCart = () => {
               onFreeshipChange(true);
             }
             
-            toast.success('🚚 Mã miễn phí vận chuyển đã được áp dụng!');
+            toast.success(COUPON.FREE_SHIPPING_APPLIED);
           }
         } catch (error) {
           const errorMessage = error.response?.data?.message || 'Lỗi khi áp dụng mã giảm giá';
@@ -127,7 +128,7 @@ export const useCart = () => {
           onFreeshipChange(false);
         }
         
-        toast.success(`Mã giảm giá ${data.couponData.code} đã được áp dụng!`);
+        toast.success(formatToastMessage(COUPON.APPLIED_SUCCESS, { code: data.couponData.code }));
       }
     } catch (error) {
       // Hiển thị thông báo lỗi từ server hoặc thông báo mặc định
@@ -140,7 +141,7 @@ export const useCart = () => {
     setDiscountAmount(0);
     setAppliedCoupon(null);
     setCouponCode('');
-    toast.info('Coupon removed');
+    toast.info(COUPON.REMOVED);
   };
 
   return {

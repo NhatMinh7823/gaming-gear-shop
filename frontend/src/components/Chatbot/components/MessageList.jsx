@@ -1,8 +1,7 @@
 import React from 'react';
 import MessageItem from './MessageItem';
-import IntermediateStep from './IntermediateStep';
 
-const MessageList = ({ messages, intermediateSteps, isLoading, messagesEndRef }) => {
+const MessageList = ({ messages, isLoading, messagesEndRef, lastBotMessageRef }) => {
     const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
     const regularMessages = (lastMessage && lastMessage.sender === 'bot' && !isLoading)
         ? messages.slice(0, messages.length - 1)
@@ -11,14 +10,22 @@ const MessageList = ({ messages, intermediateSteps, isLoading, messagesEndRef })
     return (
         <div className="messages-container">
             {/* Render regular messages */}
-            {regularMessages.map((message) => (
-                <MessageItem key={message.id} message={message} />
-            ))}
+            {regularMessages.map((message, index) => {
+                // Check if this is the last bot message in regular messages
+                const isLastBotMessage = message.sender === 'bot' && 
+                    index === regularMessages.length - 1 && 
+                    (!lastMessage || lastMessage.sender !== 'bot' || isLoading);
+                
+                return (
+                    <MessageItem 
+                        key={message.id} 
+                        message={message} 
+                        ref={isLastBotMessage ? lastBotMessageRef : null}
+                    />
+                );
+            })}
 
-            {/* Real-time step rendering */}
-            {isLoading && intermediateSteps.map((step) => (
-                <IntermediateStep key={step.id} step={step} />
-            ))}
+
 
             {/* Loading indicator */}
             {isLoading && (
@@ -31,7 +38,7 @@ const MessageList = ({ messages, intermediateSteps, isLoading, messagesEndRef })
 
             {/* Render the last message if it's from the bot and loading is complete */}
             {lastMessage && lastMessage.sender === 'bot' && !isLoading && (
-                <MessageItem message={lastMessage} />
+                <MessageItem message={lastMessage} ref={lastBotMessageRef} />
             )}
 
             <div ref={messagesEndRef} />

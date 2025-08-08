@@ -27,7 +27,7 @@ const StepIndicator = ({ activeStep }) => {
           <div className={`flex items-center justify-center w-12 h-12 rounded-full ${activeStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'} mb-2 transition-all duration-300`}>
             <FaCreditCard className="w-5 h-5" />
           </div>
-          <span className={`text-xs font-medium ${activeStep >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>Thanh toán</span>
+          <span className={`text-xs font-medium ${activeStep >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>Tạo đơn hàng</span>
         </div>
       </div>
     </div>

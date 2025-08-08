@@ -1,5 +1,5 @@
 /**
- * Helper class for managing emojis in order messages
+ * Helper class for managing emojis in order messages - Minh will delete it
  */
 class OrderEmojiHelper {
   /**

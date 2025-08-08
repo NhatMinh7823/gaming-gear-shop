@@ -32,6 +32,11 @@ class AISmartCartTool extends StructuredTool {
     }
   }
 
+  updateUserContext(userContext) {
+    this.log(`Updating userContext - old: ${this.userContext ? this.userContext.getUserId() : 'null'}, new: ${userContext ? userContext.getUserId() : 'null'}`);
+    this.userContext = userContext;
+  }
+
   async _call({ query }) {
     try {
       const userId = this.userContext ? this.userContext.getUserId() : null;
@@ -184,7 +189,7 @@ Phân tích và trả về JSON:`;
     const cart = await Cart.findOne({ user: userId }).populate('items.product');
 
     if (!cart || cart.items.length === 0) {
-      return `[ACTION_SUCCESS] 🛒 Giỏ hàng của bạn đang trống. Hãy tìm kiếm và thêm sản phẩm!`;
+      return `[TASK_COMPLETED: cart_view] 🛒 Giỏ hàng của bạn đang trống. Hãy tìm kiếm và thêm sản phẩm!`;
     }
 
     const cartItems = cart.items.map((item, index) => {
@@ -198,7 +203,7 @@ Phân tích và trả về JSON:`;
    - Trạng thái: ${stockStatus}`;
     }).join("\n\n");
 
-    return `[ACTION_SUCCESS] 🛒 **Giỏ hàng của bạn:**\n\n${cartItems}\n\n💰 **TỔNG CỘNG: ${cart.totalPrice.toLocaleString("vi-VN")}đ**`;
+    return `[TASK_COMPLETED: cart_view] 🛒 **Giỏ hàng của bạn:**\n\n${cartItems}\n\n💰 **TỔNG CỘNG: ${cart.totalPrice.toLocaleString("vi-VN")}đ**`;
   }
 
   async handleRemoveProduct(userId, { productName, productId }) {
@@ -231,17 +236,17 @@ Phân tích và trả về JSON:`;
     cart.items.splice(itemIndex, 1);
     await cart.save();
 
-    return `[ACTION_SUCCESS] ✅ Đã xóa **${removedItem.name}** khỏi giỏ hàng.`;
+    return `[TASK_COMPLETED: cart_remove] ✅ Đã xóa **${removedItem.name}** khỏi giỏ hàng.`;
   }
 
   async handleClearCart(userId) {
     const cart = await Cart.findOne({ user: userId });
     if (!cart || cart.items.length === 0) {
-      return "[ACTION_SUCCESS] ✅ Giỏ hàng của bạn đã trống rồi.";
+      return "[TASK_COMPLETED: cart_clear] ✅ Giỏ hàng của bạn đã trống rồi.";
     }
     
     await Cart.findOneAndDelete({ user: userId });
-    return `[ACTION_SUCCESS] ✅ Đã xóa toàn bộ sản phẩm khỏi giỏ hàng.`;
+    return `[TASK_COMPLETED: cart_clear] ✅ Đã xóa toàn bộ sản phẩm khỏi giỏ hàng.`;
   }
 
   async handleUpdateQuantity(userId, { productId, productName, quantity }) {
@@ -275,7 +280,7 @@ Phân tích và trả về JSON:`;
     itemToUpdate.quantity = quantity;
     await cart.save();
 
-    return `[ACTION_SUCCESS] ✅ Đã cập nhật số lượng cho **${itemToUpdate.name}** thành **${quantity}**.`;
+    return `[TASK_COMPLETED: cart_update] ✅ Đã cập nhật số lượng cho **${itemToUpdate.name}** thành **${quantity}**.`;
   }
 
   async addToCart(userId, product, quantity) {
@@ -312,7 +317,7 @@ Phân tích và trả về JSON:`;
     
     await cart.save();
     
-    return `[ACTION_SUCCESS] ✅ Đã thêm **${quantity} x ${product.name}** vào giỏ hàng. Giỏ hàng hiện có ${cart.items.length} loại sản phẩm.`;
+    return `[TASK_COMPLETED: cart_add] ✅ Đã thêm **${quantity} x ${product.name}** vào giỏ hàng. Giỏ hàng hiện có ${cart.items.length} loại sản phẩm.`;
   }
 
   generateProductSelectionOptions(searchResults, query) {

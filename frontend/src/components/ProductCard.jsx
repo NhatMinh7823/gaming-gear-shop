@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FaStar, FaRegStar, FaShoppingCart, FaBoxOpen, FaHeart, FaRegHeart } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { WISHLIST, CART } from '../utils/toastMessages';
 import { addToWishlist, removeFromWishlist, addCartItem } from '../services/api';
 import { setCart } from '../redux/slices/cartSlice';
 import useWishlist from '../hooks/useWishlist';
@@ -26,17 +27,17 @@ function ProductCard({ product }) {
       setLoadingWishlist(true);
       if (wishlistItems.includes(product._id)) {
         await removeFromWishlist(product._id);
-        toast.success('Removed from wishlist');
+        toast.success(WISHLIST.REMOVED_SUCCESS);
       } else {
         await addToWishlist(product._id);
-        toast.success('Added to wishlist');
+        toast.success(WISHLIST.ADDED_SUCCESS);
       }
       // Clear cache to ensure fresh data for chatbot
       clearCache();
       // Refresh wishlist to update the UI
       await refreshWishlist(true);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error updating wishlist');
+      toast.error(error.response?.data?.message || WISHLIST.UPDATE_ERROR);
     } finally {
       setLoadingWishlist(false);
     }
@@ -52,7 +53,7 @@ function ProductCard({ product }) {
     }
 
     if (product.stock <= 0) {
-      toast.error('Product is out of stock');
+      toast.error(CART.OUT_OF_STOCK);
       return;
     }
 
@@ -60,9 +61,9 @@ function ProductCard({ product }) {
       setLoadingCart(true);
       const { data } = await addCartItem({ productId: product._id, quantity: 1 });
       dispatch(setCart(data.cart));
-      toast.success('Added to cart');
+      toast.success(CART.ADDED_SUCCESS);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error adding to cart');
+      toast.error(error.response?.data?.message || CART.ADDED_ERROR);
     } finally {
       setLoadingCart(false);
     }

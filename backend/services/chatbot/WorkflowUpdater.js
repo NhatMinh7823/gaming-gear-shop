@@ -4,7 +4,7 @@ class WorkflowUpdater {
     if (!workflow) return;
 
     const output = result.output?.toLowerCase() || "";
-    const intermediateSteps = result.intermediateSteps || [];
+    const intermediateSteps = [];
 
     let shouldAdvance = false;
     let stepData = {
@@ -21,7 +21,7 @@ class WorkflowUpdater {
         } else if (workflow.currentStep === 2 && toolsUsed.includes("cart_tool")) {
           shouldAdvance = true;
           stepData.addedToCart = true;
-        } else if (workflow.currentStep === 4 && toolsUsed.includes("order_tool")) {
+        } else if (workflow.currentStep === 4 && toolsUsed.includes("optimized_ai_order_tool")) {
           const orderSuccessMessage = "✅ **ĐẶT HÀNG THÀNH CÔNG!";
           const orderErrorMessage = "❌ **LỖI TẠO ĐƠN HÀNG**";
           if (result.output.includes(orderSuccessMessage)) {
@@ -55,7 +55,7 @@ class WorkflowUpdater {
         } else if (workflow.currentStep === 2 && toolsUsed.includes("cart_tool")) {
           shouldAdvance = true;
           stepData.addedToCart = true;
-        } else if (workflow.currentStep === 3 && toolsUsed.includes("order_tool")) {
+        } else if (workflow.currentStep === 3 && toolsUsed.includes("optimized_ai_order_tool")) {
           shouldAdvance = true;
           stepData.orderInitiated = true;
         }
@@ -71,7 +71,7 @@ class WorkflowUpdater {
         } else if (workflow.currentStep === 2 && toolsUsed.includes("cart_tool")) {
           shouldAdvance = true;
           stepData.addedToCart = true;
-        } else if (workflow.currentStep === 3 && toolsUsed.includes("order_tool")) {
+        } else if (workflow.currentStep === 3 && toolsUsed.includes("optimized_ai_order_tool")) {
           shouldAdvance = true;
           stepData.orderInitiated = true;
         }
@@ -102,17 +102,11 @@ class WorkflowUpdater {
   }
 
   static isWorkflowComplete(intermediateSteps) {
-    if (!intermediateSteps || intermediateSteps.length === 0) {
-      return false;
-    }
+    return false;
 
-    const toolsUsed = intermediateSteps
-      .map((step) => step.action?.tool)
-      .filter(Boolean);
-
-    const purchaseWorkflow = ["product_search", "cart_tool", "order_tool"];
+    const purchaseWorkflow = ["product_search", "cart_tool", "optimized_ai_order_tool"];
     const searchAndCartWorkflow = ["product_search", "cart_tool"];
-    const wishlistPurchaseWorkflow = ["wishlist_tool", "cart_tool", "order_tool"];
+    const wishlistPurchaseWorkflow = ["wishlist_tool", "cart_tool", "optimized_ai_order_tool"];
     const categoryBrowseWorkflow = ["category_list_tool", "cart_tool"];
 
     const hasPurchaseWorkflow = purchaseWorkflow.every((tool) => toolsUsed.includes(tool));

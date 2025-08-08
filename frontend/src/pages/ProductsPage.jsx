@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 import { setProducts as setProductAction } from '../redux/slices/productSlice';
 import { toast } from 'react-toastify';
+import { PRODUCT } from '../utils/toastMessages';
 import { getProducts, searchProducts, getCategories, getSearchSuggestions } from '../services/api';
 import specificationService from '../services/specificationService';
 import ProductCard from '../components/ProductCard';
@@ -81,7 +82,7 @@ function ProductsPage() {
         const { data } = await getCategories();
         setCategories(data.categories);
       } catch (error) {
-        toast.error('Lỗi khi lấy danh mục');
+        toast.error(PRODUCT.CATEGORY_ERROR);
       }
     };
     fetchCategories();
@@ -178,7 +179,7 @@ function ProductsPage() {
 
         dispatch(setProductAction(data));
       } catch (error) {
-        toast.error('Lỗi khi lấy sản phẩm');
+        toast.error(PRODUCT.LOAD_ERROR);
       } finally {
         setLoading(false);
       }
@@ -292,6 +293,15 @@ function ProductsPage() {
     const params = Object.fromEntries(searchParams);
     const minPriceVND = minPrice ? priceToVND(minPrice, minPriceUnit) : '';
     const maxPriceVND = maxPrice ? priceToVND(maxPrice, maxPriceUnit) : '';
+    
+    // Preserve specification-related parameters
+    const specParams = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (key.startsWith('spec_') || key === 'performanceTier' || key === 'useCase' || key === 'advanced') {
+        specParams[key] = value;
+      }
+    });
+    
     setSearchParams({
       ...(params.keyword && { keyword: params.keyword }),
       page: 1,
@@ -300,7 +310,8 @@ function ProductsPage() {
       ...(minPriceVND && { minPrice: minPriceVND }),
       ...(maxPriceVND && { maxPrice: maxPriceVND }),
       ...(brand && { brand }),
-      ...(stockStatus && { stockStatus })
+      ...(stockStatus && { stockStatus }),
+      ...specParams // Preserve specification parameters
     });
     // eslint-disable-next-line
   }, [minPrice, minPriceUnit, maxPrice, maxPriceUnit, brand, stockStatus, category, sort]);

@@ -6,7 +6,7 @@ const quickCategoriesData = [
     { name: "Tai nghe Gaming", icon: "🎧", color: "#8b5cf6", desc: "Surround, mic clear" },
     { name: "Màn hình Gaming", icon: "🖥️", color: "#10b981", desc: "High refresh, low lag" },
     { name: "Laptop Gaming", icon: "💻", color: "#f59e0b", desc: "Hiệu năng mạnh" },
-    { name: "Setup Gaming", icon: "🎮", color: "#ec4899", desc: "Combo hoàn chỉnh" }
+    { name: "PC Gaming", icon: "🎮", color: "#ec4899", desc: "Combo hoàn chỉnh" }
 ];
 
 const QuickCategories = ({ onCategoryClick }) => {

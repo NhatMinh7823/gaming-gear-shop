@@ -1,5 +1,9 @@
 // couponMiddleware.js
 const User = require("../models/userModel");
+const {
+  getCouponConfig,
+  validateCouponRules,
+} = require("../utils/couponConfig");
 
 /**
  * Middleware kiểm tra tính hợp lệ của coupon
@@ -19,56 +23,32 @@ exports.validateCoupon = async (req, res, next) => {
 
     const upperCode = couponCode.toUpperCase();
 
-    // Kiểm tra mã cố định trước
-    const fixedCoupons = {
-      'WELCOME10': { 
-        code: 'WELCOME10', 
-        discountPercent: 10, 
-        type: 'percentage',
-        description: 'Giảm 10% cho đơn hàng',
-        minOrder: 200000,
-        maxDiscount: 100000
-      },
-      'SAVE20': { 
-        code: 'SAVE20', 
-        discountPercent: 20, 
-        type: 'percentage',
-        description: 'Giảm 20% cho đơn hàng',
-        minOrder: 500000,
-        maxDiscount: 200000
-      },
-      'FREESHIP': { 
-        code: 'FREESHIP', 
-        discountAmount: 0, 
-        type: 'freeship',
-        description: 'Miễn phí vận chuyển',
-        minOrder: 100000
-      }
-    };
+    // Kiểm tra mã cố định trước - Using centralized config
+    const coupon = getCouponConfig(upperCode);
 
     // Nếu là mã cố định, xử lý ngay
-    if (fixedCoupons[upperCode]) {
-      const coupon = fixedCoupons[upperCode];
+    if (coupon) {
       const { totalPrice = 0 } = req.body;
-      
-      // Kiểm tra minOrder
-      if (totalPrice < coupon.minOrder) {
+
+      // Validate coupon rules using centralized logic
+      const validation = validateCouponRules(upperCode, totalPrice);
+      if (!validation.isValid) {
         return res.status(400).json({
           success: false,
-          message: `Đơn hàng tối thiểu ${coupon.minOrder.toLocaleString('vi-VN')}đ để sử dụng mã này`,
+          message: validation.message,
         });
       }
-      
+
       let discountAmount;
-      if (coupon.type === 'percentage') {
+      if (coupon.type === "percentage") {
         discountAmount = (totalPrice * coupon.discountPercent) / 100;
         // Áp dụng maxDiscount nếu có
         if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
           discountAmount = coupon.maxDiscount;
         }
-      } else if (coupon.type === 'fixed') {
+      } else if (coupon.type === "fixed") {
         discountAmount = coupon.discountAmount;
-      } else if (coupon.type === 'freeship') {
+      } else if (coupon.type === "freeship") {
         discountAmount = 0; // No subtotal discount for freeship
       }
 
@@ -79,9 +59,9 @@ exports.validateCoupon = async (req, res, next) => {
         discountAmount: discountAmount || 0,
         type: coupon.type,
         isFixed: true,
-        shippingDiscount: coupon.type === 'freeship',
+        shippingDiscount: coupon.type === "freeship",
         minOrder: coupon.minOrder,
-        maxDiscount: coupon.maxDiscount
+        maxDiscount: coupon.maxDiscount,
       };
 
       return next();
@@ -126,7 +106,7 @@ exports.validateCoupon = async (req, res, next) => {
       discountPercent,
       discountAmount,
       userId: user._id,
-      isFixed: false
+      isFixed: false,
     };
 
     next();

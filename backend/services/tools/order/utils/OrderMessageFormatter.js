@@ -1,5 +1,5 @@
 /**
- * Helper class for formatting order messages
+ * Helper class for formatting order messages - Minh will delete it
  */
 const OrderEmojiHelper = require('./OrderEmojiHelper');
 

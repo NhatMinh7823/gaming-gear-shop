@@ -14,8 +14,6 @@ connectDB();
 
 // Initialize GHN warehouse configuration
 const ghnService = require("./services/ghnService");
-const http = require("http");
-const { Server } = require("socket.io");
 const chatbotService = require("./services/chatbotService");
 
 ghnService.initializeWarehouse().catch((error) => {
@@ -25,103 +23,6 @@ ghnService.initializeWarehouse().catch((error) => {
 
 // Initialize Express app
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-  },
-});
-
-// Pass io instance to chatbotService
-chatbotService.setSocketIO(io);
-
-// Store active sessions for reconnection handling
-const activeSessions = new Map(); // sessionId -> { socketId, lastActivity, userId }
-
-// Handle Socket.IO connections
-io.on("connection", (socket) => {
-  console.log("🔌 A user connected with socket ID:", socket.id);
-
-  // Handle joining session room
-  socket.on("join_session", (data) => {
-    const { sessionId, userId } = typeof data === 'string' ? { sessionId: data, userId: null } : data;
-    
-    if (sessionId) {
-      socket.join(sessionId);
-      socket.sessionId = sessionId;
-      socket.userId = userId;
-      
-      // Store session info for reconnection handling
-      activeSessions.set(sessionId, {
-        socketId: socket.id,
-        userId: userId
-      });
-      
-      console.log(`🔌 Socket ${socket.id} joined session room: ${sessionId}${userId ? ` (User: ${userId})` : ''}`);
-      socket.emit("session_joined", { 
-        sessionId, 
-        socketId: socket.id, 
-        reconnected: false 
-      });
-    }
-  });
-
-  // Handle session reconnection
-  socket.on("reconnect_session", (data) => {
-    const { sessionId, userId } = data;
-    
-    if (sessionId && activeSessions.has(sessionId)) {
-      const sessionInfo = activeSessions.get(sessionId);
-      
-      // Update session with new socket
-      socket.join(sessionId);
-      socket.sessionId = sessionId;
-      socket.userId = userId || sessionInfo.userId;
-      
-      activeSessions.set(sessionId, {
-        socketId: socket.id,
-        userId: userId || sessionInfo.userId
-      });
-      
-      console.log(`🔄 Socket ${socket.id} reconnected to session: ${sessionId}`);
-      
-      socket.emit("reconnection_success", {
-        sessionId,
-        message: "Session reconnected successfully"
-      });
-    } else {
-      socket.emit("reconnection_failed", {
-        sessionId,
-        message: "Session not found or expired"
-      });
-    }
-  });
-
-  // Handle leaving session room
-  socket.on("leave_session", (sessionId) => {
-    if (sessionId) {
-      socket.leave(sessionId);
-      activeSessions.delete(sessionId);
-      console.log(`🔌 Socket ${socket.id} left session room: ${sessionId}`);
-    }
-  });
-
-
-
-  socket.on("disconnect", (reason) => {
-    console.log(`🔌 User disconnected with socket ID: ${socket.id}, reason: ${reason}`);
-    
-    // Find and remove session
-    for (const [sessionId, sessionInfo] of activeSessions.entries()) {
-      if (sessionInfo.socketId === socket.id) {
-        activeSessions.delete(sessionId);
-        console.log(`🗑️ Removed session ${sessionId}`);
-        break;
-      }
-    }
-  });
-});
 
 
 
@@ -191,6 +92,6 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

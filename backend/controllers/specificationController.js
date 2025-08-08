@@ -129,16 +129,30 @@ const specificationController = {
       if (Object.keys(specifications).length > 0) {
         analyzed = analyzed.filter(product => {
           return Object.entries(specifications).every(([key, value]) => {
-            const productSpec = product.specifications[key];
-            if (!productSpec) return false;
+            // Check both standardized and original specifications
+            const standardizedSpec = product.specifications[key];
+            const originalSpec = product.originalSpecifications && product.originalSpecifications[key];
             
-            // Handle array values (multiple options)
-            if (Array.isArray(value)) {
-              return value.some(v => productSpec.toLowerCase().includes(v.toLowerCase()));
-            }
+            // If no spec found in either, return false
+            if (!standardizedSpec && !originalSpec) return false;
             
-            // Handle string values
-            return productSpec.toLowerCase().includes(value.toLowerCase());
+            // Helper function to check if value matches spec
+            const matchesSpec = (spec, searchValue) => {
+              if (!spec) return false;
+              
+              // Handle array values (multiple options)
+              if (Array.isArray(searchValue)) {
+                return searchValue.some(v => 
+                  spec.toString().toLowerCase().includes(v.toLowerCase())
+                );
+              }
+              
+              // Handle string values
+              return spec.toString().toLowerCase().includes(searchValue.toLowerCase());
+            };
+            
+            // Check both standardized and original specs
+            return matchesSpec(standardizedSpec, value) || matchesSpec(originalSpec, value);
           });
         });
       }

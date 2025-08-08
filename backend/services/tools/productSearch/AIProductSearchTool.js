@@ -115,14 +115,14 @@ class AIProductSearchTool extends StructuredTool {
         const products = await Product.find(filter).populate('category').limit(limit);
 
         if (!products || products.length === 0) {
-          return "[ACTION_SUCCESS] ❌ Không tìm thấy sản phẩm trong khoảng giá này.";
+          return "[TASK_COMPLETED: product_search] ❌ Không tìm thấy sản phẩm trong khoảng giá này.";
         }
 
         // Format results using formatProductFromDB
         const formattedProducts = products.map((product) =>
           formatProductFromDB(product)
         );
-        return `[ACTION_SUCCESS] 🔍 **Kết quả tìm kiếm cho "${query}"**\n\n## 📦 ${
+        return `[TASK_COMPLETED: product_search] 🔍 **Kết quả tìm kiếm cho "${query}"**\n\n## 📦 ${
           products.length
         } Sản phẩm được tìm thấy:\n\n${formattedProducts.join("\n\n")}`;
       }
@@ -137,7 +137,7 @@ class AIProductSearchTool extends StructuredTool {
       );
 
       if (!vectorResults || vectorResults.length === 0) {
-        return "[ACTION_SUCCESS] ❌ Không tìm thấy sản phẩm phù hợp theo semantic search.";
+        return "[TASK_COMPLETED: product_search] ❌ Không tìm thấy sản phẩm phù hợp theo semantic search.";
       }
 
       // Use only metadata from vectorStore (no DB query)
@@ -162,7 +162,7 @@ class AIProductSearchTool extends StructuredTool {
       const prompt = `Dựa trên truy vấn: "${query}", hãy chọn các sản phẩm phù hợp nhất từ danh sách sau và định dạng chúng một cách đẹp đẽ để trả lời người dùng.\nDanh sách sản phẩm:\n${JSON.stringify(productsForAI, null, 2)}`;
       const aiResponse = await this.llm.invoke(prompt);
       const selectedProductsResponse = aiResponse.content;
-      return `[ACTION_SUCCESS] ${selectedProductsResponse}`;
+      return `[TASK_COMPLETED: product_search] ${selectedProductsResponse}`;
     } catch (error) {
       console.error("❌ Error in AIProductSearchTool:", error);
       return `❌ Lỗi AI tìm kiếm sản phẩm: ${error.message}`;

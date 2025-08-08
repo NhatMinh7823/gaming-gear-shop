@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { ORDER } from '../utils/toastMessages';
 import { getMyOrders } from '../services/api';
 import { FaBox, FaShoppingBag, FaClock, FaCheckCircle, FaTruck, FaTimesCircle } from 'react-icons/fa';
 
@@ -20,7 +21,7 @@ function OrdersPage() {
         const { data } = await getMyOrders();
         setOrders(data.orders);
       } catch (error) {
-        toast.error('Lỗi khi lấy danh sách đơn hàng');
+        toast.error(ORDER.LIST_ERROR);
       }
     };
     fetchOrders();

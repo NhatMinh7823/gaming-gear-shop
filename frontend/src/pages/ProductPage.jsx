@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
+import { CART, REVIEW, WISHLIST } from '../utils/toastMessages';
 import { getProductById, createReview, addCartItem, addToWishlist, removeFromWishlist } from '../services/api';
 import { setCart } from '../redux/slices/cartSlice';
 import {
@@ -58,9 +59,9 @@ function ProductPage() {
     try {
       const { data } = await addCartItem({ productId: id, quantity });
       dispatch(setCart(data.cart));
-      toast.success('Đã thêm vào giỏ hàng');
+      toast.success(CART.ADDED_SUCCESS);
     } catch (error) {
-      toast.error('Lỗi khi thêm vào giỏ hàng');
+      toast.error(CART.ADDED_ERROR);
     }
   };
 
@@ -71,27 +72,27 @@ function ProductPage() {
       return;
     }
     if (rating < 1 || rating > 5) {
-      toast.error('Vui lòng chọn số sao từ 1 đến 5');
+      toast.error(REVIEW.RATING_REQUIRED);
       return;
     }
     if (!title.trim()) {
-      toast.error('Vui lòng nhập tiêu đề đánh giá');
+      toast.error(REVIEW.TITLE_REQUIRED);
       return;
     }
     if (!comment.trim()) {
-      toast.error('Vui lòng nhập nội dung đánh giá');
+      toast.error(REVIEW.COMMENT_REQUIRED);
       return;
     }
     try {
       await createReview({ productId: id, rating, title, comment });
-      toast.success('Gửi đánh giá thành công');
+      toast.success(REVIEW.SUBMIT_SUCCESS);
       setRating(0);
       setTitle('');
       setComment('');
       const { data } = await getProductById(id);
       setProduct(data.product);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Lỗi khi gửi đánh giá');
+      toast.error(error.response?.data?.message || REVIEW.SUBMIT_ERROR);
     }
   };
 
@@ -105,17 +106,17 @@ function ProductPage() {
       setLoadingWishlist(true);
       if (wishlistItems.includes(id)) {
         await removeFromWishlist(id);
-        toast.success('Đã xóa khỏi danh sách yêu thích');
+        toast.success(WISHLIST.REMOVED_SUCCESS);
       } else {
         await addToWishlist(id);
-        toast.success('Đã thêm vào danh sách yêu thích');
+        toast.success(WISHLIST.ADDED_SUCCESS);
       }
       // Clear wishlist cache to ensure chatbot gets fresh data
       clearCache();
       // Refresh wishlist to update the UI
       await refreshWishlist(true);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Lỗi khi cập nhật danh sách yêu thích');
+      toast.error(error.response?.data?.message || WISHLIST.UPDATE_ERROR);
     } finally {
       setLoadingWishlist(false);
     }

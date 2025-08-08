@@ -1,4 +1,4 @@
-// InventoryValidator.js
+// InventoryValidator.js - Minh will delete it
 const Product = require("../../../models/productModel");
 
 /**
@@ -24,7 +24,7 @@ class InventoryValidator {
 
     for (const item of cartItems) {
       try {
-        const product = item.product; // item.product is already populated by AIOrderTool
+        const product = item.product; // item.product is already populated by order tool
         
         if (!product || !product._id) {
           validationResults.push({

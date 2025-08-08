@@ -39,18 +39,18 @@ const PaymentMethod = ({ paymentMethod, onPaymentMethodChange, shippingAddress }
 
           <div
             className={`flex items-center p-4 border rounded-lg ${
-              paymentMethod === 'CashOnDelivery'
+              paymentMethod === 'COD'
                 ? 'border-blue-600 bg-gray-700'
                 : 'border-gray-600 bg-gray-800'
             } cursor-pointer transition-colors duration-200`}
-            onClick={() => onPaymentMethodChange('CashOnDelivery')}
+            onClick={() => onPaymentMethodChange('COD')}
           >
             <input
               type="radio"
               id="cod"
               name="paymentMethod"
-              checked={paymentMethod === 'CashOnDelivery'}
-              onChange={() => onPaymentMethodChange('CashOnDelivery')}
+              checked={paymentMethod === 'COD'}
+              onChange={() => onPaymentMethodChange('COD')}
               className="h-5 w-5 text-blue-600"
             />
             <label htmlFor="cod" className="ml-3 flex items-center cursor-pointer">

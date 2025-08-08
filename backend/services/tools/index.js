@@ -8,9 +8,8 @@ const AISmartWishlistTool = require("./wishlist/AISmartWishlistTool");
 const AISmartCartTool = require("./cart/AISmartCartTool");
 // const CartTool = require("./cart/CartTool"); // Legacy version removed
 
-// Import order tool
-const AIOrderTool = require("./order/AIOrderTool"); // NEW AI-driven version
-// const OrderTool = require("./order/OrderTool"); // Legacy version
+// Import order tool - OPTIMIZED VERSION
+const OptimizedAIOrderTool = require("./order/OptimizedAIOrderTool"); // OPTIMIZED AI-driven version
 
 // Global tools instances (for non-user-specific tools)
 let globalToolInstances = null;
@@ -50,8 +49,7 @@ const createFreshTools = (userContext, sessionContext = null) => {
     ...globalToolInstances, // Non-user-specific tools (reuse)
     new AISmartWishlistTool(userContext),
     new AISmartCartTool(userContext),
-    new AIOrderTool(userContext, sessionContext), // Pass sessionContext to AIOrderTool
-    // new OrderTool(userContext),
+    new OptimizedAIOrderTool(userContext), // OPTIMIZED - No more maxIteration issues
   ];
 
   return freshTools;
@@ -66,7 +64,7 @@ const getAllTools = () => {
     throw new Error("Tools not initialized. Call initialize() first.");
   }
   // Return global tools + user-specific tools with null context (fallback)
-  return [...globalToolInstances, new AISmartWishlistTool(null), new AIOrderTool(null)];
+  return [...globalToolInstances, new AISmartWishlistTool(null), new OptimizedAIOrderTool(null)];
 };
 
 /**
@@ -105,6 +103,5 @@ module.exports = {
   ProductDetailsTool,
   AISmartWishlistTool,
   AISmartCartTool,
-  AIOrderTool,
-  // OrderTool, // Legacy
+  OptimizedAIOrderTool,
 };

@@ -37,7 +37,7 @@ const handleChatbotConversation = asyncHandler(async (req, res) => {
           executionTime: response.executionTime,
           agentExecutionTime: response.agentExecutionTime,
           iterationsUsed: response.iterationsUsed,
-          intermediateSteps: response.intermediateSteps,
+  
         },
       },
     });

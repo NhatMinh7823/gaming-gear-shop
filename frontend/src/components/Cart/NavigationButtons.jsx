@@ -45,7 +45,7 @@ const NavigationButtons = ({
               onClick={onNextStep}
               className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-300 flex items-center justify-center"
             >
-              Tiếp tục đến thanh toán
+              Tiếp tục tạo đơn hàng
               <FaArrowRight className="ml-2" />
             </button>
           </>
@@ -76,7 +76,7 @@ const NavigationButtons = ({
                 </>
               ) : (
                 <>
-                  Đặt hàng
+                  Tạo đơn hàng
                   <FaArrowRight className="ml-2" />
                 </>
               )}

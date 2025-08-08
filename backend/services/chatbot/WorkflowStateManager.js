@@ -67,7 +67,7 @@ class WorkflowStateManager {
         { name: 'select', tool: null, description: 'User chọn sản phẩm', required: false },
         { name: 'add_to_cart', tool: 'cart_tool', description: 'Thêm vào giỏ hàng', required: true },
         { name: 'confirm_order', tool: null, description: 'User xác nhận đặt hàng', required: false },
-        { name: 'initiate_order', tool: 'order_tool', description: 'Khởi tạo đặt hàng', required: true }
+        { name: 'initiate_order', tool: 'optimized_ai_order_tool', description: 'Khởi tạo đặt hàng', required: true }
       ],
       
       search: [
@@ -80,14 +80,14 @@ class WorkflowStateManager {
         { name: 'get_wishlist', tool: 'wishlist_tool', description: 'Lấy danh sách yêu thích', required: true },
         { name: 'select_item', tool: null, description: 'User chọn item', required: false },
         { name: 'add_to_cart', tool: 'cart_tool', description: 'Thêm vào giỏ hàng', required: true },
-        { name: 'initiate_order', tool: 'order_tool', description: 'Khởi tạo đặt hàng', required: true }
+        { name: 'initiate_order', tool: 'optimized_ai_order_tool', description: 'Khởi tạo đặt hàng', required: true }
       ],
       
       category_browse: [
         { name: 'list_categories', tool: 'category_list_tool', description: 'Liệt kê danh mục', required: true },
         { name: 'search_products', tool: 'ai_product_search', description: 'Tìm kiếm sản phẩm AI', required: false },
         { name: 'add_to_cart', tool: 'cart_tool', description: 'Thêm vào giỏ hàng', required: false },
-        { name: 'initiate_order', tool: 'order_tool', description: 'Khởi tạo đặt hàng', required: false }
+        { name: 'initiate_order', tool: 'optimized_ai_order_tool', description: 'Khởi tạo đặt hàng', required: false }
       ]
     };
     

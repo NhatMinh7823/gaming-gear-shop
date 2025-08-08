@@ -10,7 +10,7 @@ const llmConfig = {
   apiKey: process.env.GEMINI_API_KEY,
   temperature: 0.7,
   maxTokens: 4096, // Tăng để handle longer conversations
-  thinkingBudget: 2048,
+
 };
 
 const embeddingsConfig = {
@@ -22,31 +22,29 @@ const embeddingsConfig = {
 
 const agentConfig = {
   verbose: process.env.LANGCHAIN_VERBOSE === "true",
-  
-  // 🚀 MULTI-TOOL WORKFLOW CONFIGURATION
-  maxIterations: 15, // Tăng từ 10 → 15 (cho phép 5 tools x 3 steps mỗi tool)
-  earlyStoppingMethod: "force", // Thay đổi từ "generate" → "force"
-  
-  // 🆕 CẤU HÌNH MỚI
-  returnIntermediateSteps: true, // Track intermediate steps
-  maxExecutionTime: 45000, // 45s timeout
+
+  // 🚀 OPTIMIZED CONFIGURATION - Giảm maxIteration risk
+  maxIterations: 10, // Giảm từ 5 → 2 vì OptimizedAIOrderTool chỉ cần 1 lần gọi
+  earlyStoppingMethod: "force", // Sử dụng "force" - phương thức dừng hợp lệ
+
+  // 🆕 CẤU HÌNH TỐI ƯU
+  returnIntermediateSteps: false,
+  maxExecutionTime: 20000, // Giảm từ 30s → 20s timeout
   handleParsingErrors: true, // Xử lý lỗi parsing tốt hơn
-  
-  // 🎯 WORKFLOW CONFIGURATION
-  continueBetweenTools: true, // Cho phép tiếp tục giữa các tools
-  memoryBetweenSteps: true, // Giữ memory giữa các steps
-  
-  // 📊 MONITORING
-  logIntermediateSteps: process.env.CHATBOT_DEBUG === "true",
+
+  // 🎯 WORKFLOW CONFIGURATION - Tối ưu cho OptimizedTools
+  continueBetweenTools: false, // Tắt tiếp tục giữa các tools để tránh loop
+  memoryBetweenSteps: false, // Tắt memory để giảm complexity
+
 };
 
 // 🆕 EXECUTION STRATEGY
 const executionStrategy = {
-  allowMultiStep: true,
-  stepTimeout: 8000, // 8s per step
+  allowMultiStep: false, // Tắt multi-step để tránh AI tự tạo thêm steps
+  stepTimeout: 5000, // Giảm từ 8s → 5s per step
   maxConcurrentTools: 1, // Execute tools sequentially
-  retryFailedSteps: true,
-  retryAttempts: 2,
+  retryFailedSteps: false, // Tắt retry để tránh loop
+  retryAttempts: 1, // Giảm retry attempts
 };
 
 module.exports = {

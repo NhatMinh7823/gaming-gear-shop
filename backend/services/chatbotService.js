@@ -1,4 +1,3 @@
-const SocketIOCallbackHandler = require("./chatbot/SocketIOCallbackHandler");
 const AgentManager = require("./chatbot/AgentManager");
 const ChatHistoryManager = require("./chatbot/ChatHistoryManager");
 const VectorStoreManager = require("./chatbot/VectorStoreManager");
@@ -30,18 +29,10 @@ class ChatbotService {
     this.workflowStateManager = new WorkflowStateManager();
     this.isInitialized = false;
     this.debugMode = CHATBOT_DEBUG;
-    this.io = null;
     this.lastUserId = null; // Track last user to avoid unnecessary tool updates
   }
 
-  setSocketIO(io) {
-    this.io = io;
-    this.log("Socket.IO instance has been set.");
-  }
 
-  createSocketCallbackHandler(sessionId) {
-    return new SocketIOCallbackHandler(this.io, sessionId, this.log.bind(this));
-  }
 
   log(message, ...args) {
     if (this.debugMode) {
@@ -50,7 +41,13 @@ class ChatbotService {
   }
 
   logError(message, ...args) {
-    console.error(`[ChatbotService ERROR] ${message}`, ...args);
+    console.error(`[ChatbotService] ${message}`, ...args);
+  }
+
+  cleanTaskCompletionMarkers(text) {
+    if (!text) return text;
+    // Remove task completion markers that are meant for the agent
+    return text.replace(/\n\n\[(TASK_COMPLETED|ACTION_SUCCESS).*?\]/g, '');
   }
 
   async initialize() {
@@ -112,6 +109,7 @@ await ToolContextManager.createFreshToolsAndUpdateAgent(
 
       if (userId) {
         this.userContext.setUser(userId);
+        
         if (needsToolUpdate) {
           await ToolContextManager.createFreshToolsAndUpdateAgent(
             this.agentManager,
@@ -196,12 +194,7 @@ await ToolContextManager.createFreshToolsAndUpdateAgent(
       }
       const previousMessages = await history.getMessages();
 
-      if (this.io) {
-        this.io.to(actualSessionId).emit("processing:start", {
-          message: message,
-          timestamp: new Date().toISOString(),
-        });
-      }
+
 
       const workflowContext = workflow
         ? {
@@ -215,16 +208,12 @@ await ToolContextManager.createFreshToolsAndUpdateAgent(
         : {};
 
       const agentStartTime = Date.now();
-      const callbackHandler = this.createSocketCallbackHandler(actualSessionId);
       const result = await this.agentManager.executeAgent(
         {
           input: message,
           chat_history: previousMessages,
           workflow_context: workflowContext,
           session_id: actualSessionId,
-        },
-        {
-          callbacks: [callbackHandler],
         }
       );
       const agentDuration = Date.now() - agentStartTime;
@@ -232,10 +221,7 @@ await ToolContextManager.createFreshToolsAndUpdateAgent(
       await history.addUserMessage(message);
       await history.addAIMessage(result.output);
 
-      const toolsUsed =
-        result.intermediateSteps
-          ?.map((step) => step.action?.tool)
-          .filter(Boolean) || [];
+      const toolsUsed = [];
 
       if (workflow || workflowIntent) {
         WorkflowUpdater.updateWorkflowBasedOnResult(
@@ -258,18 +244,21 @@ await ToolContextManager.createFreshToolsAndUpdateAgent(
 
       const totalDuration = Date.now() - startTime;
 
+      // Clean up task completion markers from response
+      const cleanedOutput = this.cleanTaskCompletionMarkers(result.output);
+
       return {
         text:
-          result.output ||
+          cleanedOutput ||
           "Xin lỗi, tôi không thể xử lý yêu cầu của bạn lúc này.",
         sessionId: actualSessionId,
-        intermediateSteps: result.intermediateSteps || [],
+
         toolsUsed: toolsUsed,
         workflowComplete: workflowComplete,
         workflow: workflowAnalytics,
         executionTime: totalDuration,
         agentExecutionTime: agentDuration,
-        iterationsUsed: result.intermediateSteps?.length || 0,
+        iterationsUsed: 0,
         analytics: {
           workflowIntent: workflowIntent,
           hasActiveWorkflow: !!workflow,

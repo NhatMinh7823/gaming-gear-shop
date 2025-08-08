@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaTicketAlt, FaCopy, FaCheck } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { COUPON, formatToastMessage } from '../../utils/toastMessages';
 import { getAvailableCoupons } from '../../services/api';
 
-const AvailableCoupons = ({ onSelectCoupon, appliedCoupon }) => {
+const AvailableCoupons = ({ onSelectCoupon, appliedCoupon, userInfo }) => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCoupons, setShowCoupons] = useState(false);
@@ -11,14 +12,34 @@ const AvailableCoupons = ({ onSelectCoupon, appliedCoupon }) => {
 
   useEffect(() => {
     fetchAvailableCoupons();
-  }, []);
+  }, [userInfo]);
 
   const fetchAvailableCoupons = async () => {
     try {
       const { data } = await getAvailableCoupons();
+      let allCoupons = [];
+      
       if (data.success) {
-        setCoupons(data.coupons);
+        allCoupons = [...data.coupons];
       }
+      
+      // Add user's personal coupon if available and not used
+      if (userInfo?.coupon && userInfo.coupon.code && !userInfo.coupon.used && userInfo.coupon.status !== 'used' && userInfo.coupon.status !== 'pending') {
+        const userCoupon = {
+          code: userInfo.coupon.code,
+          discountPercent: userInfo.coupon.discountPercent || 30,
+          type: 'percentage',
+          description: `Giảm ${userInfo.coupon.discountPercent || 30}% cho đơn hàng đầu tiên`,
+          minOrder: 0,
+          maxDiscount: null,
+          isPersonal: true
+        };
+        
+        // Add personal coupon at the beginning
+        allCoupons.unshift(userCoupon);
+      }
+      
+      setCoupons(allCoupons);
     } catch (error) {
       console.error('Error fetching available coupons:', error);
     } finally {
@@ -30,10 +51,10 @@ const AvailableCoupons = ({ onSelectCoupon, appliedCoupon }) => {
     try {
       await navigator.clipboard.writeText(code);
       setCopiedCode(code);
-      toast.success(`Đã sao chép mã ${code}!`);
+      toast.success(formatToastMessage(COUPON.COPY_SUCCESS, { code }));
       setTimeout(() => setCopiedCode(''), 2000);
     } catch (error) {
-      toast.error('Không thể sao chép mã giảm giá');
+      toast.error(COUPON.COPY_ERROR);
     }
   };
 
@@ -114,6 +135,11 @@ const AvailableCoupons = ({ onSelectCoupon, appliedCoupon }) => {
                     <div>
                       <div className="flex items-center space-x-2">
                         <span className="font-semibold text-gray-100">{coupon.code}</span>
+                        {coupon.isPersonal && (
+                          <span className="px-2 py-1 text-xs bg-purple-600 text-white rounded-full">
+                            Cá nhân
+                          </span>
+                        )}
                         {isApplied && (
                           <FaCheck className="text-green-400 text-sm" />
                         )}

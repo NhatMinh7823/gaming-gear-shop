@@ -12,6 +12,8 @@ import ProductsPage from "./pages/ProductsPage";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProfilePage from "./pages/ProfilePage";
 import OrderPage from "./pages/OrderPage";
 import OrdersPage from "./pages/OrdersPage";
@@ -26,6 +28,7 @@ import AdminOrdersPage from "./admin/pages/AdminOrdersPage";
 import AdminUsersPage from "./admin/pages/AdminUsersPage";
 import ProductFormPage from "./admin/pages/ProductFormPage";
 import UserEditPage from "./admin/pages/UserEditPage";
+import CreateUserPage from "./admin/pages/CreateUserPage";
 import AdminOrderDetailPage from "./admin/pages/AdminOrderDetailPage"; // Import AdminOrderDetailPage
 import AdminRoute from "./components/AdminRoute";
 import AdminCategoriesPage from "./admin/pages/AdminCategoriesPage"; // Import AdminOrderDetailPage
@@ -54,6 +57,8 @@ function AppContent() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/order/:id" element={<OrderPage />} />
         <Route path="/orders" element={<OrdersPage />} />
@@ -72,6 +77,7 @@ function AppContent() {
             <Route path="orders/:id" element={<AdminOrderDetailPage />} />{" "}
             {/* Route for order details */}
             <Route path="users" element={<AdminUsersPage />} />
+            <Route path="users/create" element={<CreateUserPage />} />
             <Route path="users/edit/:id" element={<UserEditPage />} />
             <Route path="categories" element={<AdminCategoriesPage />} />
             <Route path="categories/new" element={<CategoryFormPage />} />

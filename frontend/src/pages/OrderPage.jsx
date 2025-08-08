@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
+import { ORDER, PAYMENT, COUPON, formatToastMessage } from '../utils/toastMessages';
 import { getOrderById, createVNPayUrl, checkVNPayPayment, cancelOrder, getProfile } from '../services/api';
 import {
   FaBox, FaShoppingBag, FaClock, FaCheckCircle, FaTruck, FaTimesCircle,
@@ -22,7 +23,7 @@ function OrderPage() {
         const { data } = await getOrderById(id);
         setOrder(data.order);
       } catch (error) {
-        toast.error('Lỗi khi lấy thông tin đơn hàng');
+        toast.error(ORDER.LOAD_ERROR);
       }
     };
     fetchOrder();
@@ -44,7 +45,7 @@ function OrderPage() {
           console.log("Transaction reference:", txnRef);
           const { data } = await checkVNPayPayment(location.search);
           if (data.success) {
-            toast.success('Thanh toán thành công!');
+            toast.success(PAYMENT.SUCCESS);
 
             // Refresh order data to get updated payment status
             const { data: orderData } = await getOrderById(id);
@@ -70,7 +71,7 @@ function OrderPage() {
             // Remove query params from URL
             navigate(location.pathname, { replace: true });
           } else {
-            toast.error(`Thanh toán thất bại: ${data.message || 'Lỗi không xác định'}`);
+            toast.error(formatToastMessage(PAYMENT.ERROR, { message: data.message || 'Lỗi không xác định' }));
             console.error("Payment failure details:", data);
 
             // For specific error conditions, redirect to error page
@@ -80,7 +81,7 @@ function OrderPage() {
           }
         } catch (error) {
           console.error("Error checking payment:", error);
-          toast.error('Lỗi khi kiểm tra trạng thái thanh toán');
+          toast.error(PAYMENT.CHECK_ERROR);
         }
       };
       checkPayment();
@@ -97,7 +98,7 @@ function OrderPage() {
       }
     } catch (error) {
       console.error("VNPay error details:", error.response?.data || error.message);
-      toast.error('Lỗi khi tạo liên kết thanh toán');
+      toast.error(PAYMENT.LINK_ERROR);
     }
   }; const handleCancelOrder = async () => {
     try {
@@ -109,7 +110,7 @@ function OrderPage() {
         const couponCode = order?.couponCode;
 
         const { data } = await cancelOrder(id);
-        toast.success('Hủy đơn hàng thành công');
+        toast.success(ORDER.CANCEL_SUCCESS);
 
         // Refresh order data
         const { data: orderData } = await getOrderById(id);
@@ -137,7 +138,7 @@ function OrderPage() {
                 // Log coupon status for debugging
                 console.log('Updated coupon status:', profileData.user.coupon);
 
-                toast.info(`Mã giảm giá ${couponCode} đã được hoàn trả và bạn có thể sử dụng lại`);
+                toast.info(formatToastMessage(COUPON.RETURNED_INFO, { code: couponCode }));
               } else {
                 console.log('Coupon status was not updated to usable:', profileData.user.coupon);
                 // Thử lại một lần nữa sau 2 giây
@@ -150,7 +151,7 @@ function OrderPage() {
                         ...userInfo,
                         coupon: retryData.user.coupon
                       }));
-                      toast.info(`Mã giảm giá ${couponCode} đã được hoàn trả và bạn có thể sử dụng lại`);
+                      toast.info(formatToastMessage(COUPON.RETURNED_INFO, { code: couponCode }));
                     }
                   } catch (error) {
                     console.error('Error on retry:', error);
@@ -164,7 +165,7 @@ function OrderPage() {
         }
       }
     } catch (error) {
-      toast.error('Lỗi khi hủy đơn hàng');
+      toast.error(ORDER.CANCEL_ERROR);
       console.error("Error details:", error);
     } finally {
       setCancelingOrder(false);

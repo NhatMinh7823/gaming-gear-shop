@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
+import { PAYMENT } from '../utils/toastMessages';
 import { checkVNPayPayment, getProfile } from '../services/api';
 import { setCredentials } from '../redux/slices/userSlice';
 
@@ -19,7 +20,7 @@ function VNPayResult() {
         const { data } = await checkVNPayPayment(location.search);
         setResult(data);
         if (data.success) {
-          toast.success('Thanh toán thành công!');          // Cập nhật thông tin người dùng để lấy trạng thái coupon mới nhất
+          toast.success(PAYMENT.SUCCESS);          // Cập nhật thông tin người dùng để lấy trạng thái coupon mới nhất
           if (userInfo) {
             try {
               const profileResponse = await getProfile();
@@ -60,7 +61,7 @@ function VNPayResult() {
           toast.error(data.message || 'Thanh toán thất bại');
         }
       } catch (error) {
-        toast.error('Lỗi khi kiểm tra trạng thái thanh toán');
+        toast.error(PAYMENT.CHECK_ERROR);
         setResult({ success: false, message: 'Lỗi khi kiểm tra trạng thái thanh toán' });
       } finally {
         setLoading(false);

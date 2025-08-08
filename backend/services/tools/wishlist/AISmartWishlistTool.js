@@ -54,6 +54,11 @@ Only works when user is authenticated (userId available).`;
     }
   }
 
+  updateUserContext(userContext) {
+    this.log(`Updating userContext - old: ${this.userContext ? this.userContext.getUserId() : 'null'}, new: ${userContext ? userContext.getUserId() : 'null'}`);
+    this.userContext = userContext;
+  }
+
   async _call({ query }) {
     try {
       // Get userId from context
@@ -271,12 +276,12 @@ Phân tích và trả về JSON hợp lệ:`;
       });
     }
     
-    return `[ACTION_SUCCESS] ${result}`;
+    return `[TASK_COMPLETED: wishlist_action] ${result}`;
   }
 
   fallbackResponse(query, userData) {
     if (userData.wishlistCount === 0) {
-      return `[ACTION_SUCCESS] 👋 Xin chào ${userData.name}!
+      return `[TASK_COMPLETED: wishlist_action] 👋 Xin chào ${userData.name}!
 
 🤔 **Câu hỏi của bạn:** "${query}"
 
@@ -288,7 +293,7 @@ Phân tích và trả về JSON hợp lệ:`;
 - Chia sẻ tầm giá và nhu cầu sử dụng để đề xuất phù hợp`;
     }
 
-    return `[ACTION_SUCCESS] 👋 Xin chào ${userData.name}!
+    return `[TASK_COMPLETED: wishlist_action] 👋 Xin chào ${userData.name}!
 
 🤔 **Câu hỏi của bạn:** "${query}"
 

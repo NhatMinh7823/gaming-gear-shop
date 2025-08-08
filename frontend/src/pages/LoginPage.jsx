@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { AUTH } from '../utils/toastMessages';
 import { login, getWishlist } from '../services/api';
 import { setCredentials, updateWishlist } from '../redux/slices/userSlice';
 import { setWishlist } from '../redux/slices/wishlistSlice';
@@ -34,9 +35,9 @@ function LoginPage() {
       }
 
       navigate('/');
-      toast.success('Đăng nhập thành công! Chào mừng bạn quay trở lại!');
+      toast.success(AUTH.LOGIN_SUCCESS);
     } catch (error) {
-      toast.error('Đăng nhập thất bại! Vui lòng kiểm tra thông tin và thử lại.');
+      toast.error(AUTH.LOGIN_ERROR);
     } finally {
       setLoading(false);
     }

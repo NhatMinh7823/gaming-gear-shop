@@ -16,6 +16,7 @@ import { useCheckout } from '../hooks/useCheckout';
 
 function CartPage() {
   const { cartItems } = useSelector((state) => state.cart);
+  const { userInfo } = useSelector((state) => state.user);
   const [isCartEmpty, setIsCartEmpty] = useState(true);
 
   // Custom hooks
@@ -76,6 +77,7 @@ function CartPage() {
                     onApplyCoupon={(_, code) => handleApplyCoupon(handleFreeshipChange, code)}
                     appliedCoupon={appliedCoupon}
                     onRemoveCoupon={removeCoupon}
+                    userInfo={userInfo}
                   />
                   <NavigationButtons
                     activeStep={activeStep}

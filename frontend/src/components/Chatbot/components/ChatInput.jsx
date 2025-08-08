@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ChatInput = ({ inputMessage, setInputMessage, handleKeyPress, handleSendMessage, isLoading, inputRef }) => {
+const ChatInput = ({ inputMessage, setInputMessage, handleKeyPress, handleSendMessage, isLoading, isProcessing, handleCancelRequest, inputRef }) => {
     return (
         <div className="chat-input-container">
             <div className="chat-input-wrapper">
@@ -14,13 +14,23 @@ const ChatInput = ({ inputMessage, setInputMessage, handleKeyPress, handleSendMe
                     disabled={isLoading}
                     className="chat-input"
                 />
-                <button
-                    onClick={() => handleSendMessage()}
-                    disabled={isLoading || !inputMessage.trim()}
-                    className="send-button"
-                >
-                    Gửi
-                </button>
+                {isProcessing ? (
+                    <button
+                        onClick={handleCancelRequest}
+                        className="cancel-button"
+                        title="Dừng yêu cầu"
+                    >
+                        ⏹️
+                    </button>
+                ) : (
+                    <button
+                        onClick={() => handleSendMessage()}
+                        disabled={isLoading || !inputMessage.trim()}
+                        className="send-button"
+                    >
+                        Gửi
+                    </button>
+                )}
             </div>
         </div>
     );

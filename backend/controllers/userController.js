@@ -109,6 +109,101 @@ exports.loginUser = async (req, res) => {
   }
 };
 
+// @desc    Forgot password
+// @route   POST /api/users/forgot-password
+// @access  Public
+exports.forgotPassword = async (req, res) => {
+  let user;
+  try {
+    const { email } = req.body;
+
+    user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy người dùng với email này",
+      });
+    }
+
+    // Get reset token
+    const resetToken = user.getResetPasswordToken();
+
+    await user.save({ validateBeforeSave: false });
+
+    // For demo purposes, return the token directly
+    // In production, this would be sent via email
+    res.status(200).json({
+      success: true,
+      message: "Mã reset mật khẩu đã được tạo",
+      resetToken: resetToken, // In production, remove this line
+      instructions:
+        "Sử dụng mã này để reset mật khẩu. Mã có hiệu lực trong 10 phút.",
+    });
+  } catch (error) {
+    // Clear reset fields if error occurs
+    if (user) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi tạo mã reset",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Reset password
+// @route   PUT /api/users/reset-password
+// @access  Public
+exports.resetPassword = async (req, res) => {
+  try {
+    const { resetToken, password } = req.body;
+
+    // Find user by reset token and check if token is not expired
+    const user = await User.findOne({
+      resetPasswordToken: resetToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Mã reset không hợp lệ hoặc đã hết hạn",
+      });
+    }
+
+    // Set new password
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    const token = user.getSignedJwtToken();
+
+    res.status(200).json({
+      success: true,
+      message: "Mật khẩu đã được reset thành công",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi reset mật khẩu",
+      error: error.message,
+    });
+  }
+};
+
 // @desc    Get user profile
 // @route   GET /api/users/profile
 // @access  Private
@@ -597,46 +692,46 @@ exports.deleteUser = async (req, res) => {
 exports.updateAddress = async (req, res) => {
   try {
     const { street, ward, district, province, isDefault } = req.body;
-    
+
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
     // Update address
     user.address = {
-      street: street || '',
+      street: street || "",
       ward: {
         code: ward.code,
-        name: ward.name
+        name: ward.name,
       },
       district: {
         id: district.id,
-        name: district.name
+        name: district.name,
       },
       province: {
         id: province.id,
-        name: province.name
+        name: province.name,
       },
       isDefault: isDefault !== undefined ? isDefault : true,
-      isComplete: !!(street && ward.code && district.id && province.id)
+      isComplete: !!(street && ward.code && district.id && province.id),
     };
 
     await user.save();
 
     res.status(200).json({
       success: true,
-      message: 'Address updated successfully',
-      address: user.address
+      message: "Address updated successfully",
+      address: user.address,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error updating address',
-      error: error.message
+      message: "Error updating address",
+      error: error.message,
     });
   }
 };
@@ -646,16 +741,16 @@ exports.updateAddress = async (req, res) => {
 // @access  Private
 exports.getUserAddress = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('address');
+    const user = await User.findById(req.user.id).select("address");
     res.status(200).json({
       success: true,
-      address: user.address
+      address: user.address,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error fetching address',
-      error: error.message
+      message: "Error fetching address",
+      error: error.message,
     });
   }
 };
@@ -670,10 +765,15 @@ exports.getUserAddress = async (req, res) => {
 exports.getReviewsByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const reviews = await Review.find({ user: userId }).populate('product', 'name images');
-    
+    const reviews = await Review.find({ user: userId }).populate(
+      "product",
+      "name images"
+    );
+
     if (!reviews) {
-      return res.status(404).json({ success: false, message: 'No reviews found for this user' });
+      return res
+        .status(404)
+        .json({ success: false, message: "No reviews found for this user" });
     }
 
     res.status(200).json({
@@ -682,25 +782,31 @@ exports.getReviewsByUser = async (req, res) => {
       reviews,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
   }
 };
-
 
 // @desc    Get user addresses by user ID (Admin)
 // @route   GET /api/users/:userId/addresses
 // @access  Private/Admin
 exports.getUserAddressesByAdmin = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).select('address');
+    const user = await User.findById(req.params.userId).select("address");
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
     // The model currently supports one address, so we return it in an array for consistency
-    const addresses = user.address && user.address.isComplete ? [user.address] : [];
+    const addresses =
+      user.address && user.address.isComplete ? [user.address] : [];
     res.status(200).json({ success: true, addresses });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
   }
 };
 
@@ -714,24 +820,34 @@ exports.updateAddressByAdmin = async (req, res) => {
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     // Since there's only one address, we update it directly.
     // The addressId param is kept for future-proofing if the model changes to support multiple addresses.
     user.address = {
-      street: street || '',
+      street: street || "",
       ward: ward,
       district: district,
       province: province,
       isDefault: isDefault !== undefined ? isDefault : true,
-      isComplete: !!(street && ward.code && district.id && province.id)
+      isComplete: !!(street && ward.code && district.id && province.id),
     };
 
     await user.save();
-    res.status(200).json({ success: true, message: 'Address updated successfully', address: user.address });
+    res.status(200).json({
+      success: true,
+      message: "Address updated successfully",
+      address: user.address,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error updating address', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Error updating address",
+      error: error.message,
+    });
   }
 };
 
@@ -744,22 +860,74 @@ exports.deleteAddressByAdmin = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     // To "delete" the single address, we can set it to an empty object or clear its fields
     user.address = {
-        street: '',
-        ward: {},
-        district: {},
-        province: {},
-        isDefault: false,
-        isComplete: false
+      street: "",
+      ward: {},
+      district: {},
+      province: {},
+      isDefault: false,
+      isComplete: false,
     };
 
     await user.save();
-    res.status(200).json({ success: true, message: 'Address deleted successfully' });
+    res
+      .status(200)
+      .json({ success: true, message: "Address deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error deleting address', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Error deleting address",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Create a new user (Admin only)
+// @route   POST /api/users/admin/create
+// @access  Private/Admin
+exports.createUserByAdmin = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    // Check if user already exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({
+        success: false,
+        message: "User with this email already exists",
+      });
+    }
+
+    // Create new user
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: role || "user", // Default to 'user' role if not specified
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
   }
 };

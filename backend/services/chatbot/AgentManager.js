@@ -58,10 +58,13 @@ class AgentManager {
         }
       }
 
+      // Create custom prompt that understands task completion markers
+      const customPrompt = await this.createCustomPrompt();
+      
       this.agent = await createStructuredChatAgent({
         llm: this.llm,
         tools: tools,
-        prompt: await pull("hwchase17/structured-chat-agent"),
+        prompt: customPrompt,
       });
 
       this.agentExecutor = new AgentExecutor({
@@ -70,7 +73,7 @@ class AgentManager {
         verbose: agentConfig.verbose,
         maxIterations: agentConfig.maxIterations,
         earlyStoppingMethod: agentConfig.earlyStoppingMethod,
-        returnIntermediateSteps: agentConfig.returnIntermediateSteps,
+        returnIntermediateSteps: false,
         maxExecutionTime: agentConfig.maxExecutionTime,
         handleParsingErrors: agentConfig.handleParsingErrors,
       });
@@ -109,11 +112,14 @@ class AgentManager {
         }
       }
 
-      // Create new agent with fresh tools
+      // Use consistent custom prompt that handles task completion markers
+      const customPrompt = await this.createCustomPrompt();
+      
+      // Create new agent with fresh tools and custom prompt
       this.agent = await createStructuredChatAgent({
         llm: this.llm,
         tools: freshTools,
-        prompt: await pull("hwchase17/structured-chat-agent"),
+        prompt: customPrompt,
       });
 
       this.agentExecutor = new AgentExecutor({
@@ -122,13 +128,13 @@ class AgentManager {
         verbose: agentConfig.verbose,
         maxIterations: agentConfig.maxIterations,
         earlyStoppingMethod: agentConfig.earlyStoppingMethod,
-        returnIntermediateSteps: agentConfig.returnIntermediateSteps,
+        returnIntermediateSteps: false,
         maxExecutionTime: agentConfig.maxExecutionTime,
         handleParsingErrors: agentConfig.handleParsingErrors,
       });
 
       this.currentToolsHash = toolsHash;
-      this.log(`Agent updated successfully`);
+      this.log(`Agent updated successfully with custom prompt`);
     } catch (error) {
       this.logError("Error updating agent tools:", error.message);
       throw new Error(`Failed to update agent tools: ${error.message}`);
@@ -150,27 +156,78 @@ class AgentManager {
 
     const result = await this.agentExecutor.invoke(input, options);
 
-    // Custom logic to handle successful tool execution and stop the agent
-    if (agentConfig.returnIntermediateSteps && result.intermediateSteps?.length > 0) {
-      const lastStep = result.intermediateSteps[result.intermediateSteps.length - 1];
-      const observation = lastStep.observation;
-
-      if (typeof observation === 'string' && observation.startsWith('[ACTION_SUCCESS]')) {
-        this.log('Action success detected. Stopping agent execution.');
-        // Return a final answer structure, KEEPING the prefix for downstream logic
-        // Also set the output as the final answer to prevent further iterations
-        return {
-          ...result,
-          output: observation.trim(),
-          // Force the agent to stop by setting this as the final answer
-          returnValues: {
-            output: observation.trim()
-          }
-        };
-      }
+    // Check if the result contains task completion markers
+    if (result.output && this.hasTaskCompletionMarker(result.output)) {
+      this.log("Task completion marker detected, stopping agent execution");
+      // The marker will be cleaned up by ChatbotService before sending to user
     }
 
     return result;
+  }
+
+  hasTaskCompletionMarker(text) {
+    if (!text) return false;
+    return /\[(TASK_COMPLETED|ACTION_SUCCESS).*?\]/.test(text);
+  }
+
+  async createCustomPrompt() {
+    const { ChatPromptTemplate } = require("@langchain/core/prompts");
+    
+    const template = `You are a helpful AI assistant for Gaming Gear Shop. Respond to the human as helpfully and accurately as possible. You have access to the following tools:
+
+{tools}
+
+Use a json blob to specify a tool by providing an action key (tool name) and an action_input key (tool input).
+
+Valid "action" values: "Final Answer" or {tool_names}
+
+Provide only ONE action per $JSON_BLOB, as shown:
+
+\`\`\`
+{{
+  "action": $TOOL_NAME,
+  "action_input": $INPUT
+}}
+\`\`\`
+
+Follow this format:
+
+Question: input question to answer
+Thought: consider previous and subsequent steps
+Action:
+\`\`\`
+$JSON_BLOB
+\`\`\`
+Observation: action result
+... (repeat Thought/Action/Observation N times)
+Thought: I know what to respond
+Action:
+\`\`\`
+{{
+  "action": "Final Answer",
+  "action_input": "Final response to human"
+}}
+\`\`\`
+
+CRITICAL TASK COMPLETION RULES:
+1. If ANY tool output contains [TASK_COMPLETED: ...] or [ACTION_SUCCESS], you MUST IMMEDIATELY stop processing and provide a Final Answer.
+2. These markers indicate the task is successfully completed - extract ONLY the meaningful user-facing content from the tool output.
+3. NEVER include the markers [TASK_COMPLETED: ...] or [ACTION_SUCCESS] in your Final Answer.
+4. NEVER call additional tools after seeing a completion marker.
+5. When you see a completion marker, take the useful content before the marker and provide it as your complete Final Answer.
+
+RESPONSE GUIDELINES:
+- Always respond in Vietnamese
+- Be helpful, friendly, and concise
+- Use appropriate emojis when relevant
+- Focus on the user's request and provide the most relevant information
+
+Begin!
+
+Question: {input}
+Thought: {agent_scratchpad}`;
+
+    return ChatPromptTemplate.fromTemplate(template);
   }
 
   /**

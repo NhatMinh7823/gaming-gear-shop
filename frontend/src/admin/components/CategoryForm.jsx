@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { ADMIN_CATEGORY } from '../../utils/toastMessages';
 
 const CategoryForm = ({ category, onSave }) => {
   const { id } = useParams();
@@ -62,11 +63,11 @@ const CategoryForm = ({ category, onSave }) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('Image size must be less than 5MB');
+        toast.error(ADMIN_CATEGORY.IMAGE_SIZE_ERROR);
         return;
       }
       if (!file.type.startsWith('image/')) {
-        toast.error('Please upload an image file');
+        toast.error(ADMIN_CATEGORY.IMAGE_TYPE_ERROR);
         return;
       }
       setFormData({ ...formData, image: file });
@@ -128,11 +129,11 @@ const CategoryForm = ({ category, onSave }) => {
     try {
       setLoading(true);
       await onSave(data);
-      toast.success(`Category successfully ${id ? 'updated' : 'created'}!`);
+      toast.success(ADMIN_CATEGORY.SAVE_SUCCESS);
       setIsDirty(false);
       navigate('/admin/categories');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save category');
+      toast.error(error.response?.data?.message || ADMIN_CATEGORY.SAVE_ERROR);
     } finally {
       setLoading(false);
     }

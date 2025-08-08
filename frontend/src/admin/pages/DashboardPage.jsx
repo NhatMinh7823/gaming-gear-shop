@@ -463,9 +463,9 @@ label: 'Đơn hàng',
         <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <h2 className="text-xl font-semibold text-gray-700">Sales Overview</h2>
-              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium capitalize">
-                {selectedPeriod}
+              <h2 className="text-xl font-semibold text-gray-700">Tổng quan bán hàng</h2>
+              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                {selectedPeriod === 'monthly' ? 'Theo tháng' : selectedPeriod === 'weekly' ? 'Theo tuần' : 'Theo năm'}
               </span>
             </div>
             <div className="flex gap-2">
@@ -475,34 +475,18 @@ label: 'Đơn hàng',
                 onChange={(e) => handlePeriodChange(e.target.value)}
                 disabled={loadingSalesData}
               >
-<option value="monthly">Tháng</option>
-<option value="weekly">Tuần</option>
-<option value="yearly">Năm</option>
+<option value="monthly">Theo tháng</option>
+<option value="weekly">Theo tuần</option>
+<option value="yearly">Theo năm</option>
               </select>
-              <button
-                className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={loadingSalesData || salesData.length === 0}
-                onClick={() => {
-                  // Export functionality
-                  const dataStr = JSON.stringify(salesData, null, 2);
-                  const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                  const url = URL.createObjectURL(dataBlob);
-                  const link = document.createElement('a');
-                  link.href = url;
-                  link.download = `sales-data-${selectedPeriod}-${new Date().toISOString().split('T')[0]}.json`;
-                  link.click();
-                  URL.revokeObjectURL(url);
-                }}
-              >
-Xuất dữ liệu
-              </button>
+
             </div>
           </div>
           {loadingSalesData ? (
             <div className="h-64 bg-gray-200 rounded-md flex items-center justify-center animate-pulse">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-<p className="text-gray-500">Đang tải dữ liệu doanh số {selectedPeriod}...</p>
+<p className="text-gray-500">Đang tải dữ liệu doanh số {selectedPeriod === 'monthly' ? 'theo tháng' : selectedPeriod === 'weekly' ? 'theo tuần' : 'theo năm'}...</p>
               </div>
             </div>
           ) : salesData.length > 0 ? (
@@ -515,7 +499,7 @@ Xuất dữ liệu
                 <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-<p className="text-gray-500">Không có dữ liệu doanh số {selectedPeriod}.</p>
+<p className="text-gray-500">Không có dữ liệu doanh số {selectedPeriod === 'monthly' ? 'theo tháng' : selectedPeriod === 'weekly' ? 'theo tuần' : 'theo năm'}.</p>
               </div>
             </div>
           )}

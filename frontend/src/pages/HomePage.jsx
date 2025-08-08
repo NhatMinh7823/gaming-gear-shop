@@ -14,6 +14,7 @@ import {
 } from "../services/api";
 import { FaStar, FaRegStar, FaShoppingCart, FaHeart, FaEye, FaRegHeart } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { AUTH, PROFILE, NEWSLETTER, CART, WISHLIST, formatToastMessage } from '../utils/toastMessages';
 import { setCart } from '../redux/slices/cartSlice';
 import { updateWishlist } from '../redux/slices/userSlice';
 import { setWishlist } from '../redux/slices/wishlistSlice';
@@ -137,7 +138,7 @@ const HomePage = () => {
 
     // Check if user is logged in
     if (!userInfo) {
-      toast.info("Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích");
+      toast.info(AUTH.PLEASE_LOGIN);
       navigate('/login');
       return;
     }
@@ -153,7 +154,7 @@ const HomePage = () => {
         const updatedWishlistIds = wishlistItems.filter(id => id !== product._id);
         dispatch(updateWishlist(updatedWishlistIds));
         dispatch(setWishlist(updatedWishlistIds));
-        toast.success(`Đã xóa ${product.name} khỏi danh sách yêu thích`);
+        toast.success(WISHLIST.REMOVED_SUCCESS);
       } else {
         // Add to wishlist
         const response = await addToWishlist(product._id);
@@ -161,7 +162,7 @@ const HomePage = () => {
           const wishlistIds = response.data.wishlist;
           dispatch(updateWishlist(wishlistIds));
           dispatch(setWishlist(wishlistIds));
-          toast.success(`Đã thêm ${product.name} vào danh sách yêu thích`);
+          toast.success(WISHLIST.ADDED_SUCCESS);
         }
       }
 
@@ -170,7 +171,7 @@ const HomePage = () => {
       // Refresh wishlist to update the UI with latest data
       await refreshWishlist(true);
     } catch (error) {
-      toast.error('Không thể cập nhật danh sách yêu thích');
+      toast.error(WISHLIST.UPDATE_ERROR);
       console.error('Wishlist error:', error);
     } finally {
       setLoadingWishlistIds(prev => prev.filter(id => id !== product._id));
@@ -180,14 +181,14 @@ const HomePage = () => {
     e.preventDefault();
 
     if (!subscribeEmail) {
-      toast.error('Vui lòng nhập email của bạn');
+      toast.error(PROFILE.EMAIL_REQUIRED);
       return;
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(subscribeEmail)) {
-      toast.error('Vui lòng nhập một địa chỉ email hợp lệ');
+      toast.error(PROFILE.EMAIL_INVALID);
       return;
     }
 
@@ -197,18 +198,18 @@ const HomePage = () => {
       if (!userInfo) {
         // Lưu email vào localStorage để điền vào form đăng ký
         localStorage.setItem('specialOfferEmail', subscribeEmail);
-        toast.success('Vui lòng đăng ký để nhận mã giảm giá 30% cho đơn hàng đầu tiên');
+        toast.success(NEWSLETTER.SIGNUP_SUCCESS);
         navigate('/register');
       } else {
         // Nếu đã đăng nhập, tạo coupon mới
         const response = await generateCoupon();
         if (response.data.success) {
-          toast.success('Đã tạo mã giảm giá 30% cho đơn hàng đầu tiên của bạn!');
+          toast.success(NEWSLETTER.COUPON_CREATED);
           navigate('/profile');
         }
       }
     } catch (error) {
-      toast.error('Không thể đăng ký lúc này. Vui lòng thử lại sau!');
+      toast.error(NEWSLETTER.SIGNUP_ERROR);
       console.error('Subscription error:', error);
     } finally {
       setIsSubscribing(false);
@@ -484,9 +485,9 @@ const HomePage = () => {
                               });
 
                               dispatch(setCart(data.cart));
-                              toast.success('Đã thêm sản phẩm vào giỏ hàng');
+                              toast.success(CART.ADDED_SUCCESS);
                             } catch (error) {
-                              toast.error('Không thể thêm vào giỏ hàng');
+                              toast.error(CART.ADDED_ERROR);
                             } finally {
                               setLoadingProductIds(prev => prev.filter(id => id !== product._id));
                             }

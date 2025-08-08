@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AddressSelector from '../Address/AddressSelector';
 import { formatAddress } from '../../utils/shippingCalculator';
 import { toast } from 'react-toastify';
+import { ADDRESS } from '../../utils/toastMessages';
 import { getUserAddress, updateUserAddress } from '../../services/api';
 
 const AddressManagement = ({ userInfo }) => {
@@ -24,7 +25,7 @@ const AddressManagement = ({ userInfo }) => {
       }
     } catch (error) {
       console.error('Error loading address:', error);
-      toast.error('Không thể tải địa chỉ');
+      toast.error(ADDRESS.LOAD_ERROR);
     } finally {
       setIsLoading(false);
     }
@@ -32,12 +33,12 @@ const AddressManagement = ({ userInfo }) => {
 
   const handleSaveAddress = async () => {
     if (!address.province?.id || !address.district?.id || !address.ward?.code) {
-      toast.error('Vui lòng chọn đầy đủ tỉnh/thành, quận/huyện, phường/xã');
+      toast.error(ADDRESS.LOCATION_REQUIRED);
       return;
     }
 
     if (!address.street?.trim()) {
-      toast.error('Vui lòng nhập địa chỉ chi tiết');
+      toast.error(ADDRESS.DETAIL_REQUIRED);
       return;
     }
 
@@ -52,12 +53,12 @@ const AddressManagement = ({ userInfo }) => {
       });
 
       if (response.data.success) {
-        toast.success('Cập nhật địa chỉ thành công');
+        toast.success(ADDRESS.UPDATE_SUCCESS);
         setIsEditing(false);
         loadUserAddress();
       }
     } catch (error) {
-      toast.error('Lỗi khi cập nhật địa chỉ');
+      toast.error(ADDRESS.UPDATE_ERROR);
       console.error('Error saving address:', error);
     } finally {
       setIsSaving(false);

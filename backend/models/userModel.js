@@ -33,46 +33,52 @@ const userSchema = new mongoose.Schema({
   address: {
     street: {
       type: String,
-      trim: true
+      trim: true,
     },
     ward: {
       code: {
         type: String,
-        required: function() { return !!this.address.ward.name; }
+        required: function () {
+          return !!this.address.ward.name;
+        },
       },
       name: {
         type: String,
-        trim: true
-      }
+        trim: true,
+      },
     },
     district: {
       id: {
         type: Number,
-        required: function() { return !!this.address.district.name; }
+        required: function () {
+          return !!this.address.district.name;
+        },
       },
       name: {
         type: String,
-        trim: true
-      }
+        trim: true,
+      },
     },
     province: {
       id: {
         type: Number,
-        required: function() { return !!this.address.province.name; }
+        required: function () {
+          return !!this.address.province.name;
+        },
       },
       name: {
         type: String,
-        trim: true
-      }
+        trim: true,
+      },
     },
     isDefault: {
       type: Boolean,
-      default: true
+      default: true,
     },
     isComplete: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   wishlist: [
     {
@@ -112,29 +118,39 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  
+
+  // Password reset fields
+  resetPasswordToken: {
+    type: String,
+    default: null,
+  },
+  resetPasswordExpire: {
+    type: Date,
+    default: null,
+  },
+
   // Chatbot preferences for order management
   chatbotPreferences: {
     hasSeenOnboarding: {
       type: Boolean,
-      default: false
+      default: false,
     },
     preferredPaymentMethod: {
       type: String,
-      enum: ['COD', 'VNPay'],
-      default: "VNPay"
+      enum: ["COD", "VNPay"],
+      default: "VNPay",
     },
     defaultShippingAddress: {
       type: String,
-      default: null
+      default: null,
     },
     orderNotificationSettings: {
       chatbotUpdates: {
         type: Boolean,
-        default: true
-      }
-    }
-  }
+        default: true,
+      },
+    },
+  },
 });
 
 // Encrypt password using bcrypt
@@ -157,6 +173,22 @@ userSchema.methods.getSignedJwtToken = function () {
 // Match user entered password to hashed password in database
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Generate and hash password reset token
+userSchema.methods.getResetPasswordToken = function () {
+  // Generate token
+  const resetToken =
+    Math.random().toString(36).substring(2, 15) +
+    Math.random().toString(36).substring(2, 15);
+
+  // Hash token and set to resetPasswordToken field
+  this.resetPasswordToken = resetToken;
+
+  // Set expire time (10 minutes)
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 module.exports = mongoose.model("User", userSchema);

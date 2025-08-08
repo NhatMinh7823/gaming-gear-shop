@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { AUTH } from '../utils/toastMessages';
 import { register } from '../services/api';
 import { setCredentials } from '../redux/slices/userSlice';
 import { FaUser, FaEnvelope, FaLock, FaUserPlus } from 'react-icons/fa';
@@ -10,6 +11,7 @@ function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [fromSpecialOffer, setFromSpecialOffer] = useState(false);
   const dispatch = useDispatch();
@@ -33,7 +35,12 @@ function RegisterPage() {
     e.preventDefault();
 
     if (password.length < 6) {
-      toast.error('Mật khẩu phải có ít nhất 6 ký tự');
+      toast.error(AUTH.PASSWORD_MIN_LENGTH);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error(AUTH.PASSWORD_MISMATCH);
       return;
     }
 
@@ -53,16 +60,16 @@ function RegisterPage() {
       if (fromSpecialOffer) {
         localStorage.removeItem('specialOfferEmail');
         navigate('/profile');
-        toast.success('Đăng ký thành công! Bạn đã nhận được mã giảm giá 30% cho đơn hàng đầu tiên.');
+        toast.success(AUTH.REGISTER_SUCCESS_WITH_COUPON);
       } else {
         navigate('/');
-        toast.success('Đăng ký thành công!');
+        toast.success(AUTH.REGISTER_SUCCESS);
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Đăng ký thất bại! Vui lòng thử lại.';
 
       if (errorMessage.includes('already exists')) {
-        toast.error('Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.');
+        toast.error(AUTH.EMAIL_ALREADY_EXISTS);
       } else {
         toast.error(errorMessage);
       }
@@ -162,8 +169,8 @@ function RegisterPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg 
-                           bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 
+                  className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg
+                           bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500
                            focus:border-transparent shadow-sm"
                   placeholder="Create a strong password"
                   required
@@ -171,6 +178,30 @@ function RegisterPage() {
               </div>
               <p className="mt-1 text-xs text-gray-400">
                 Mật khẩu phải có ít nhất 6 ký tự
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Xác nhận mật khẩu
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaLock className="h-5 w-5 text-gray-500" />
+                </div>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg
+                           bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500
+                           focus:border-transparent shadow-sm"
+                  placeholder="Confirm your password"
+                  required
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-400">
+                Nhập lại mật khẩu để xác nhận
               </p>
             </div>
 
