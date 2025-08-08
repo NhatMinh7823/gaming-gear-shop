@@ -1,0 +1,2751 @@
+[
+  {
+    "_id": "6826a6ade2250e6613f42bdf",
+    "name": "Logitech G Pro X Mechanical Gaming Keyboard",
+    "description": "Bàn phím chơi game cấp chuyên nghiệp với các công tắc có thể trao đổi, ánh sáng RGB và thiết kế tenkeyless nhỏ gọn để chơi game cạnh tranh.",
+    "price": 1918688,
+    "discountPrice": 1796188,
+    "category": "6826a6ade2250e6613f42bd8",
+    "brand": "Logitech",
+    "stock": 20,
+    "sold": 55,
+    "images": [
+      {
+        "public_id": "images-1751264739230.webp",
+        "url": "/uploads/images/products/images-1751264739230.webp",
+        "_id": "68622de349e4f6781d6ebe7f"
+      }
+    ],
+    "specifications": {
+      "type": "Cơ học",
+      "switches": "GX Blue Clicky",
+      "connectivity": "Dây USB",
+      "backlight": "RGB",
+      "layout": "Tenkeyless"
+    },
+    "features": [
+      "Công tắc có thể hoán đổi",
+      "Ánh sáng RGB tùy chỉnh",
+      "Có thể lập trình phím",
+      "Cáp có thể tháo rời"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.7,
+    "numReviews": 150,
+    "createdAt": "2025-05-16T02:45:01.014Z",
+    "updatedAt": "2025-07-13T04:43:17.378Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "6826a6ade2250e6613f42be2",
+    "name": "Razer DeathAdder V3 Pro Gaming Mouse",
+    "description": "Chuột gaming không dây siêu nhẹ với cảm biến quang DPI 30K để theo dõi chính xác và nhấp chuột phản hồi.",
+    "price": 9186887,
+    "discountPrice": 7961887,
+    "category": "6826a6ade2250e6613f42bd9",
+    "brand": "Razer",
+    "stock": 19,
+    "sold": 51,
+    "images": [
+      {
+        "public_id": "images-1748321431028.png",
+        "url": "http://localhost:5000/uploads/images/products/images-1748321431028.png",
+        "_id": "68354497cdb336b597050411"
+      }
+    ],
+    "specifications": {
+      "sensor": "Focus Pro 30K Optical",
+      "connectivity": "Wireless 2.4GHz",
+      "weight": "82g",
+      "battery": "Up to 280 hours",
+      "dpi": "Up to 30,000"
+    },
+    "features": [
+      "Thiết kế siêu nhẹ",
+      "Thời lượng pin dài",
+      "Công nghệ Razer HyperSpeed không dây",
+      "5 nút lập trình"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.5,
+    "numReviews": 2,
+    "createdAt": "2025-05-16T02:45:01.015Z",
+    "updatedAt": "2025-06-22T05:02:50.564Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "6826a6ade2250e6613f42be5",
+    "name": "SteelSeries Arctis Nova Pro Wireless Gaming Headset",
+    "description": "Tai nghe chơi game không dây cao cấp với khử tiếng ồn tích cực, pin có thể ho hoán động và chất lượng âm thanh nhập vai.",
+    "price": 2143688,
+    "discountPrice": 1837438,
+    "category": "6826a6ade2250e6613f42bda",
+    "brand": "SteelSeries",
+    "stock": 17,
+    "sold": 33,
+    "images": [
+      {
+        "public_id": "images-1748317607621.webp",
+        "url": "http://localhost:5000/uploads/images/products/images-1748317607621.webp",
+        "_id": "683535a7cdb336b59704fa0c"
+      }
+    ],
+    "specifications": {
+      "type": "Over-ear",
+      "connectivity": "Wireless 2.4GHz/Bluetooth",
+      "microphone": "Noise-canceling broadcast-quality",
+      "battery": "Up to 20 hours",
+      "frequency": "10-23,000 Hz"
+    },
+    "features": [
+      "Khử tiếng ồn chủ động",
+      "Hệ thống pin hoán đổi nhanh",
+      "Khả năng tương thích nhiều hệ thống",
+      "Khả năng loa với độ sắc nét âm thanh cao cấp"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.6,
+    "numReviews": 85,
+    "createdAt": "2025-05-16T02:45:01.016Z",
+    "updatedAt": "2025-06-20T11:25:14.533Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "6826a6ade2250e6613f42be8",
+    "name": "ASUS ROG Swift 360Hz PG259QN Gaming Monitor",
+    "description": "Màn hình chơi game cực kỳ nhanh 24,5 inch với tốc độ làm mới 360Hz, thời gian phản hồi 1ms và NVIDIA G-Sync để chơi game cạnh tranh.",
+    "price": 42874387,
+    "discountPrice": 26749387,
+    "category": "6826a6ade2250e6613f42bdb",
+    "brand": "ASUS",
+    "stock": 15,
+    "sold": 25,
+    "images": [
+      {
+        "public_id": "images-1748321665839.webp",
+        "url": "http://localhost:5000/uploads/images/products/images-1748321665839.webp",
+        "_id": "68354581cdb336b5970506c5"
+      }
+    ],
+    "specifications": {
+      "size": "23.5\"",
+      "resolution": "1920 x 1080 (Full HD)",
+      "refresh_rate": "360Hz",
+      "response_time": "1ms GTG",
+      "panel": "Fast IPS"
+    },
+    "features": [
+      "Công nghệ NVIDIA G-SYNC ",
+      "Tần số quét Ultra-fast 360Hz ",
+      "Công nghệ ASUS Eye Care ",
+      "Đế công thái học với độ nghiêng, xoay, xoay vòng và điều chỉnh chiều cao"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.5,
+    "numReviews": 70,
+    "createdAt": "2025-05-16T02:45:01.016Z",
+    "updatedAt": "2025-05-24T03:00:40.579Z",
+    "__v": 0
+  },
+  {
+    "_id": "6826a6ade2250e6613f42beb",
+    "name": "MSI Raider GE76 Gaming Laptop",
+    "description": "Máy tính xách tay chơi game mạnh mẽ với bộ xử lý Intel Core i9, NVIDIA RTX 3080 TI và hệ thống làm mát tiên tiến để thực hiện trò chơi đỉnh cao.",
+    "price": 25000000,
+    "discountPrice": 19599936,
+    "category": "6826a6ade2250e6613f42bdc",
+    "brand": "MSI",
+    "stock": 110,
+    "sold": 29,
+    "images": [
+      {
+        "public_id": "images-1748316205022.jpg",
+        "url": "http://localhost:5000/uploads/images/products/images-1748316205022.jpg",
+        "_id": "6835302dcdb336b59704f0af"
+      }
+    ],
+    "specifications": {
+      "Bộ xử lý": "Intel Core i9-12900HK",
+      "Đồ họa": "NVIDIA GeForce RTX 3080 Ti 16GB GDDR6",
+      "Bộ nhớ": "32GB DDR5",
+      "Lưu trữ": "2TB NVMe SSD",
+      "Màn hình": "17.3\" QHD 240Hz"
+    },
+    "features": [
+      "Công nghệ MSI Cooler Boost 5",
+      "Per-key RGB SteelSeries keyboard",
+      "Hệ thống âm thanh Dynaudio",
+      "Kết nối Thunderbolt 4"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4,
+    "numReviews": 1,
+    "createdAt": "2025-05-16T02:45:01.017Z",
+    "updatedAt": "2025-05-24T05:01:58.500Z",
+    "__v": 0
+  },
+  {
+    "_id": "6826a6ade2250e6613f42bee",
+    "name": "NZXT H510 Elite Premium Mid-Tower PC Gaming Case",
+    "description": "Vỏ game thủy tinh với ánh sáng RGB, quản lý cáp tuyệt vời và luồng không khí được tối ưu hóa cho các bản dựng PC hiệu suất cao.",
+    "price": 91868875,
+    "discountPrice": 79618875,
+    "category": "6826a6ade2250e6613f42bdd",
+    "brand": "NZXT",
+    "stock": 28,
+    "sold": 29,
+    "images": [
+      {
+        "public_id": "images-1748317244825.webp",
+        "url": "http://localhost:5000/uploads/images/products/images-1748317244825.webp",
+        "_id": "6835343ccdb336b59704f787"
+      }
+    ],
+    "specifications": {
+      "type": "Mid-Tower",
+      "material": "Steel, Tempered Glass",
+      "motherboards": "Mini-ITX, MicroATX, ATX",
+      "dimensions": "210mm x 460mm x 428mm",
+      "weight": "7.5kg"
+    },
+    "features": [
+      "Tấm thủy tinh kép",
+      "Ánh sáng RGB tích hợp sẵn",
+      "Vertical GPU mount",
+      "Hệ thống quản lý cáp"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.6,
+    "numReviews": 110,
+    "createdAt": "2025-05-16T02:45:01.017Z",
+    "updatedAt": "2025-05-24T04:56:59.139Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346197dd5aaf2f8f0f3dd9",
+    "name": "Razer BlackWidow V4 Pro",
+    "description": "Bàn phím cơ cao cấp với công tắc Razer Green, đèn RGB từng phím và đệm cổ tay từ tính.",
+    "price": 5749750,
+    "discountPrice": 4999750,
+    "category": "6826a6ade2250e6613f42bd8",
+    "brand": "Razer",
+    "stock": 58,
+    "sold": 12,
+    "images": [
+      {
+        "public_id": "images-1748311971496.png",
+        "url": "/uploads/images/products/images-1748311971496.png",
+        "_id": "68351fa3cdb336b59704dba2"
+      }
+    ],
+    "specifications": {
+      "type": "Mechanical",
+      "switches": "Razer Green",
+      "connectivity": "Wired USB-C",
+      "backlight": "Razer Chroma RGB",
+      "layout": "Full-size"
+    },
+    "features": [
+      "Đèn RGB từng phím",
+      "Đệm cổ tay từ tính",
+      "Macro lập trình được",
+      "Cổng USB xuyên qua"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.8,
+    "numReviews": 80,
+    "createdAt": "2025-05-26T12:41:59.643Z",
+    "updatedAt": "2025-05-26T12:41:59.643Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346197dd5aaf2f8f0f3ddc",
+    "name": "Corsair K100 RGB Optical",
+    "description": "Bàn phím cơ quang học hiệu suất cao với công tắc Corsair OPX và đèn RGB động.",
+    "price": 6249750,
+    "discountPrice": 5499750,
+    "category": "6826a6ade2250e6613f42bd8",
+    "brand": "Corsair",
+    "stock": 50,
+    "sold": 15,
+    "images": [
+      {
+        "public_id": "images-1748266070326.jpg",
+        "url": "/uploads/images/products/images-1748266070326.jpg",
+        "_id": "68346c560776baeab257c379"
+      }
+    ],
+    "specifications": {
+      "type": "Optical-Mechanical",
+      "switches": "Corsair OPX",
+      "connectivity": "Wired USB",
+      "backlight": "RGB",
+      "layout": "Full-size"
+    },
+    "features": [
+      "Tần số quét 4000Hz",
+      "Đèn RGB tùy chỉnh",
+      "Phím media chuyên dụng",
+      "Khung nhôm"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.7,
+    "numReviews": 90,
+    "createdAt": "2025-05-26T12:41:59.644Z",
+    "updatedAt": "2025-05-26T12:41:59.644Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346197dd5aaf2f8f0f3ddf",
+    "name": "SteelSeries Apex Pro TKL",
+    "description": "Bàn phím tenkeyless gọn nhẹ với công tắc OmniPoint 2.0 điều chỉnh được.",
+    "price": 4749750,
+    "discountPrice": 4249750,
+    "category": "6826a6ade2250e6613f42bd8",
+    "brand": "SteelSeries",
+    "stock": 41,
+    "sold": 24,
+    "images": [
+      {
+        "public_id": "images-1748312138667.webp",
+        "url": "/uploads/images/products/images-1748312138667.webp",
+        "_id": "6835204acdb336b59704dea5"
+      }
+    ],
+    "specifications": {
+      "type": "Mechanical",
+      "switches": "OmniPoint 2.0 Adjustable",
+      "connectivity": "Wired USB",
+      "backlight": "RGB",
+      "layout": "Tenkeyless"
+    },
+    "features": [
+      "Điều chỉnh điểm kích hoạt",
+      "Màn hình OLED thông minh",
+      "Khung nhôm cấp hàng không",
+      "Đèn RGB từng phím"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.6,
+    "numReviews": 70,
+    "createdAt": "2025-05-26T12:41:59.645Z",
+    "updatedAt": "2025-06-27T12:41:59.828Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346197dd5aaf2f8f0f3de2",
+    "name": "HyperX Alloy Origins 60",
+    "description": "Bàn phím cơ 60% nhỏ gọn với công tắc HyperX Red và khung nhôm bền.",
+    "price": 2499750,
+    "discountPrice": 2249750,
+    "category": "6826a6ade2250e6613f42bd8",
+    "brand": "HyperX",
+    "stock": 70,
+    "sold": 25,
+    "images": [
+      {
+        "public_id": "images-1748266286134.jpg",
+        "url": "/uploads/images/products/images-1748266286134.jpg",
+        "_id": "68346d2e0776baeab257c436"
+      }
+    ],
+    "specifications": {
+      "type": "Mechanical",
+      "switches": "HyperX Red",
+      "connectivity": "Wired USB-C",
+      "backlight": "RGB",
+      "layout": "60%"
+    },
+    "features": [
+      "Bố cục 60% nhỏ gọn",
+      "Đèn RGB tùy chỉnh",
+      "Cáp tháo rời",
+      "Khung nhôm bền"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.5,
+    "numReviews": 100,
+    "createdAt": "2025-05-26T12:41:59.645Z",
+    "updatedAt": "2025-05-26T12:41:59.645Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346197dd5aaf2f8f0f3de5",
+    "name": "Ducky One 3 SF",
+    "description": "Bàn phím 65% nhỏ gọn với công tắc Cherry MX và keycap PBT cao cấp.",
+    "price": 3249750,
+    "discountPrice": 2999750,
+    "category": "6826a6ade2250e6613f42bd8",
+    "brand": "Ducky",
+    "stock": 55,
+    "sold": 18,
+    "images": [
+      {
+        "public_id": "images-1748266189579.jpg",
+        "url": "/uploads/images/products/images-1748266189579.jpg",
+        "_id": "68346ccd0776baeab257c3d8"
+      }
+    ],
+    "specifications": {
+      "type": "Mechanical",
+      "switches": "Cherry MX Brown",
+      "connectivity": "Wired USB-C",
+      "backlight": "RGB",
+      "layout": "65%"
+    },
+    "features": [
+      "Keycap PBT",
+      "Đèn RGB tùy chỉnh",
+      "Bố cục 65% nhỏ gọn",
+      "Công tắc thay nóng"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.7,
+    "numReviews": 65,
+    "createdAt": "2025-05-26T12:41:59.646Z",
+    "updatedAt": "2025-05-26T12:41:59.646Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346197dd5aaf2f8f0f3de8",
+    "name": "Keychron K8 Pro",
+    "description": "Bàn phím cơ không dây với công tắc Gateron thay nóng, tương thích macOS/Windows.",
+    "price": 2749750,
+    "discountPrice": 2499750,
+    "category": "6826a6ade2250e6613f42bd8",
+    "brand": "Keychron",
+    "stock": 65,
+    "sold": 22,
+    "images": [
+      {
+        "public_id": "images-1748266368543.jpg",
+        "url": "/uploads/images/products/images-1748266368543.jpg",
+        "_id": "68346d800776baeab257c493"
+      }
+    ],
+    "specifications": {
+      "type": "Mechanical",
+      "switches": "Gateron Red",
+      "connectivity": "Wireless Bluetooth/USB-C",
+      "backlight": "RGB",
+      "layout": "Tenkeyless"
+    },
+    "features": [
+      "Công tắc thay nóng",
+      "Bluetooth 5.1",
+      "Tương thích macOS/Windows",
+      "Đèn RGB tùy chỉnh"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.6,
+    "numReviews": 85,
+    "createdAt": "2025-05-26T12:41:59.646Z",
+    "updatedAt": "2025-05-26T12:41:59.646Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346197dd5aaf2f8f0f3deb",
+    "name": "Logitech G915 TKL",
+    "description": "Bàn phím cơ không dây mỏng với công tắc GL Tactile và công nghệ Lightspeed.",
+    "price": 5749750,
+    "discountPrice": 4999750,
+    "category": "6826a6ade2250e6613f42bd8",
+    "brand": "Logitech",
+    "stock": 37,
+    "sold": 15,
+    "images": [
+      {
+        "public_id": "images-1748311720346.jpg",
+        "url": "/uploads/images/products/images-1748311720346.jpg",
+        "_id": "68351ea8cdb336b59704da99"
+      }
+    ],
+    "specifications": {
+      "type": "Mechanical",
+      "switches": "GL Tactile",
+      "connectivity": "Wireless Lightspeed/Bluetooth",
+      "backlight": "RGB",
+      "layout": "Tenkeyless"
+    },
+    "features": [
+      "Thiết kế mỏng",
+      "Không dây Lightspeed",
+      "Thời lượng pin 30 giờ",
+      "Đèn RGB từng phím"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.8,
+    "numReviews": 95,
+    "createdAt": "2025-05-26T12:41:59.646Z",
+    "updatedAt": "2025-06-16T05:14:10.561Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346197dd5aaf2f8f0f3dee",
+    "name": "Anne Pro 2",
+    "description": "Bàn phím cơ không dây 60% với công tắc Gateron Blue và đèn RGB tùy chỉnh.",
+    "price": 2249750,
+    "discountPrice": 1999750,
+    "category": "6826a6ade2250e6613f42bd8",
+    "brand": "Anne",
+    "stock": 79,
+    "sold": 31,
+    "images": [
+      {
+        "public_id": "images-1748266004716.jpg",
+        "url": "/uploads/images/products/images-1748266004716.jpg",
+        "_id": "68346c140776baeab257c319"
+      }
+    ],
+    "specifications": {
+      "type": "Mechanical",
+      "switches": "Gateron Blue",
+      "connectivity": "Wireless Bluetooth/USB-C",
+      "backlight": "RGB",
+      "layout": "60%"
+    },
+    "features": [
+      "Bố cục 60% nhỏ gọn",
+      "Bluetooth 4.0",
+      "Đèn RGB tùy chỉnh",
+      "Phím lập trình được"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.5,
+    "numReviews": 120,
+    "createdAt": "2025-05-26T12:41:59.647Z",
+    "updatedAt": "2025-06-07T03:33:00.722Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346197dd5aaf2f8f0f3df1",
+    "name": "Wooting 60HE",
+    "description": "Bàn phím 60% hiệu suất cao với công tắc Lekker analog và công nghệ kích hoạt nhanh.",
+    "price": 4499750,
+    "discountPrice": 3999750,
+    "category": "6826a6ade2250e6613f42bd8",
+    "brand": "Wooting",
+    "stock": 34,
+    "sold": 9,
+    "images": [
+      {
+        "public_id": "images-1748312538345.png",
+        "url": "/uploads/images/products/images-1748312538345.png",
+        "_id": "683521dacdb336b59704e448"
+      }
+    ],
+    "specifications": {
+      "type": "Mechanical",
+      "switches": "Lekker Analog",
+      "connectivity": "Wired USB-C",
+      "backlight": "RGB",
+      "layout": "60%"
+    },
+    "features": [
+      "Đầu vào analog",
+      "Công nghệ kích hoạt nhanh",
+      "Đèn RGB tùy chỉnh",
+      "Công tắc thay nóng"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.9,
+    "numReviews": 50,
+    "createdAt": "2025-05-26T12:41:59.647Z",
+    "updatedAt": "2025-06-16T05:14:10.557Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346197dd5aaf2f8f0f3df4",
+    "name": "Varmilo VA87M",
+    "description": "Bàn phím tenkeyless cao cấp với công tắc Cherry MX Silent Red và keycap thủ công.",
+    "price": 3749750,
+    "discountPrice": 3499750,
+    "category": "6826a6ade2250e6613f42bd8",
+    "brand": "Varmilo",
+    "stock": 49,
+    "sold": 16,
+    "images": [
+      {
+        "public_id": "images-1748312472724.jpg",
+        "url": "/uploads/images/products/images-1748312472724.jpg",
+        "_id": "68352198cdb336b59704e3eb"
+      }
+    ],
+    "specifications": {
+      "type": "Mechanical",
+      "switches": "Cherry MX Silent Red",
+      "connectivity": "Wired USB-C",
+      "backlight": "White LED",
+      "layout": "Tenkeyless"
+    },
+    "features": [
+      "Keycap thủ công",
+      "Công tắc yên lặng",
+      "Keycap PBT",
+      "Bố cục tùy chỉnh"
+    ],
+    "isFeatured": false,
+    "isNewArrival": false,
+    "averageRating": 4.7,
+    "numReviews": 75,
+    "createdAt": "2025-05-26T12:41:59.647Z",
+    "updatedAt": "2025-05-26T12:41:59.647Z",
+    "__v": 0
+  },
+  {
+    "_id": "6834635052a6687e2905ddd6",
+    "name": "ASUS ROG Zephyrus G16",
+    "description": "Laptop chơi game mỏng nhẹ với AMD Ryzen 9 và NVIDIA RTX 4070 cho hiệu suất cao.",
+    "price": 49999750,
+    "discountPrice": 44999750,
+    "category": "6826a6ade2250e6613f42bdc",
+    "brand": "ASUS",
+    "stock": 30,
+    "sold": 10,
+    "images": [
+      {
+        "public_id": "images-1748313315445.png",
+        "url": "/uploads/images/products/images-1748313315445.png",
+        "_id": "683524e3cdb336b59704e9d4"
+      }
+    ],
+    "specifications": {
+      "processor": "AMD Ryzen 9 7945HX",
+      "graphics": "NVIDIA GeForce RTX 4070 8GB",
+      "memory": "16GB DDR5",
+      "storage": "1TB NVMe SSD",
+      "display": "16\" QHD+ 240Hz"
+    },
+    "features": [
+      "Màn hình ROG Nebula HDR",
+      "Hệ thống làm mát tiên tiến",
+      "Bàn phím RGB từng phím",
+      "Cổng Thunderbolt 4"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.8,
+    "numReviews": 60,
+    "createdAt": "2025-05-26T12:49:20.939Z",
+    "updatedAt": "2025-05-26T12:49:20.939Z",
+    "__v": 0
+  },
+  {
+    "_id": "6834635052a6687e2905ddd9",
+    "name": "Lenovo Legion Pro 7i",
+    "description": "Laptop chơi game mạnh mẽ với Intel Core i9 và RTX 4080 cho trải nghiệm đắm chìm.",
+    "price": 67499750,
+    "discountPrice": 62499750,
+    "category": "6826a6ade2250e6613f42bdc",
+    "brand": "Lenovo",
+    "stock": 25,
+    "sold": 8,
+    "images": [
+      {
+        "public_id": "images-1748315865970.png",
+        "url": "/uploads/images/products/images-1748315865970.png",
+        "_id": "68352ed9cdb336b59704eed8"
+      }
+    ],
+    "specifications": {
+      "processor": "Intel Core i9-13900HX",
+      "graphics": "NVIDIA GeForce RTX 4080 12GB",
+      "memory": "32GB DDR5",
+      "storage": "1TB NVMe SSD",
+      "display": "16\" WQXGA 165Hz"
+    },
+    "features": [
+      "Chip AI Lenovo LA",
+      "Làm mát buồng hơi",
+      "Bàn phím RGB",
+      "Âm thanh Nahimic"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.7,
+    "numReviews": 75,
+    "createdAt": "2025-05-26T12:49:20.940Z",
+    "updatedAt": "2025-05-26T12:49:20.940Z",
+    "__v": 0
+  },
+  {
+    "_id": "6834635052a6687e2905dddc",
+    "name": "Alienware m18",
+    "description": "Laptop chơi game 18 inch với AMD Ryzen 9 và RTX 4090 cho hiệu suất tối đa.",
+    "price": 87499750,
+    "discountPrice": 79999750,
+    "category": "6826a6ade2250e6613f42bdc",
+    "brand": "Alienware",
+    "stock": 20,
+    "sold": 5,
+    "images": [
+      {
+        "public_id": "images-1748313862987.webp",
+        "url": "/uploads/images/products/images-1748313862987.webp",
+        "_id": "68352706cdb336b59704eb8f"
+      }
+    ],
+    "specifications": {
+      "processor": "AMD Ryzen 9 7945HX",
+      "graphics": "NVIDIA GeForce RTX 4090 16GB",
+      "memory": "32GB DDR5",
+      "storage": "2TB NVMe SSD",
+      "display": "18\" QHD+ 165Hz"
+    },
+    "features": [
+      "Bàn phím cơ Cherry MX",
+      "Đèn RGB AlienFX",
+      "Làm mát Cryo-tech",
+      "Âm thanh Dolby Atmos"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.9,
+    "numReviews": 50,
+    "createdAt": "2025-05-26T12:49:20.940Z",
+    "updatedAt": "2025-05-26T12:49:20.940Z",
+    "__v": 0
+  },
+  {
+    "_id": "6834635052a6687e2905dddf",
+    "name": "Razer Blade 14",
+    "description": "Laptop chơi game 14 inch nhỏ gọn với AMD Ryzen 9 và RTX 4060 cho tính di động và sức mạnh.",
+    "price": 44999750,
+    "discountPrice": 39999750,
+    "category": "6826a6ade2250e6613f42bdc",
+    "brand": "Razer",
+    "stock": 33,
+    "sold": 14,
+    "images": [
+      {
+        "public_id": "images-1748316060979.png",
+        "url": "/uploads/images/products/images-1748316060979.png",
+        "_id": "68352f9ccdb336b59704efcc"
+      }
+    ],
+    "specifications": {
+      "processor": "AMD Ryzen 9 7940HS",
+      "graphics": "NVIDIA GeForce RTX 4060 8GB",
+      "memory": "16GB DDR5",
+      "storage": "1TB NVMe SSD",
+      "display": "14\" QHD+ 165Hz"
+    },
+    "features": [
+      "Làm mát buồng hơi",
+      "Razer Chroma RGB",
+      "Âm thanh THX Spatial",
+      "Khung nhôm anodized"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.6,
+    "numReviews": 80,
+    "createdAt": "2025-05-26T12:49:20.941Z",
+    "updatedAt": "2025-05-26T12:49:20.941Z",
+    "__v": 0
+  },
+  {
+    "_id": "6834635052a6687e2905dde2",
+    "name": "Acer Predator Helios 16",
+    "description": "Laptop chơi game hiệu suất cao với Intel Core i7 và RTX 4070 cho trải nghiệm mượt mà.",
+    "price": 47499750,
+    "discountPrice": 42499750,
+    "category": "6826a6ade2250e6613f42bdc",
+    "brand": "Acer",
+    "stock": 39,
+    "sold": 16,
+    "images": [
+      {
+        "public_id": "images-1748313805344.webp",
+        "url": "/uploads/images/products/images-1748313805344.webp",
+        "_id": "683526cdcdb336b59704eb37"
+      }
+    ],
+    "specifications": {
+      "processor": "Intel Core i7-13700HX",
+      "graphics": "NVIDIA GeForce RTX 4070 8GB",
+      "memory": "16GB DDR5",
+      "storage": "1TB NVMe SSD",
+      "display": "16\" WQXGA 165Hz"
+    },
+    "features": [
+      "Bàn phím RGB từng phím",
+      "Hệ thống làm mát tiên tiến",
+      "Wi-Fi 6E Killer",
+      "Âm thanh DTS:X Ultra"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.5,
+    "numReviews": 65,
+    "createdAt": "2025-05-26T12:49:20.941Z",
+    "updatedAt": "2025-05-26T12:49:20.941Z",
+    "__v": 0
+  },
+  {
+    "_id": "6834635052a6687e2905dde5",
+    "name": "MSI Katana 15",
+    "description": "Laptop chơi game giá phải chăng với Intel Core i7 và RTX 4050 cho game thủ tiết kiệm.",
+    "price": 32499750,
+    "discountPrice": 29999750,
+    "category": "6826a6ade2250e6613f42bdc",
+    "brand": "MSI",
+    "stock": 49,
+    "sold": 21,
+    "images": [
+      {
+        "public_id": "images-1748315952520.jpg",
+        "url": "/uploads/images/products/images-1748315952520.jpg",
+        "_id": "68352f30cdb336b59704ef2c"
+      }
+    ],
+    "specifications": {
+      "processor": "Intel Core i7-13620H",
+      "graphics": "NVIDIA GeForce RTX 4050 6GB",
+      "memory": "16GB DDR5",
+      "storage": "512GB NVMe SSD",
+      "display": "15.6\" FHD 144Hz"
+    },
+    "features": [
+      "Làm mát Cooler Boost 5",
+      "Bàn phím RGB 4 vùng",
+      "Âm thanh Nahimic 3",
+      "Wi-Fi 6"
+    ],
+    "isFeatured": false,
+    "isNewArrival": false,
+    "averageRating": 4.4,
+    "numReviews": 90,
+    "createdAt": "2025-05-26T12:49:20.941Z",
+    "updatedAt": "2025-07-13T04:43:17.383Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "6834635052a6687e2905dde8",
+    "name": "HP Omen 17",
+    "description": "Laptop chơi game 17.3 inch với AMD Ryzen 7 và RTX 4080 cho trải nghiệm đắm chìm.",
+    "price": 59999750,
+    "discountPrice": 54999750,
+    "category": "6826a6ade2250e6613f42bdc",
+    "brand": "HP",
+    "stock": 18,
+    "sold": 19,
+    "images": [
+      {
+        "public_id": "images-1748315600513.png",
+        "url": "http://localhost:5000/uploads/images/products/images-1748315600513.png",
+        "_id": "68352dd0cdb336b59704ed84"
+      },
+      {
+        "public_id": "images-1748315514501.jpg",
+        "url": "http://localhost:5000/uploads/images/products/images-1748315514501.jpg",
+        "_id": "68352d7acdb336b59704ece2"
+      }
+    ],
+    "specifications": {
+      "processor": "AMD Ryzen 7 7845HX",
+      "graphics": "NVIDIA GeForce RTX 4080 12GB",
+      "memory": "32GB DDR5",
+      "storage": "1TB NVMe SSD",
+      "display": "17.3\" QHD 165Hz"
+    },
+    "features": [
+      "Làm mát Omen Tempest",
+      "Bàn phím RGB từng phím",
+      "Âm thanh Bang & Olufsen",
+      "Cổng Thunderbolt 4"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.7,
+    "numReviews": 55,
+    "createdAt": "2025-05-26T12:49:20.941Z",
+    "updatedAt": "2025-05-26T12:49:20.941Z",
+    "__v": 0
+  },
+  {
+    "_id": "6834635052a6687e2905ddeb",
+    "name": "Dell G16",
+    "description": "Laptop chơi game tầm trung với Intel Core i7 và RTX 4060 cho hiệu suất cân bằng.",
+    "price": 37499750,
+    "discountPrice": 34999750,
+    "category": "6826a6ade2250e6613f42bdc",
+    "brand": "Dell",
+    "stock": 41,
+    "sold": 22,
+    "images": [
+      {
+        "public_id": "images-1748314322063.jpg",
+        "url": "/uploads/images/products/images-1748314322063.jpg",
+        "_id": "683528d2cdb336b59704ec20"
+      }
+    ],
+    "specifications": {
+      "processor": "Intel Core i7-13650HX",
+      "graphics": "NVIDIA GeForce RTX 4060 8GB",
+      "memory": "16GB DDR5",
+      "storage": "1TB NVMe SSD",
+      "display": "16\" QHD+ 165Hz"
+    },
+    "features": [
+      "Làm mát lấy cảm hứng từ Alienware",
+      "Bàn phím RGB",
+      "Âm thanh Dolby",
+      "Wi-Fi 6E"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.5,
+    "numReviews": 70,
+    "createdAt": "2025-05-26T12:49:20.942Z",
+    "updatedAt": "2025-06-20T11:26:02.122Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "6834635052a6687e2905ddee",
+    "name": "Gigabyte Aorus 17X",
+    "description": "Laptop chơi game cao cấp với Intel Core i9 và RTX 4090 cho hiệu suất vượt trội.",
+    "price": 94999750,
+    "discountPrice": 87499750,
+    "category": "6826a6ade2250e6613f42bdc",
+    "brand": "Gigabyte",
+    "stock": 13,
+    "sold": 6,
+    "images": [
+      {
+        "public_id": "images-1748315426635.jpg",
+        "url": "/uploads/images/products/images-1748315426635.jpg",
+        "_id": "68352d22cdb336b59704ec76"
+      }
+    ],
+    "specifications": {
+      "processor": "Intel Core i9-13980HX",
+      "graphics": "NVIDIA GeForce RTX 4090 16GB",
+      "memory": "32GB DDR5",
+      "storage": "2TB NVMe SSD",
+      "display": "17.3\" QHD 240Hz"
+    },
+    "features": [
+      "Làm mát WINDFORCE Infinity",
+      "Bàn phím RGB từng phím",
+      "Âm thanh DTS:X Ultra",
+      "Công tắc MUX"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.9,
+    "numReviews": 40,
+    "createdAt": "2025-05-26T12:49:20.942Z",
+    "updatedAt": "2025-06-10T06:06:35.739Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "6834635052a6687e2905ddf1",
+    "name": "ASUS TUF Gaming A15",
+    "description": "Laptop chơi game bền bỉ với AMD Ryzen 7 và RTX 4050 cho hiệu suất đáng tin cậy.",
+    "price": 29999750,
+    "discountPrice": 27499750,
+    "category": "6826a6ade2250e6613f42bdc",
+    "brand": "ASUS",
+    "stock": 50,
+    "sold": 26,
+    "images": [
+      {
+        "public_id": "images-1748313502277.webp",
+        "url": "http://localhost:5000/uploads/images/products/images-1748313502277.webp",
+        "_id": "6835259ecdb336b59704ea32"
+      }
+    ],
+    "specifications": {
+      "processor": "AMD Ryzen 7 7735HS",
+      "graphics": "NVIDIA GeForce RTX 4050 6GB",
+      "memory": "16GB DDR5",
+      "storage": "512GB NVMe SSD",
+      "display": "15.6\" FHD 144Hz"
+    },
+    "features": [
+      "Độ bền cấp quân sự",
+      "Bàn phím RGB",
+      "Màn hình Adaptive-Sync",
+      "Làm mát quạt kép"
+    ],
+    "isFeatured": false,
+    "isNewArrival": false,
+    "averageRating": 4.4,
+    "numReviews": 100,
+    "createdAt": "2025-05-26T12:49:20.942Z",
+    "updatedAt": "2025-06-10T04:09:18.969Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "683464609962a72564d5ffd9",
+    "name": "CyberPowerPC Gamer Xtreme",
+    "description": "Máy tính chơi game hiệu suất cao với Intel Core i9 và RTX 4080 cho trải nghiệm đắm chìm.",
+    "price": 62499750,
+    "discountPrice": 57499750,
+    "category": "6826a6ade2250e6613f42bdd",
+    "brand": "CyberPowerPC",
+    "stock": 19,
+    "sold": 14,
+    "images": [
+      {
+        "public_id": "images-1748316798936.png",
+        "url": "/uploads/images/products/images-1748316798936.png",
+        "_id": "6835327ecdb336b59704f4dd"
+      }
+    ],
+    "specifications": {
+      "processor": "Intel Core i9-13900KF",
+      "graphics": "NVIDIA GeForce RTX 4080 16GB",
+      "memory": "32GB DDR5",
+      "storage": "1TB NVMe SSD + 2TB HDD",
+      "motherboard": "Z790"
+    },
+    "features": [
+      "Làm mát bằng chất lỏng",
+      "Đèn RGB vỏ máy",
+      "Wi-Fi 6",
+      "Vỏ kính cường lực"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.8,
+    "numReviews": 65,
+    "createdAt": "2025-05-26T12:53:52.372Z",
+    "updatedAt": "2025-05-26T12:53:52.372Z",
+    "__v": 0
+  },
+  {
+    "_id": "683464609962a72564d5ffdc",
+    "name": "NZXT Player: Three",
+    "description": "Máy tính chơi game lắp sẵn với AMD Ryzen 7 và RTX 4070 cho trải nghiệm mượt mà.",
+    "price": 49999750,
+    "discountPrice": 47499750,
+    "category": "6826a6ade2250e6613f42bdd",
+    "brand": "NZXT",
+    "stock": 30,
+    "sold": 10,
+    "images": [
+      {
+        "public_id": "images-1748317182944.webp",
+        "url": "/uploads/images/products/images-1748317182944.webp",
+        "_id": "683533fecdb336b59704f6f5"
+      }
+    ],
+    "specifications": {
+      "processor": "AMD Ryzen 7 7700X",
+      "graphics": "NVIDIA GeForce RTX 4070 12GB",
+      "memory": "16GB DDR5",
+      "storage": "1TB NVMe SSD",
+      "motherboard": "B650"
+    },
+    "features": [
+      "Vỏ H7 Flow",
+      "Quạt RGB",
+      "Wi-Fi 6E",
+      "Đèn tùy chỉnh"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.7,
+    "numReviews": 80,
+    "createdAt": "2025-05-26T12:53:52.373Z",
+    "updatedAt": "2025-05-26T12:53:52.373Z",
+    "__v": 0
+  },
+  {
+    "_id": "683464609962a72564d5ffdf",
+    "name": "Alienware Aurora R16",
+    "description": "Máy tính chơi game cao cấp với Intel Core i9 và RTX 4090 cho hiệu suất tối đa.",
+    "price": 87499750,
+    "discountPrice": 82499750,
+    "category": "6826a6ade2250e6613f42bdd",
+    "brand": "Alienware",
+    "stock": 16,
+    "sold": 9,
+    "images": [
+      {
+        "public_id": "images-1748316626914.jpg",
+        "url": "/uploads/images/products/images-1748316626914.jpg",
+        "_id": "683531d2cdb336b59704f389"
+      }
+    ],
+    "specifications": {
+      "processor": "Intel Core i9-14900KF",
+      "graphics": "NVIDIA GeForce RTX 4090 24GB",
+      "memory": "64GB DDR5",
+      "storage": "2TB NVMe SSD + 2TB HDD",
+      "motherboard": "Z790"
+    },
+    "features": [
+      "Làm mát Cryo-tech",
+      "Đèn RGB AlienFX",
+      "Wi-Fi 6E",
+      "Vỏ không cần dụng cụ"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.9,
+    "numReviews": 50,
+    "createdAt": "2025-05-26T12:53:52.374Z",
+    "updatedAt": "2025-06-27T05:21:45.179Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "683464609962a72564d5ffe2",
+    "name": "Corsair Vengeance i7500",
+    "description": "Máy tính chơi game mỏng nhẹ với Intel Core i7 và RTX 4070 Ti cho chơi game cao cấp.",
+    "price": 57499750,
+    "discountPrice": 52499750,
+    "category": "6826a6ade2250e6613f42bdd",
+    "brand": "Corsair",
+    "stock": 35,
+    "sold": 12,
+    "images": [
+      {
+        "public_id": "images-1748316710431.jpg",
+        "url": "/uploads/images/products/images-1748316710431.jpg",
+        "_id": "68353226cdb336b59704f439"
+      }
+    ],
+    "specifications": {
+      "processor": "Intel Core i7-13700KF",
+      "graphics": "NVIDIA GeForce RTX 4070 Ti 12GB",
+      "memory": "32GB DDR5",
+      "storage": "1TB NVMe SSD",
+      "motherboard": "Z790"
+    },
+    "features": [
+      "Làm mát CPU bằng chất lỏng",
+      "Đèn RGB",
+      "Wi-Fi 6",
+      "Vỏ Corsair 4000D"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.6,
+    "numReviews": 70,
+    "createdAt": "2025-05-26T12:53:52.375Z",
+    "updatedAt": "2025-05-26T12:53:52.375Z",
+    "__v": 0
+  },
+  {
+    "_id": "683464609962a72564d5ffe5",
+    "name": "MSI Aegis RS",
+    "description": "Máy tính chơi game mạnh mẽ với AMD Ryzen 9 và RTX 4080 cho chơi game cạnh tranh.",
+    "price": 69999750,
+    "discountPrice": 64999750,
+    "category": "6826a6ade2250e6613f42bdd",
+    "brand": "MSI",
+    "stock": 27,
+    "sold": 10,
+    "images": [
+      {
+        "public_id": "images-1748317100318.jpg",
+        "url": "/uploads/images/products/images-1748317100318.jpg",
+        "_id": "683533accdb336b59704f669"
+      }
+    ],
+    "specifications": {
+      "processor": "AMD Ryzen 9 7900X",
+      "graphics": "NVIDIA GeForce RTX 4080 16GB",
+      "memory": "32GB DDR5",
+      "storage": "2TB NVMe SSD",
+      "motherboard": "X670"
+    },
+    "features": [
+      "Công nghệ Cooler Boost",
+      "Đèn Mystic Light RGB",
+      "Wi-Fi 6E",
+      "Tấm kính cường lực"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.8,
+    "numReviews": 60,
+    "createdAt": "2025-05-26T12:53:52.375Z",
+    "updatedAt": "2025-06-11T05:23:40.607Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "683464609962a72564d5ffe8",
+    "name": "ASUS ROG Strix G15",
+    "description": "Máy tính chơi game tầm trung với AMD Ryzen 7 và RTX 4060 cho hiệu suất cân bằng.",
+    "price": 37499750,
+    "discountPrice": 34999750,
+    "category": "6826a6ade2250e6613f42bdd",
+    "brand": "ASUS",
+    "stock": 39,
+    "sold": 16,
+    "images": [
+      {
+        "public_id": "images-1748316385338.jpg",
+        "url": "/uploads/images/products/images-1748316385338.jpg",
+        "_id": "683530e1cdb336b59704f216"
+      }
+    ],
+    "specifications": {
+      "processor": "AMD Ryzen 7 7700",
+      "graphics": "NVIDIA GeForce RTX 4060 8GB",
+      "memory": "16GB DDR5",
+      "storage": "1TB NVMe SSD",
+      "motherboard": "B650"
+    },
+    "features": [
+      "Hệ thống làm mát ROG",
+      "Đèn Aura Sync RGB",
+      "Wi-Fi 6",
+      "Vỏ nhỏ gọn"
+    ],
+    "isFeatured": false,
+    "isNewArrival": false,
+    "averageRating": 4.5,
+    "numReviews": 90,
+    "createdAt": "2025-05-26T12:53:52.376Z",
+    "updatedAt": "2025-05-26T12:53:52.376Z",
+    "__v": 0
+  },
+  {
+    "_id": "683464609962a72564d5ffeb",
+    "name": "HP Omen 45L",
+    "description": "Máy tính chơi game cao cấp với Intel Core i9 và RTX 4090 cho hiệu suất hàng đầu.",
+    "price": 92499750,
+    "discountPrice": 87499750,
+    "category": "6826a6ade2250e6613f42bdd",
+    "brand": "HP",
+    "stock": 14,
+    "sold": 5,
+    "images": [
+      {
+        "public_id": "images-1748316894211.png",
+        "url": "/uploads/images/products/images-1748316894211.png",
+        "_id": "683532decdb336b59704f57d"
+      }
+    ],
+    "specifications": {
+      "processor": "Intel Core i9-13900KF",
+      "graphics": "NVIDIA GeForce RTX 4090 24GB",
+      "memory": "64GB DDR5",
+      "storage": "2TB NVMe SSD + 2TB HDD",
+      "motherboard": "Z790"
+    },
+    "features": [
+      "Làm mát Cryo Chamber",
+      "Đèn RGB",
+      "Wi-Fi 6E",
+      "Thiết kế không cần dụng cụ"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.9,
+    "numReviews": 45,
+    "createdAt": "2025-05-26T12:53:52.376Z",
+    "updatedAt": "2025-05-26T12:53:52.376Z",
+    "__v": 0
+  },
+  {
+    "_id": "683464609962a72564d5ffee",
+    "name": "Lenovo Legion Tower 7i",
+    "description": "Máy tính chơi game cao cấp với Intel Core i7 và RTX 4080 cho chơi game chân thực.",
+    "price": 64999750,
+    "discountPrice": 59999750,
+    "category": "6826a6ade2250e6613f42bdd",
+    "brand": "Lenovo",
+    "stock": 30,
+    "sold": 10,
+    "images": [
+      {
+        "public_id": "images-1748317015871.jpg",
+        "url": "/uploads/images/products/images-1748317015871.jpg",
+        "_id": "68353357cdb336b59704f619"
+      }
+    ],
+    "specifications": {
+      "processor": "Intel Core i7-13700KF",
+      "graphics": "NVIDIA GeForce RTX 4080 16GB",
+      "memory": "32GB DDR5",
+      "storage": "1TB NVMe SSD + 1TB HDD",
+      "motherboard": "Z790"
+    },
+    "features": [
+      "Làm mát tiên tiến",
+      "Đèn ARGB",
+      "Wi-Fi 6E",
+      "Hoạt động êm ái"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.7,
+    "numReviews": 75,
+    "createdAt": "2025-05-26T12:53:52.376Z",
+    "updatedAt": "2025-05-26T12:53:52.376Z",
+    "__v": 0
+  },
+  {
+    "_id": "683464609962a72564d5fff1",
+    "name": "Acer Predator Orion 7000",
+    "description": "Máy tính chơi game hiệu suất cao với Intel Core i9 và RTX 4070 Ti cho hình ảnh mượt mà.",
+    "price": 57499750,
+    "discountPrice": 52499750,
+    "category": "6826a6ade2250e6613f42bdd",
+    "brand": "Acer",
+    "stock": 34,
+    "sold": 13,
+    "images": [
+      {
+        "public_id": "images-1748316553278.png",
+        "url": "/uploads/images/products/images-1748316553278.png",
+        "_id": "68353189cdb336b59704f292"
+      }
+    ],
+    "specifications": {
+      "processor": "Intel Core i9-13900KF",
+      "graphics": "NVIDIA GeForce RTX 4070 Ti 12GB",
+      "memory": "32GB DDR5",
+      "storage": "1TB NVMe SSD + 2TB HDD",
+      "motherboard": "Z790"
+    },
+    "features": [
+      "Làm mát Predator FrostBlade",
+      "Đèn RGB",
+      "Wi-Fi 6E",
+      "Tấm kính cường lực"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.6,
+    "numReviews": 70,
+    "createdAt": "2025-05-26T12:53:52.376Z",
+    "updatedAt": "2025-05-26T12:53:52.376Z",
+    "__v": 0
+  },
+  {
+    "_id": "683464609962a72564d5fff4",
+    "name": "iBuyPower SlateMesh",
+    "description": "Máy tính chơi game giá phải chăng với AMD Ryzen 5 và RTX 4060 cho game thủ tiết kiệm.",
+    "price": 32499750,
+    "discountPrice": 29999750,
+    "category": "6826a6ade2250e6613f42bdd",
+    "brand": "iBuyPower",
+    "stock": 40,
+    "sold": 30,
+    "images": [
+      {
+        "public_id": "images-1748317289468.jpg",
+        "url": "/uploads/images/products/images-1748317289468.jpg",
+        "_id": "68353469cdb336b59704f7da"
+      }
+    ],
+    "specifications": {
+      "processor": "AMD Ryzen 5 7600",
+      "graphics": "NVIDIA GeForce RTX 4060 8GB",
+      "memory": "16GB DDR5",
+      "storage": "1TB NVMe SSD",
+      "motherboard": "B650"
+    },
+    "features": [
+      "Quạt vỏ RGB",
+      "Wi-Fi 6",
+      "Vỏ kính cường lực",
+      "Làm mát hiệu quả"
+    ],
+    "isFeatured": false,
+    "isNewArrival": false,
+    "averageRating": 4.4,
+    "numReviews": 100,
+    "createdAt": "2025-05-26T12:53:52.377Z",
+    "updatedAt": "2025-07-07T04:29:17.604Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "683466aa119e60da66a916ec",
+    "name": "HyperX Cloud Alpha Wireless",
+    "description": "Tai nghe chơi game không dây với thời lượng pin 300 giờ và âm thanh không gian DTS Headphone:X.",
+    "price": 4999750,
+    "discountPrice": 4499750,
+    "category": "6826a6ade2250e6613f42bda",
+    "brand": "HyperX",
+    "stock": 50,
+    "sold": 15,
+    "images": [
+      {
+        "public_id": "images-1748320352577.webp",
+        "url": "/uploads/images/products/images-1748320352577.webp",
+        "_id": "68354060cdb336b59704fbae"
+      }
+    ],
+    "specifications": {
+      "type": "Over-ear",
+      "connectivity": "Wireless 2.4GHz",
+      "microphone": "Detachable noise-canceling",
+      "battery": "Up to 300 hours",
+      "frequency": "15-21,000 Hz"
+    },
+    "features": [
+      "Âm thanh không gian DTS Headphone:X",
+      "Pin lâu dài",
+      "Đệm tai bằng mút hoạt tính",
+      "Khung nhôm bền"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.7,
+    "numReviews": 80,
+    "createdAt": "2025-05-26T13:03:38.736Z",
+    "updatedAt": "2025-05-26T13:03:38.736Z",
+    "__v": 0
+  },
+  {
+    "_id": "683466aa119e60da66a916ef",
+    "name": "Razer Barracuda X",
+    "description": "Tai nghe không dây đa nền tảng với âm thanh vòm 7.1 và thiết kế nhẹ.",
+    "price": 2499750,
+    "discountPrice": 2249750,
+    "category": "6826a6ade2250e6613f42bda",
+    "brand": "Razer",
+    "stock": 60,
+    "sold": 20,
+    "images": [
+      {
+        "public_id": "images-1748320546326.webp",
+        "url": "/uploads/images/products/images-1748320546326.webp",
+        "_id": "68354122cdb336b59704fd1c"
+      }
+    ],
+    "specifications": {
+      "type": "Over-ear",
+      "connectivity": "Wireless 2.4GHz/Bluetooth",
+      "microphone": "Detachable HyperClear Cardioid",
+      "battery": "Up to 20 hours",
+      "frequency": "20-20,000 Hz"
+    },
+    "features": [
+      "Âm thanh vòm 7.1",
+      "Thiết kế nhẹ",
+      "Tương thích đa nền tảng",
+      "Đệm tai thoáng khí"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.5,
+    "numReviews": 100,
+    "createdAt": "2025-05-26T13:03:38.737Z",
+    "updatedAt": "2025-05-26T13:03:38.737Z",
+    "__v": 0
+  },
+  {
+    "_id": "683466aa119e60da66a916f2",
+    "name": "Logitech G Pro X 2 Lightspeed",
+    "description": "Tai nghe chơi game không dây cao cấp với driver graphene và micro khử tiếng ồn tiên tiến.",
+    "price": 6249750,
+    "discountPrice": 5749750,
+    "category": "6826a6ade2250e6613f42bda",
+    "brand": "Logitech",
+    "stock": 38,
+    "sold": 12,
+    "images": [
+      {
+        "public_id": "images-1748320484837.webp",
+        "url": "/uploads/images/products/images-1748320484837.webp",
+        "_id": "683540e4cdb336b59704fccf"
+      }
+    ],
+    "specifications": {
+      "type": "Over-ear",
+      "connectivity": "Wireless Lightspeed/Bluetooth",
+      "microphone": "Detachable cardioid",
+      "battery": "Up to 50 hours",
+      "frequency": "20-20,000 Hz"
+    },
+    "features": [
+      "Driver âm thanh graphene",
+      "DTS Headphone:X 2.0",
+      "Micro cấp chuyên nghiệp",
+      "Đệm tai bằng mút hoạt tính"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.8,
+    "numReviews": 70,
+    "createdAt": "2025-05-26T13:03:38.737Z",
+    "updatedAt": "2025-06-25T03:52:34.640Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "683466aa119e60da66a916f5",
+    "name": "Corsair Virtuoso RGB Wireless XT",
+    "description": "Tai nghe không dây chất lượng cao với Dolby Atmos và micro đa hướng.",
+    "price": 6749750,
+    "discountPrice": 6249750,
+    "category": "6826a6ade2250e6613f42bda",
+    "brand": "Corsair",
+    "stock": 35,
+    "sold": 12,
+    "images": [
+      {
+        "public_id": "images-1748317791903.webp",
+        "url": "/uploads/images/products/images-1748317791903.webp",
+        "_id": "6835365fcdb336b59704fb5e"
+      }
+    ],
+    "specifications": {
+      "type": "Over-ear",
+      "connectivity": "Wireless 2.4GHz/Bluetooth",
+      "microphone": "Detachable omnidirectional",
+      "battery": "Up to 15 hours",
+      "frequency": "20-40,000 Hz"
+    },
+    "features": [
+      "Âm thanh Dolby Atmos",
+      "Đèn RGB",
+      "Cấu trúc nhôm cao cấp",
+      "Đệm tai bằng mút hoạt tính"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.6,
+    "numReviews": 85,
+    "createdAt": "2025-05-26T13:03:38.738Z",
+    "updatedAt": "2025-05-26T13:03:38.738Z",
+    "__v": 0
+  },
+  {
+    "_id": "683466aa119e60da66a916f8",
+    "name": "Astro A50 X",
+    "description": "Tai nghe chơi game không dây với chuyển đổi HDMI 2.1 và âm thanh Dolby Audio cho nhiều nền tảng.",
+    "price": 9499750,
+    "discountPrice": 8749750,
+    "category": "6826a6ade2250e6613f42bda",
+    "brand": "Astro",
+    "stock": 30,
+    "sold": 8,
+    "images": [
+      {
+        "public_id": "images-1748317537006.webp",
+        "url": "/uploads/images/products/images-1748317537006.webp",
+        "_id": "68353561cdb336b59704f967"
+      }
+    ],
+    "specifications": {
+      "type": "Over-ear",
+      "connectivity": "Wireless 2.4GHz/Bluetooth",
+      "microphone": "Flip-to-mute unidirectional",
+      "battery": "Up to 24 hours",
+      "frequency": "20-20,000 Hz"
+    },
+    "features": [
+      "Chuyển đổi HDMI 2.1",
+      "Âm thanh Dolby Audio",
+      "Driver graphene",
+      "Đi kèm trạm base"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.9,
+    "numReviews": 50,
+    "createdAt": "2025-05-26T13:03:38.738Z",
+    "updatedAt": "2025-05-26T13:03:38.738Z",
+    "__v": 0
+  },
+  {
+    "_id": "683466aa119e60da66a916fb",
+    "name": "Sennheiser GSP 670",
+    "description": "Tai nghe chơi game không dây cao cấp với âm thanh độ trễ thấp và micro khử tiếng ồn.",
+    "price": 4999750,
+    "discountPrice": 4499750,
+    "category": "6826a6ade2250e6613f42bda",
+    "brand": "Sennheiser",
+    "stock": 45,
+    "sold": 15,
+    "images": [
+      {
+        "public_id": "images-1748320632721.png",
+        "url": "/uploads/images/products/images-1748320632721.png",
+        "_id": "68354178cdb336b59705002c"
+      }
+    ],
+    "specifications": {
+      "type": "Over-ear",
+      "connectivity": "Wireless 2.4GHz/Bluetooth",
+      "microphone": "Noise-canceling broadcast-quality",
+      "battery": "Up to 20 hours",
+      "frequency": "10-23,000 Hz"
+    },
+    "features": [
+      "Âm thanh độ trễ thấp",
+      "Hồ sơ âm thanh tùy chỉnh",
+      "Dây đeo đầu có thể điều chỉnh",
+      "Đệm tai thoáng khí"
+    ],
+    "isFeatured": false,
+    "isNewArrival": false,
+    "averageRating": 4.5,
+    "numReviews": 90,
+    "createdAt": "2025-05-26T13:03:38.739Z",
+    "updatedAt": "2025-05-26T13:03:38.739Z",
+    "__v": 0
+  },
+  {
+    "_id": "683466aa119e60da66a916fe",
+    "name": "JBL Quantum ONE",
+    "description": "Tai nghe chơi game có dây với khử tiếng ồn chủ động và âm thanh JBL QuantumSPHERE 360.",
+    "price": 7499750,
+    "discountPrice": 6749750,
+    "category": "6826a6ade2250e6613f42bda",
+    "brand": "JBL",
+    "stock": 40,
+    "sold": 10,
+    "images": [
+      {
+        "public_id": "images-1748320419865.png",
+        "url": "/uploads/images/products/images-1748320419865.png",
+        "_id": "683540a3cdb336b59704fbfd"
+      }
+    ],
+    "specifications": {
+      "type": "Over-ear",
+      "connectivity": "Wired USB/3.5mm",
+      "microphone": "Detachable noise-canceling",
+      "frequency": "20-40,000 Hz"
+    },
+    "features": [
+      "Khử tiếng ồn chủ động",
+      "JBL QuantumSPHERE 360",
+      "Đèn RGB",
+      "Thiết kế công thái học"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.7,
+    "numReviews": 75,
+    "createdAt": "2025-05-26T13:03:38.739Z",
+    "updatedAt": "2025-05-26T13:03:38.739Z",
+    "__v": 0
+  },
+  {
+    "_id": "683466aa119e60da66a91701",
+    "name": "Turtle Beach Stealth Pro",
+    "description": "Tai nghe chơi game không dây với khử tiếng ồn chủ động và bộ pin có thể thay thế.",
+    "price": 8249750,
+    "discountPrice": 7499750,
+    "category": "6826a6ade2250e6613f42bda",
+    "brand": "Turtle Beach",
+    "stock": 34,
+    "sold": 13,
+    "images": [
+      {
+        "public_id": "images-1748320677153.webp",
+        "url": "/uploads/images/products/images-1748320677153.webp",
+        "_id": "683541a5cdb336b59705007d"
+      }
+    ],
+    "specifications": {
+      "type": "Over-ear",
+      "connectivity": "Wireless 2.4GHz/Bluetooth",
+      "microphone": "Flip-up noise-canceling",
+      "battery": "Dual 12-hour swappable",
+      "frequency": "20-20,000 Hz"
+    },
+    "features": [
+      "Khử tiếng ồn chủ động",
+      "Hệ thống pin thay thế",
+      "Chế độ Superhuman Hearing",
+      "Đệm tai bằng mút hoạt tính"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.8,
+    "numReviews": 60,
+    "createdAt": "2025-05-26T13:03:38.739Z",
+    "updatedAt": "2025-06-25T04:02:58.019Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "683466aa119e60da66a91704",
+    "name": "Beyerdynamic MMX 300 Pro",
+    "description": "Tai nghe chơi game có dây với âm thanh cấp phòng thu và micro condenser chất lượng cao.",
+    "price": 8749750,
+    "discountPrice": 7999750,
+    "category": "6826a6ade2250e6613f42bda",
+    "brand": "Beyerdynamic",
+    "stock": 29,
+    "sold": 9,
+    "images": [
+      {
+        "public_id": "images-1748317678364.webp",
+        "url": "/uploads/images/products/images-1748317678364.webp",
+        "_id": "683535eecdb336b59704fabc"
+      }
+    ],
+    "specifications": {
+      "type": "Over-ear",
+      "connectivity": "Wired 3.5mm/6.35mm",
+      "microphone": "Condenser cardioid",
+      "frequency": "5-35,000 Hz"
+    },
+    "features": [
+      "Âm thanh cấp phòng thu",
+      "Micro chất lượng cao",
+      "Cấu trúc chắc chắn",
+      "Đệm tai có thể thay thế"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.9,
+    "numReviews": 45,
+    "createdAt": "2025-05-26T13:03:38.739Z",
+    "updatedAt": "2025-05-26T13:03:38.739Z",
+    "__v": 0
+  },
+  {
+    "_id": "683466aa119e60da66a91707",
+    "name": "ASUS ROG Delta II",
+    "description": "Tai nghe chơi game có dây với micro khử tiếng ồn AI và đèn RGB cho âm thanh sống động.",
+    "price": 4999750,
+    "discountPrice": 4499750,
+    "category": "6826a6ade2250e6613f42bda",
+    "brand": "ASUS",
+    "stock": 49,
+    "sold": 16,
+    "images": [
+      {
+        "public_id": "images-1748317461552.jpg",
+        "url": "/uploads/images/products/images-1748317461552.jpg",
+        "_id": "68353515cdb336b59704f8a6"
+      }
+    ],
+    "specifications": {
+      "type": "Over-ear",
+      "connectivity": "Wired USB-C/3.5mm",
+      "microphone": "AI noise-canceling detachable",
+      "frequency": "20-40,000 Hz"
+    },
+    "features": [
+      "Âm thanh độ phân giải cao",
+      "Đèn Aura Sync RGB",
+      "Thiết kế nhẹ",
+      "Đệm tai hình chữ D công thái học"
+    ],
+    "isFeatured": false,
+    "isNewArrival": false,
+    "averageRating": 4.6,
+    "numReviews": 70,
+    "createdAt": "2025-05-26T13:03:38.740Z",
+    "updatedAt": "2025-06-25T03:52:34.643Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346719e66a8a2c939e3672",
+    "name": "Logitech G502 X Plus",
+    "description": "Chuột chơi game không dây với công tắc hybrid LIGHTFORCE và cảm biến 25K DPI.",
+    "price": 3999750,
+    "discountPrice": 3499750,
+    "category": "6826a6ade2250e6613f42bd9",
+    "brand": "Logitech",
+    "stock": 26,
+    "sold": 39,
+    "images": [
+      {
+        "public_id": "images-1748321215822.webp",
+        "url": "/uploads/images/products/images-1748321215822.webp",
+        "_id": "683543bfcdb336b59705032d"
+      }
+    ],
+    "specifications": {
+      "sensor": "HERO 25K",
+      "connectivity": "Wireless Lightspeed",
+      "weight": "106g",
+      "battery": "Up to 120 hours",
+      "dpi": "100-25,600"
+    },
+    "features": [
+      "Công tắc LIGHTFORCE",
+      "Đèn RGB tùy chỉnh",
+      "11 nút lập trình",
+      "Hệ thống cân nặng điều chỉnh"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.8,
+    "numReviews": 90,
+    "createdAt": "2025-05-26T13:05:29.863Z",
+    "updatedAt": "2025-06-27T12:58:51.337Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346719e66a8a2c939e3675",
+    "name": "Razer Viper V3 HyperSpeed",
+    "description": "Chuột không dây nhẹ với cảm biến 30K DPI và thiết kế công thái học.",
+    "price": 3749750,
+    "discountPrice": 3249750,
+    "category": "6826a6ade2250e6613f42bd9",
+    "brand": "Razer",
+    "stock": 43,
+    "sold": 14,
+    "images": [
+      {
+        "public_id": "images-1748321296212.webp",
+        "url": "/uploads/images/products/images-1748321296212.webp",
+        "_id": "68354410cdb336b5970503c3"
+      }
+    ],
+    "specifications": {
+      "sensor": "Focus Pro 30K Optical",
+      "connectivity": "Wireless 2.4GHz",
+      "weight": "82g",
+      "battery": "Up to 280 hours",
+      "dpi": "Up to 30,000"
+    },
+    "features": [
+      "Không dây HyperSpeed",
+      "6 nút lập trình",
+      "Hình dạng công thái học",
+      "Thời lượng pin dài"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.7,
+    "numReviews": 80,
+    "createdAt": "2025-05-26T13:05:29.866Z",
+    "updatedAt": "2025-07-13T04:43:17.371Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346719e66a8a2c939e3678",
+    "name": "SteelSeries Aerox 5 Wireless",
+    "description": "Chuột không dây siêu nhẹ với 9 nút lập trình và đèn RGB.",
+    "price": 3499750,
+    "discountPrice": 2999750,
+    "category": "6826a6ade2250e6613f42bd9",
+    "brand": "SteelSeries",
+    "stock": 40,
+    "sold": 10,
+    "images": [
+      {
+        "public_id": "images-1748321552281.webp",
+        "url": "/uploads/images/products/images-1748321552281.webp",
+        "_id": "68354510cdb336b5970505fb"
+      }
+    ],
+    "specifications": {
+      "sensor": "TrueMove Air",
+      "connectivity": "Wireless 2.4GHz/Bluetooth",
+      "weight": "74g",
+      "battery": "Up to 180 hours",
+      "dpi": "100-18,000"
+    },
+    "features": [
+      "9 nút lập trình",
+      "Đèn RGB",
+      "Chống nước IP54",
+      "Thiết kế siêu nhẹ"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.6,
+    "numReviews": 70,
+    "createdAt": "2025-05-26T13:05:29.867Z",
+    "updatedAt": "2025-05-26T13:05:29.867Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346719e66a8a2c939e367b",
+    "name": "Corsair Darkstar Wireless",
+    "description": "Chuột chơi game không dây với cảm biến 26K DPI và 15 nút lập trình.",
+    "price": 4249750,
+    "discountPrice": 3749750,
+    "category": "6826a6ade2250e6613f42bd9",
+    "brand": "Corsair",
+    "stock": 28,
+    "sold": 15,
+    "images": [
+      {
+        "public_id": "images-1748320978083.jpg",
+        "url": "/uploads/images/products/images-1748320978083.jpg",
+        "_id": "683542d2cdb336b597050186"
+      }
+    ],
+    "specifications": {
+      "sensor": "MARKSMAN 26K",
+      "connectivity": "Wireless 2.4GHz/Bluetooth",
+      "weight": "96g",
+      "battery": "Up to 80 hours",
+      "dpi": "50-26,000"
+    },
+    "features": [
+      "15 nút lập trình",
+      "Vùng đèn RGB",
+      "Không dây Slipstream",
+      "Báng cầm có kết cấu"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.7,
+    "numReviews": 65,
+    "createdAt": "2025-05-26T13:05:29.868Z",
+    "updatedAt": "2025-07-07T04:29:17.601Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346719e66a8a2c939e367e",
+    "name": "HyperX Pulsefire Haste 2",
+    "description": "Chuột có dây siêu nhẹ với cảm biến 26K DPI và các nút tùy chỉnh.",
+    "price": 1999750,
+    "discountPrice": 1749750,
+    "category": "6826a6ade2250e6613f42bd9",
+    "brand": "HyperX",
+    "stock": 28,
+    "sold": 52,
+    "images": [
+      {
+        "public_id": "images-1748321178822.webp",
+        "url": "/uploads/images/products/images-1748321178822.webp",
+        "_id": "6835439acdb336b5970502df"
+      }
+    ],
+    "specifications": {
+      "sensor": "HyperX 26K",
+      "connectivity": "Wired USB",
+      "weight": "53g",
+      "dpi": "Up to 26,000"
+    },
+    "features": [
+      "Thiết kế siêu nhẹ",
+      "6 nút lập trình",
+      "Đệm lướt PTFE nguyên chất",
+      "Tùy chỉnh qua phần mềm"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.5,
+    "numReviews": 100,
+    "createdAt": "2025-05-26T13:05:29.869Z",
+    "updatedAt": "2025-07-13T04:43:17.359Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346719e66a8a2c939e3681",
+    "name": "ASUS ROG Keris II Ace",
+    "description": "Chuột chơi game không dây với cảm biến 42K DPI và thiết kế công thái học nhẹ.",
+    "price": 3999750,
+    "discountPrice": 3499750,
+    "category": "6826a6ade2250e6613f42bd9",
+    "brand": "ASUS",
+    "stock": 42,
+    "sold": 15,
+    "images": [
+      {
+        "public_id": "images-1748320914985.jpg",
+        "url": "/uploads/images/products/images-1748320914985.jpg",
+        "_id": "68354292cdb336b597050134"
+      }
+    ],
+    "specifications": {
+      "sensor": "ROG AimPoint Pro 42K",
+      "connectivity": "Wireless 2.4GHz/Bluetooth",
+      "weight": "54g",
+      "battery": "Up to 107 hours",
+      "dpi": "100-42,000"
+    },
+    "features": [
+      "Kết nối ba chế độ",
+      "Băng chống trượt",
+      "Không dây ROG SpeedNova",
+      "Hiệu suất độ trễ thấp"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.8,
+    "numReviews": 75,
+    "createdAt": "2025-05-26T13:05:29.869Z",
+    "updatedAt": "2025-05-26T13:05:29.869Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346719e66a8a2c939e3684",
+    "name": "Zowie EC3-CW",
+    "description": "Chuột không dây công thái học với cảm biến 24K DPI cho chơi game cạnh tranh.",
+    "price": 3749750,
+    "discountPrice": 3249750,
+    "category": "6826a6ade2250e6613f42bd9",
+    "brand": "Zowie",
+    "stock": 38,
+    "sold": 12,
+    "images": [
+      {
+        "public_id": "images-1748321601204.jpg",
+        "url": "/uploads/images/products/images-1748321601204.jpg",
+        "_id": "68354541cdb336b59705064a"
+      }
+    ],
+    "specifications": {
+      "sensor": "3395 Optical",
+      "connectivity": "Wireless 2.4GHz",
+      "weight": "76g",
+      "battery": "Up to 70 hours",
+      "dpi": "400-24,000"
+    },
+    "features": [
+      "Thiết kế công thái học",
+      "Không cần phần mềm",
+      "Bộ thu cải tiến",
+      "Theo dõi ổn định"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.6,
+    "numReviews": 85,
+    "createdAt": "2025-05-26T13:05:29.869Z",
+    "updatedAt": "2025-05-26T13:05:29.869Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346719e66a8a2c939e3687",
+    "name": "Roccat Kone Air",
+    "description": "Chuột chơi game không dây với cảm biến 19K DPI và đèn RGB tùy chỉnh.",
+    "price": 2499750,
+    "discountPrice": 2249750,
+    "category": "6826a6ade2250e6613f42bd9",
+    "brand": "Roccat",
+    "stock": 55,
+    "sold": 18,
+    "images": [
+      {
+        "public_id": "images-1748321488054.jpg",
+        "url": "/uploads/images/products/images-1748321488054.jpg",
+        "_id": "683544d0cdb336b59705059a"
+      }
+    ],
+    "specifications": {
+      "sensor": "Owl-Eye 19K",
+      "connectivity": "Wireless 2.4GHz/Bluetooth",
+      "weight": "95g",
+      "battery": "Up to 800 hours",
+      "dpi": "50-19,000"
+    },
+    "features": [
+      "Kết nối kép",
+      "Đèn RGB",
+      "Hình dạng công thái học",
+      "Bánh xe Titan Wheel Pro"
+    ],
+    "isFeatured": false,
+    "isNewArrival": false,
+    "averageRating": 4.4,
+    "numReviews": 90,
+    "createdAt": "2025-05-26T13:05:29.870Z",
+    "updatedAt": "2025-05-26T13:05:29.870Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346719e66a8a2c939e368a",
+    "name": "Glorious Model O 2 Wireless",
+    "description": "Chuột không dây siêu nhẹ với cảm biến 26K DPI và các nút bên mô-đun.",
+    "price": 3249750,
+    "discountPrice": 2749750,
+    "category": "6826a6ade2250e6613f42bd9",
+    "brand": "Glorious",
+    "stock": 48,
+    "sold": 17,
+    "images": [
+      {
+        "public_id": "images-1748321129992.webp",
+        "url": "/uploads/images/products/images-1748321129992.webp",
+        "_id": "68354369cdb336b597050241"
+      }
+    ],
+    "specifications": {
+      "sensor": "BAMF 2.0 26K",
+      "connectivity": "Wireless 2.4GHz/Bluetooth",
+      "weight": "68g",
+      "battery": "Up to 210 hours",
+      "dpi": "100-26,000"
+    },
+    "features": [
+      "Nút bên mô-đun",
+      "Đèn RGB",
+      "Vỏ tổ ong",
+      "Không dây độ trễ thấp"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.7,
+    "numReviews": 70,
+    "createdAt": "2025-05-26T13:05:29.870Z",
+    "updatedAt": "2025-06-09T02:30:02.285Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346719e66a8a2c939e368d",
+    "name": "Endgame Gear OP1we",
+    "description": "Chuột chơi game không dây với cảm biến 19K DPI và thiết kế nhẹ cho esports.",
+    "price": 2999750,
+    "discountPrice": 2499750,
+    "category": "6826a6ade2250e6613f42bd9",
+    "brand": "Endgame Gear",
+    "stock": 29,
+    "sold": 26,
+    "images": [
+      {
+        "public_id": "images-1748321042348.jpg",
+        "url": "/uploads/images/products/images-1748321042348.jpg",
+        "_id": "68354312cdb336b5970501d7"
+      }
+    ],
+    "specifications": {
+      "sensor": "PixArt 3370",
+      "connectivity": "Wireless 2.4GHz",
+      "weight": "58g",
+      "battery": "Up to 100 hours",
+      "dpi": "50-19,000"
+    },
+    "features": [
+      "Thiết kế siêu nhẹ",
+      "Công tắc Kailh GO",
+      "Không dây độ trễ thấp",
+      "Hình dạng đối xứng"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.6,
+    "numReviews": 60,
+    "createdAt": "2025-05-26T13:05:29.871Z",
+    "updatedAt": "2025-08-04T05:01:28.588Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346797f08d0ead0def6080",
+    "name": "Samsung Odyssey G9 Neo",
+    "description": "Màn hình chơi game cong QLED 49 inch với tần số quét 240Hz và thời gian phản hồi 1ms.",
+    "price": 37499750,
+    "discountPrice": 32499750,
+    "category": "6826a6ade2250e6613f42bdb",
+    "brand": "Samsung",
+    "stock": 17,
+    "sold": 8,
+    "images": [
+      {
+        "public_id": "images-1748322205883.jpg",
+        "url": "/uploads/images/products/images-1748322205883.jpg",
+        "_id": "6835479dcdb336b5970509cd"
+      }
+    ],
+    "specifications": {
+      "size": "49\"",
+      "resolution": "5120 x 1440 (Dual QHD)",
+      "refresh_rate": "240Hz",
+      "response_time": "1ms GTG",
+      "panel": "Quantum Mini-LED"
+    },
+    "features": [
+      "Tương thích G-SYNC",
+      "HDR2000",
+      "Độ cong 1000R",
+      "Đèn RGB CoreSync"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 5,
+    "numReviews": 1,
+    "createdAt": "2025-05-26T13:07:35.334Z",
+    "updatedAt": "2025-05-26T13:07:35.334Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346797f08d0ead0def6083",
+    "name": "LG UltraGear 27GP950-B",
+    "description": "Màn hình 4K UHD 27 inch với tần số quét 144Hz và tấm nền Nano IPS.",
+    "price": 19999750,
+    "discountPrice": 17499750,
+    "category": "6826a6ade2250e6613f42bdb",
+    "brand": "LG",
+    "stock": 29,
+    "sold": 11,
+    "images": [
+      {
+        "public_id": "images-1748322109754.jpg",
+        "url": "/uploads/images/products/images-1748322109754.jpg",
+        "_id": "6835473dcdb336b597050940"
+      }
+    ],
+    "specifications": {
+      "size": "27\"",
+      "resolution": "3840 x 2160 (4K UHD)",
+      "refresh_rate": "144Hz",
+      "response_time": "1ms GTG",
+      "panel": "Nano IPS"
+    },
+    "features": [
+      "Tương thích G-SYNC",
+      "HDR10",
+      "Đèn Sphere Lighting 2.0",
+      "Ép xung lên 160Hz"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.7,
+    "numReviews": 80,
+    "createdAt": "2025-05-26T13:07:35.335Z",
+    "updatedAt": "2025-05-26T13:07:35.335Z",
+    "__v": 0
+  },
+  {
+    "_id": "68346797f08d0ead0def6086",
+    "name": "Alienware AW3423DWF",
+    "description": "Màn hình QD-OLED cong 34 inch với tần số quét 165Hz và độ tương phản vô hạn.",
+    "price": 24999750,
+    "discountPrice": 22499750,
+    "category": "6826a6ade2250e6613f42bdb",
+    "brand": "Alienware",
+    "stock": 23,
+    "sold": 10,
+    "images": [
+      {
+        "public_id": "images-1748321964802.jpg",
+        "url": "/uploads/images/products/images-1748321964802.jpg",
+        "_id": "683546accdb336b59705081f"
+      }
+    ],
+    "specifications": {
+      "size": "34\"",
+      "resolution": "3440 x 1440 (WQHD)",
+      "refresh_rate": "165Hz",
+      "response_time": "0.1ms GTG",
+      "panel": "QD-OLED"
+    },
+    "features": [
+      "Tỷ lệ tương phản vô hạn",
+      "FreeSync Premium Pro",
+      "Đèn RGB AlienFX",
+      "Độ cong 1800R"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4.8,
+    "numReviews": 70,
+    "createdAt": "2025-05-26T13:07:35.336Z",
+    "updatedAt": "2025-07-08T03:37:59.881Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346797f08d0ead0def6089",
+    "name": "Acer Predator X27U",
+    "description": "Màn hình chơi game OLED 27 inch với tần số quét 240Hz và thời gian phản hồi 0.01ms.",
+    "price": 27499750,
+    "discountPrice": 24999750,
+    "category": "6826a6ade2250e6613f42bdb",
+    "brand": "Acer",
+    "stock": 12,
+    "sold": 14,
+    "images": [
+      {
+        "public_id": "images-1748321927035.jpg",
+        "url": "/uploads/images/products/images-1748321927035.jpg",
+        "_id": "68354687cdb336b5970507d4"
+      }
+    ],
+    "specifications": {
+      "size": "27\"",
+      "resolution": "2560 x 1440 (QHD)",
+      "refresh_rate": "240Hz",
+      "response_time": "0.01ms GTG",
+      "panel": "OLED"
+    },
+    "features": [
+      "Tương thích G-SYNC",
+      "HDR10",
+      "Công tắc KVM",
+      "Chân đế công thái học"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.9,
+    "numReviews": 50,
+    "createdAt": "2025-05-26T13:07:35.336Z",
+    "updatedAt": "2025-07-03T05:25:38.322Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346797f08d0ead0def608c",
+    "name": "ASUS ROG Swift OLED PG32UCDM",
+    "description": "Màn hình OLED 4K 32 inch với tần số quét 240Hz và tản nhiệt tùy chỉnh.",
+    "price": 32499750,
+    "discountPrice": 29999750,
+    "category": "6826a6ade2250e6613f42bdb",
+    "brand": "ASUS",
+    "stock": 16,
+    "sold": 16,
+    "images": [
+      {
+        "public_id": "images-1748321820181.png",
+        "url": "/uploads/images/products/images-1748321820181.png",
+        "_id": "6835461ccdb336b597050766"
+      }
+    ],
+    "specifications": {
+      "size": "32\"",
+      "resolution": "3840 x 2160 (4K UHD)",
+      "refresh_rate": "240Hz",
+      "response_time": "0.03ms GTG",
+      "panel": "OLED"
+    },
+    "features": [
+      "Tương thích G-SYNC",
+      "Dolby Vision",
+      "Tản nhiệt tùy chỉnh",
+      "Đèn Aura Sync RGB"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.8,
+    "numReviews": 65,
+    "createdAt": "2025-05-26T13:07:35.336Z",
+    "updatedAt": "2025-08-08T11:02:56.377Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346797f08d0ead0def608f",
+    "name": "Dell UltraSharp 32 6K U3224KB",
+    "description": "Màn hình 6K 32 inch với tấm nền IPS Black và webcam 4K tích hợp.",
+    "price": 39999750,
+    "discountPrice": 37499750,
+    "category": "6826a6ade2250e6613f42bdb",
+    "brand": "Dell",
+    "stock": 82,
+    "sold": 31,
+    "images": [
+      {
+        "public_id": "images-1748322042139.jpg",
+        "url": "http://localhost:5000/uploads/images/products/images-1748322042139.jpg",
+        "_id": "683546facdb336b5970508f8"
+      }
+    ],
+    "specifications": {
+      "size": "32\"",
+      "resolution": "6144 x 3456 (6K)",
+      "refresh_rate": "60Hz",
+      "response_time": "5ms GTG",
+      "panel": "IPS Black"
+    },
+    "features": [
+      "Webcam 4K",
+      "HDR600",
+      "Công tắc KVM",
+      "Hai cổng Thunderbolt 4"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4,
+    "numReviews": 1,
+    "createdAt": "2025-05-26T13:07:35.337Z",
+    "updatedAt": "2025-08-04T05:13:57.970Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346797f08d0ead0def6092",
+    "name": "MSI MPG 321URX QD-OLED",
+    "description": "Màn hình QD-OLED 4K 32 inch với tần số quét 240Hz và màu sắc sống động.",
+    "price": 29999750,
+    "discountPrice": 27499750,
+    "category": "6826a6ade2250e6613f42bdb",
+    "brand": "MSI",
+    "stock": 19,
+    "sold": 21,
+    "images": [
+      {
+        "public_id": "images-1748322152702.jpg",
+        "url": "/uploads/images/products/images-1748322152702.jpg",
+        "_id": "68354768cdb336b597050987"
+      }
+    ],
+    "specifications": {
+      "size": "32\"",
+      "resolution": "3840 x 2160 (4K UHD)",
+      "refresh_rate": "240Hz",
+      "response_time": "0.03ms GTG",
+      "panel": "QD-OLED"
+    },
+    "features": [
+      "G-SYNC Ultimate",
+      "HDR True Black 400",
+      "Công tắc KVM",
+      "Đèn Mystic Light RGB"
+    ],
+    "isFeatured": true,
+    "isNewArrival": true,
+    "averageRating": 4.8,
+    "numReviews": 60,
+    "createdAt": "2025-05-26T13:07:35.337Z",
+    "updatedAt": "2025-08-07T03:10:26.863Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346797f08d0ead0def6095",
+    "name": "AOC Agon Pro AG276QZD",
+    "description": "Màn hình với công nghệ OLED QHD 27 inch với tần số quét 240Hz và độ trễ đầu vào thấp.",
+    "price": 22499750,
+    "discountPrice": 19999750,
+    "category": "6826a6ade2250e6613f42bdb",
+    "brand": "AOC",
+    "stock": 29,
+    "sold": 18,
+    "images": [
+      {
+        "public_id": "images-1748321716683.jpg",
+        "url": "http://localhost:5000/uploads/images/products/images-1748321716683.jpg",
+        "_id": "683545b4cdb336b597050717"
+      }
+    ],
+    "specifications": {
+      "size": "27\"",
+      "resolution": "2560 x 1440 (QHD)",
+      "refresh_rate": "240Hz",
+      "response_time": "0.03ms GTG",
+      "panel": "OLED"
+    },
+    "features": [
+      "Tương thích G-SYNC",
+      "HDR10",
+      "Độ trễ đầu vào thấp",
+      "Chân đế điều chỉnh"
+    ],
+    "isFeatured": false,
+    "isNewArrival": false,
+    "averageRating": 4.6,
+    "numReviews": 75,
+    "createdAt": "2025-05-26T13:07:35.337Z",
+    "updatedAt": "2025-06-30T06:36:28.550Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346797f08d0ead0def6098",
+    "name": "ViewSonic Elite XG321UG",
+    "description": "Màn hình Mini-LED 4K 32 inch với tần số quét 144Hz và HDR1400.",
+    "price": 34999750,
+    "discountPrice": 32499750,
+    "category": "6826a6ade2250e6613f42bdb",
+    "brand": "ViewSonic",
+    "stock": 14,
+    "sold": 12,
+    "images": [
+      {
+        "public_id": "images-1748322322730.png",
+        "url": "/uploads/images/products/images-1748322322730.png",
+        "_id": "68354812cdb336b597050a18"
+      }
+    ],
+    "specifications": {
+      "size": "32\"",
+      "resolution": "3840 x 2160 (4K UHD)",
+      "refresh_rate": "144Hz",
+      "response_time": "3ms GTG",
+      "panel": "Mini-LED"
+    },
+    "features": [
+      "G-SYNC Ultimate",
+      "HDR1400",
+      "Đèn Elite RGB",
+      "Chân đế công thái học"
+    ],
+    "isFeatured": true,
+    "isNewArrival": false,
+    "averageRating": 4.7,
+    "numReviews": 65,
+    "createdAt": "2025-05-26T13:07:35.337Z",
+    "updatedAt": "2025-06-24T03:18:14.988Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  },
+  {
+    "_id": "68346797f08d0ead0def609b",
+    "name": "BenQ Mobiuz EX3210U",
+    "description": "Màn hình IPS 4K 32 inch với tần số quét 144Hz và micro khử tiếng ồn AI.",
+    "price": 19999750,
+    "discountPrice": 17499750,
+    "category": "6826a6ade2250e6613f42bdb",
+    "brand": "BenQ",
+    "stock": 72,
+    "sold": 71,
+    "images": [
+      {
+        "public_id": "images-1748322012796.webp",
+        "url": "http://localhost:5000/uploads/images/products/images-1748322012796.webp",
+        "_id": "683546dccdb336b5970508af"
+      }
+    ],
+    "specifications": {
+      "size": "32\"",
+      "resolution": "3840 x 2160 (4K UHD)",
+      "refresh_rate": "144Hz",
+      "response_time": "1ms MPRT",
+      "panel": "IPS"
+    },
+    "features": [
+      "FreeSync Premium Pro",
+      "Công nghệ HDRi",
+      "Micro khử tiếng ồn AI",
+      "Loa tích hợp"
+    ],
+    "isFeatured": false,
+    "isNewArrival": true,
+    "averageRating": 4,
+    "numReviews": 2,
+    "createdAt": "2025-05-26T13:07:35.338Z",
+    "updatedAt": "2025-08-04T05:01:28.583Z",
+    "__v": 0,
+    "shippingInfo": {
+      "dimensions": {
+        "height": 5,
+        "length": 20,
+        "width": 20
+      },
+      "weight": 200
+    }
+  }
+]

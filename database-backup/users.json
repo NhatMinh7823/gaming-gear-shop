@@ -1,0 +1,688 @@
+[
+  {
+    "_id": "6826a6ace2250e6613f42bd4",
+    "name": "ADMINH",
+    "email": "admin@example.com",
+    "password": "$2a$10$dhs7yCaEzPcfHrxSQWCORuD5Td.uC6U/mLAln1EHLqDltsTmKEbF2",
+    "role": "admin",
+    "address": {
+      "street": "số 43, ấp Thới Bình B",
+      "ward": {
+        "code": "401502",
+        "name": "Phường An Lạc"
+      },
+      "district": {
+        "id": 1788,
+        "name": "Thị xã Buôn Hồ"
+      },
+      "province": {
+        "id": 210,
+        "name": "Đắk Lắk"
+      },
+      "isDefault": true,
+      "isComplete": true
+    },
+    "wishlist": [
+      "68346797f08d0ead0def609b",
+      "683464609962a72564d5ffdf",
+      "6826a6ade2250e6613f42bdf",
+      "68346719e66a8a2c939e3672",
+      "68346719e66a8a2c939e368d",
+      "68346797f08d0ead0def608f",
+      "68346797f08d0ead0def6098"
+    ],
+    "createdAt": "2025-05-16T02:45:00.991Z",
+    "__v": 0,
+    "coupon": {
+      "code": "7WP2J",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-06-27T05:21:20.809Z",
+      "status": "used",
+      "orderId": "6895d960dbdb68849d26203b"
+    },
+    "chatbotPreferences": {
+      "hasSeenOnboarding": true,
+      "orderNotificationSettings": {
+        "chatbotUpdates": true
+      },
+      "preferredPaymentMethod": "COD"
+    }
+  },
+  {
+    "_id": "6826a6ace2250e6613f42bd5",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "$2a$10$i6/2nf2Lok8nQB.QCc/af.f.yEFUlB0v01bjjdKi74mic/SQL2ogO",
+    "role": "admin",
+    "address": {
+      "street": "123 Main St",
+      "city": "New York",
+      "state": "NY",
+      "postalCode": "10001",
+      "country": "USA"
+    },
+    "wishlist": [],
+    "createdAt": "2025-05-16T02:45:00.992Z",
+    "__v": 0
+  },
+  {
+    "_id": "6826a6ace2250e6613f42bd6",
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "password": "$2a$10$HuJRe2mOon1TJw4V4DRDVOT8pYN0GLbuebBRLdUTh5gn2fUUJt1qy",
+    "role": "user",
+    "address": {
+      "street": "456 Elm St",
+      "city": "Los Angeles",
+      "state": "CA",
+      "postalCode": "90001",
+      "country": "USA"
+    },
+    "wishlist": [],
+    "createdAt": "2025-05-16T02:45:00.992Z",
+    "__v": 0
+  },
+  {
+    "_id": "682aae341b9a48ad3f598fbe",
+    "name": "Nhat Minh Gamer",
+    "email": "nhatminhgamer@gmail.com",
+    "password": "$2a$10$o9cQ/PY30eVmzjG7HinmkOU2y7Q8XFJLRBOj5/8Ns6jO8tD2yF7KS",
+    "role": "user",
+    "wishlist": [],
+    "createdAt": "2025-05-19T04:06:12.952Z",
+    "__v": 0
+  },
+  {
+    "_id": "682aaf2c1b9a48ad3f59905b",
+    "name": "Nhat Minh Gamer2",
+    "email": "nhatminhgamer2@gmail.com",
+    "password": "$2a$10$THwufxNDjmK7KKqBT1rHyO4uj7t9OBQfuK.z7nmoxK3fO7c2lz3M2",
+    "role": "user",
+    "wishlist": [
+      "68346797f08d0ead0def609b",
+      "6826a6ade2250e6613f42be2",
+      "6826a6ade2250e6613f42bdf"
+    ],
+    "createdAt": "2025-05-19T04:10:20.496Z",
+    "__v": 0
+  },
+  {
+    "_id": "682b0841b65d0802bc64dcbb",
+    "name": "Nhatminhgamer4",
+    "email": "nhatminhgamer4@gmail.com",
+    "password": "$2a$10$bxhhrR5zPen23ccDGLbWNO0RHM38EOGMVe6nZ7qh0bCtdI/zldA8e",
+    "role": "user",
+    "wishlist": [
+      "68346797f08d0ead0def609b",
+      "6826a6ade2250e6613f42be2",
+      "6826a6ade2250e6613f42be5"
+    ],
+    "createdAt": "2025-05-19T10:30:25.291Z",
+    "__v": 0,
+    "coupon": {
+      "code": "B10ZP",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T04:23:31.718Z",
+      "orderId": "683149f502d1d9b73f5db959",
+      "status": "used"
+    },
+    "address": {
+      "street": "Số 45, Khu vực 12",
+      "ward": {
+        "code": "220413",
+        "name": "Xã Đồng Tiến"
+      },
+      "district": {
+        "id": 1826,
+        "name": "Huyện Khoái Châu"
+      },
+      "province": {
+        "id": 268,
+        "name": "Hưng Yên"
+      },
+      "isDefault": true,
+      "isComplete": true
+    },
+    "chatbotPreferences": {
+      "hasSeenOnboarding": false,
+      "orderNotificationSettings": {
+        "chatbotUpdates": true
+      },
+      "preferredPaymentMethod": "VNPay"
+    }
+  },
+  {
+    "_id": "682ff25dfdc315bc95edd38d",
+    "name": "Nhat Minh Gamer",
+    "email": "ghghz1495@gmail.com",
+    "password": "$2a$10$IqQl7jWBmdTT0q1GESxE9O/M90L1Jkp4jeHiSlh3aZaq7Las4VwYa",
+    "role": "user",
+    "wishlist": [
+      "6826a6ade2250e6613f42be2",
+      "6826a6ade2250e6613f42be5"
+    ],
+    "createdAt": "2025-05-23T03:58:21.897Z",
+    "__v": 0,
+    "address": {
+      "isComplete": false,
+      "isDefault": true
+    },
+    "chatbotPreferences": {
+      "hasSeenOnboarding": false,
+      "orderNotificationSettings": {
+        "chatbotUpdates": true
+      },
+      "preferredPaymentMethod": "VNPay"
+    },
+    "coupon": {
+      "discountPercent": 30,
+      "status": "usable",
+      "used": false
+    },
+    "resetPasswordExpire": "2025-08-05T03:56:44.464Z",
+    "resetPasswordToken": "149hlpbd64zsbm43lxrgef"
+  },
+  {
+    "_id": "6830568c3db758a5c2306bf1",
+    "name": "admin@example.com",
+    "email": "specialoffer@gmail.com",
+    "password": "$2a$10$I8iE/1xNI.U5wQi7..g/Dur7VT/08NT7uXPKkF87I5MecWadmzGa6",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "H5E6B",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-23T11:14:58.992Z"
+    },
+    "createdAt": "2025-05-23T11:05:48.978Z",
+    "__v": 0
+  },
+  {
+    "_id": "68305f63f42bc04cecedabe2",
+    "name": "nhatminh",
+    "email": "so3@gmail.com",
+    "password": "$2a$10$e8kwmfRYh0XuOVVzOkAUdu9znU1YMKKJKXb0egwJpcTm9u.7K9ayS",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "WL2BR",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-23T11:43:31.611Z"
+    },
+    "createdAt": "2025-05-23T11:43:31.527Z",
+    "__v": 0
+  },
+  {
+    "_id": "6830615a046906aae88d15c8",
+    "name": "nhatminh123",
+    "email": "gh1ghz1495@gmail.com",
+    "password": "$2a$10$s1auxOAH7HDqRW3z0in/4eXjXXyOurKtxFTg4X3lpvgwj6ZXpRF0.",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "GLO1S",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-23T11:51:54.258Z",
+      "orderId": "6831327c1d7e75e46bbbd73f",
+      "status": "used"
+    },
+    "createdAt": "2025-05-23T11:51:54.153Z",
+    "__v": 0
+  },
+  {
+    "_id": "683134021d7e75e46bbbd9c2",
+    "name": "nhatminh2",
+    "email": "gh2ghz1495@gmail.com",
+    "password": "$2a$10$VGTOsGtnxZ549wEZHAplaeXiiDRIIfE7/eEdyswCG0cHXHZ9xjpAO",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "S84PA",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T02:50:42.118Z",
+      "orderId": "6831341d1d7e75e46bbbda16",
+      "status": "used"
+    },
+    "createdAt": "2025-05-24T02:50:42.042Z",
+    "__v": 0
+  },
+  {
+    "_id": "683136387ced5c09498cfaf3",
+    "name": "nhatminh3",
+    "email": "gh3ghz1495@gmail.com",
+    "password": "$2a$10$ayJJKUXZD5AchwBMJyQlyOjqDPUmhl9HBtj6SP9bl7SJ9sdwbQMyu",
+    "role": "user",
+    "wishlist": [
+      "6826a6ade2250e6613f42beb",
+      "6826a6ade2250e6613f42bee",
+      "6826a6ade2250e6613f42be5"
+    ],
+    "coupon": {
+      "code": "CLDIU",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T03:00:15.111Z",
+      "orderId": "683136587ced5c09498cfb6b",
+      "status": "used"
+    },
+    "createdAt": "2025-05-24T03:00:08.576Z",
+    "__v": 0
+  },
+  {
+    "_id": "683136bb7ced5c09498cfc1f",
+    "name": "nhatminh4",
+    "email": "gh4ghz1495@gmail.com",
+    "password": "$2a$10$ibwj5VaOn2GH2IWzc.D7FeQ1zVMkJ4nYIXekjOiU1CMBhxR7Vubie",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "F63F4",
+      "used": false,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T03:02:19.536Z"
+    },
+    "createdAt": "2025-05-24T03:02:19.454Z",
+    "__v": 0
+  },
+  {
+    "_id": "683139197ced5c09498cfd82",
+    "name": "nhatminh5",
+    "email": "gh5ghz1495@gmail.com",
+    "password": "$2a$10$qpIVAdOvsckhpCvT0JodA.WIPQHjNqlLZ3Wp3a3RG6QdBITP33j32",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "FY8AA",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T03:12:29.377Z",
+      "orderId": "683139467ced5c09498cfe13",
+      "status": "used"
+    },
+    "createdAt": "2025-05-24T03:12:25.233Z",
+    "__v": 0
+  },
+  {
+    "_id": "68313b36f4f60feaa36ff16c",
+    "name": "nhatminh6",
+    "email": "gh6ghz1495@gmail.com",
+    "password": "$2a$10$KKKDJJ4oJSncyL.s1Faxe..h3cstR01rNf5Tpi6SJH50LtNfxA/pq",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "IQEFR",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T03:21:30.983Z",
+      "orderId": "68313b6bf4f60feaa36ff1fb",
+      "status": "used"
+    },
+    "createdAt": "2025-05-24T03:21:26.628Z",
+    "__v": 0
+  },
+  {
+    "_id": "683140d1ff37e3858f10fd89",
+    "name": "nhatminh7",
+    "email": "gh7ghz1495@gmail.com",
+    "password": "$2a$10$AtTRSun4kAFtyd3.7NhUJ.IH./wR6.ARIxLGT1m5LXPGDoiP76lAm",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "KDW54",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T03:45:26.947Z",
+      "orderId": "68314104ff37e3858f10fe06",
+      "status": "used"
+    },
+    "createdAt": "2025-05-24T03:45:21.471Z",
+    "__v": 0
+  },
+  {
+    "_id": "6831454c778d174e565c49d5",
+    "name": "nhatminh8",
+    "email": "gh8ghz1495@gmail.com",
+    "password": "$2a$10$9vuQ1D/OGbO9pUtSKF103u1moaCIh1VgykmKX7PoVktTEt5i68l7i",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "MD25V",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T04:04:28.928Z",
+      "orderId": "68314563778d174e565c4a2d",
+      "status": "used"
+    },
+    "createdAt": "2025-05-24T04:04:28.850Z",
+    "__v": 0
+  },
+  {
+    "_id": "683147b2b15c6cccfa6286ba",
+    "name": "nhatminh9",
+    "email": "gh9ghz1495@gmail.com",
+    "password": "$2a$10$c4PZCn5WRrjQOa9G/4tmgu4AsFq3rFEviw7s7HGi7.zKMuPKZp9Zu",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "PQNF3",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T04:14:46.747Z",
+      "orderId": "683147d8b15c6cccfa628775",
+      "status": "used"
+    },
+    "createdAt": "2025-05-24T04:14:42.411Z",
+    "__v": 0
+  },
+  {
+    "_id": "6831495d02d1d9b73f5db4ea",
+    "name": "nhatminh10",
+    "email": "gh10ghz1495@gmail.com",
+    "password": "$2a$10$WpfvvL3shZJNEvxTqR6DI.4xJNqHJXgjqVic0YUWKzwcKhF6fIRQC",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "FBB84",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T04:21:54.818Z",
+      "orderId": "6831497d02d1d9b73f5db563",
+      "status": "used"
+    },
+    "createdAt": "2025-05-24T04:21:49.355Z",
+    "__v": 0
+  },
+  {
+    "_id": "68314da7ff14fb2190ba9561",
+    "name": "nhatminh11",
+    "email": "gh11ghz1495@gmail.com",
+    "password": "$2a$10$pzlaAgDHt4qPxhlaQ6hqrOKOg4wTthMT8vlpZvsw7VgS7V/VUK9Bu",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "O41SU",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T04:40:12.053Z",
+      "orderId": "68314dbdff14fb2190ba95de",
+      "status": "used"
+    },
+    "createdAt": "2025-05-24T04:40:07.617Z",
+    "__v": 0
+  },
+  {
+    "_id": "68314eaf41a0b3bca80f1775",
+    "name": "nhatminh12",
+    "email": "gh12ghz1495@gmail.com",
+    "password": "$2a$10$ZSgljWldhc6G7So9BOz9KOxwNB5EcC/kBrEY.q5ZZ9kmSzL.gq4zu",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "QBXBI",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T04:44:33.989Z",
+      "orderId": "68314ec441a0b3bca80f17f2",
+      "status": "used"
+    },
+    "createdAt": "2025-05-24T04:44:31.002Z",
+    "__v": 0
+  },
+  {
+    "_id": "68314f5812243ee43e41711c",
+    "name": "nhatminh13",
+    "email": "gh13ghz1495@gmail.com",
+    "password": "$2a$10$kAPkwcGzIHem4UyznQmH/eLw6H1GcRTPx4X91IVSiuOwZ0eAvEF5y",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "Z9Z05",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T04:47:23.934Z",
+      "orderId": "68314f6812243ee43e417193",
+      "status": "used"
+    },
+    "createdAt": "2025-05-24T04:47:20.821Z",
+    "__v": 0
+  },
+  {
+    "_id": "683151830295d6f7f770c9ee",
+    "name": "nhatminh14",
+    "email": "gh14ghz1495@gmail.com",
+    "password": "$2a$10$kGMmnn0uA4x8O36CwIfSeO0U9eCFno1Fy4BIhifYjE6lGVh3hFHYW",
+    "role": "user",
+    "wishlist": [],
+    "coupon": {
+      "code": "RNATP",
+      "used": false,
+      "discountPercent": 30,
+      "createdAt": "2025-05-24T04:56:39.016Z",
+      "orderId": null,
+      "status": "usable"
+    },
+    "createdAt": "2025-05-24T04:56:35.407Z",
+    "__v": 0
+  },
+  {
+    "_id": "6847ad125c68e9ddbfb5f5c2",
+    "name": "phuoc hai",
+    "email": "hai@hai.com",
+    "password": "$2a$10$HeBfSj88sRM1p6ferUfjMuWamDsrJNC673i2a/qoBSfUTZ.PnD/Zu",
+    "role": "user",
+    "address": {
+      "isDefault": true,
+      "isComplete": false
+    },
+    "wishlist": [],
+    "coupon": {
+      "code": "BE1VU",
+      "used": true,
+      "discountPercent": 30,
+      "createdAt": "2025-06-10T03:57:17.559Z",
+      "orderId": "6847ad975c68e9ddbfb5f717",
+      "status": "used"
+    },
+    "createdAt": "2025-06-10T03:57:06.113Z",
+    "__v": 0
+  },
+  {
+    "_id": "6847b3e2e6207da06e57aeb5",
+    "name": "nhatminh1025",
+    "email": "ghghz14951025@gmail.com",
+    "password": "$2a$10$tfibZeL.P1Dqwt6AmrkPQ.kzL8vLh1msJ9uHMcxIGuRpsgG.pdsdC",
+    "role": "user",
+    "address": {
+      "street": "số 89",
+      "ward": {
+        "code": "620604",
+        "name": "Xã Mường Báng"
+      },
+      "district": {
+        "id": 2021,
+        "name": "Huyện Tủa Chùa"
+      },
+      "province": {
+        "id": 265,
+        "name": "Điện Biên"
+      },
+      "isDefault": true,
+      "isComplete": true
+    },
+    "wishlist": [],
+    "coupon": {
+      "code": null,
+      "used": false,
+      "status": "usable",
+      "orderId": null,
+      "discountPercent": 30,
+      "createdAt": null
+    },
+    "chatbotPreferences": {
+      "orderNotificationSettings": {
+        "chatbotUpdates": true
+      },
+      "hasSeenOnboarding": true,
+      "preferredPaymentMethod": "VNPay",
+      "defaultShippingAddress": null
+    },
+    "createdAt": "2025-06-10T04:26:10.254Z",
+    "__v": 0
+  },
+  {
+    "_id": "685cb72626f15cb25efc0bd7",
+    "name": "nhatminh15",
+    "email": "nhatminh15@gmail.com",
+    "password": "$2a$10$95Q4GOOPASSgnhtlzrLtR.uqcTdBjQ/1J4DhVY8rjibIYMG0cmmOa",
+    "role": "user",
+    "address": {
+      "isDefault": true,
+      "isComplete": false
+    },
+    "wishlist": [],
+    "coupon": {
+      "code": "VICRZ",
+      "used": false,
+      "discountPercent": 30,
+      "createdAt": "2025-06-26T02:57:49.130Z",
+      "orderId": null,
+      "status": "usable"
+    },
+    "chatbotPreferences": {
+      "orderNotificationSettings": {
+        "chatbotUpdates": true
+      },
+      "hasSeenOnboarding": false,
+      "preferredPaymentMethod": "VNPay",
+      "defaultShippingAddress": null
+    },
+    "createdAt": "2025-06-26T02:57:42.199Z",
+    "__v": 0
+  },
+  {
+    "_id": "6879da00178ccff54b722eae",
+    "name": "minh test sign in",
+    "email": "test7823@gmail.com",
+    "password": "$2a$10$QJecJqSZjxa45Y7I9p3TNO9L6HXpmMFNn7gOSVUhwt.18zOMtB8tO",
+    "role": "user",
+    "address": {
+      "isDefault": true,
+      "isComplete": false
+    },
+    "wishlist": [],
+    "coupon": {
+      "code": "8OBOZ",
+      "used": false,
+      "discountPercent": 30,
+      "createdAt": "2025-07-18T05:22:08.829Z"
+    },
+    "chatbotPreferences": {
+      "orderNotificationSettings": {
+        "chatbotUpdates": true
+      },
+      "hasSeenOnboarding": false,
+      "preferredPaymentMethod": "VNPay",
+      "defaultShippingAddress": null
+    },
+    "createdAt": "2025-07-18T05:22:08.677Z",
+    "__v": 0
+  },
+  {
+    "_id": "68821bf9111904e792bdb4e1",
+    "name": "nhat minh create new",
+    "email": "createnew@gmail.com",
+    "password": "$2a$10$YgLVoiljXXtX44LSbr0h.ec6nkc5aUYbltpjeRt0.Ukoc6khrKujC",
+    "role": "user",
+    "address": {
+      "isDefault": true,
+      "isComplete": false
+    },
+    "wishlist": [],
+    "coupon": {
+      "code": null,
+      "used": false,
+      "status": "usable",
+      "orderId": null,
+      "discountPercent": 30,
+      "createdAt": null
+    },
+    "chatbotPreferences": {
+      "orderNotificationSettings": {
+        "chatbotUpdates": true
+      },
+      "hasSeenOnboarding": false,
+      "preferredPaymentMethod": "VNPay",
+      "defaultShippingAddress": null
+    },
+    "createdAt": "2025-07-24T11:41:45.859Z",
+    "__v": 0
+  },
+  {
+    "_id": "688306bb9bd9184cf18792e3",
+    "name": "minh test confirmpass",
+    "email": "confirmpass@gmail.com",
+    "password": "$2a$10$jVlwoj8yYReyFs0exk7C1eruCZxZMuDDefKHETC6a87yYpGSWG15y",
+    "role": "user",
+    "address": {
+      "isDefault": true,
+      "isComplete": false
+    },
+    "wishlist": [],
+    "coupon": {
+      "code": null,
+      "used": false,
+      "status": "usable",
+      "orderId": null,
+      "discountPercent": 30,
+      "createdAt": null
+    },
+    "chatbotPreferences": {
+      "orderNotificationSettings": {
+        "chatbotUpdates": true
+      },
+      "hasSeenOnboarding": false,
+      "preferredPaymentMethod": "VNPay",
+      "defaultShippingAddress": null
+    },
+    "createdAt": "2025-07-25T04:23:23.256Z",
+    "__v": 0
+  },
+  {
+    "_id": "688c4b4d9320fc05e7548ddd",
+    "name": "admin123@example.com",
+    "email": "ghgh123z1495@gmail.com",
+    "password": "$2a$10$R2BfUYApLZB4tNBy37jtsen4Gwx2NMzeUGQPcUrnO2A8xz2coxyU.",
+    "role": "user",
+    "address": {
+      "isDefault": true,
+      "isComplete": false
+    },
+    "wishlist": [],
+    "coupon": {
+      "code": null,
+      "used": false,
+      "status": "usable",
+      "orderId": null,
+      "discountPercent": 30,
+      "createdAt": null
+    },
+    "resetPasswordToken": null,
+    "resetPasswordExpire": null,
+    "chatbotPreferences": {
+      "orderNotificationSettings": {
+        "chatbotUpdates": true
+      },
+      "hasSeenOnboarding": false,
+      "preferredPaymentMethod": "VNPay",
+      "defaultShippingAddress": null
+    },
+    "createdAt": "2025-08-01T05:06:21.180Z",
+    "__v": 0
+  }
+]

@@ -1,0 +1,79 @@
+[
+  {
+    "_id": "6826a6ade2250e6613f42bf2",
+    "user": "6826a6ace2250e6613f42bd4",
+    "product": "6826a6ade2250e6613f42bdf",
+    "rating": 5,
+    "title": "Great keyboard!",
+    "comment": "The switches feel amazing and the RGB lighting is fantastic. Highly recommended!",
+    "isVerifiedPurchase": true,
+    "createdAt": "2025-05-16T02:45:01.026Z",
+    "__v": 0
+  },
+  {
+    "_id": "6826a6ade2250e6613f42bf3",
+    "user": "6826a6ace2250e6613f42bd5",
+    "product": "6826a6ade2250e6613f42be2",
+    "rating": 4,
+    "title": "Excellent mouse",
+    "comment": "Very lightweight and responsive. Perfect for FPS games.",
+    "isVerifiedPurchase": true,
+    "createdAt": "2025-05-16T02:45:01.026Z",
+    "__v": 0
+  },
+  {
+    "_id": "6827fe92ea45f2a1222d9380",
+    "user": "6826a6ace2250e6613f42bd4",
+    "product": "6826a6ade2250e6613f42beb",
+    "rating": 4,
+    "title": "nice one",
+    "comment": "this is nice",
+    "isVerifiedPurchase": false,
+    "createdAt": "2025-05-17T03:12:18.214Z",
+    "__v": 0
+  },
+  {
+    "_id": "68464afb032c3d23538b07dd",
+    "user": "6826a6ace2250e6613f42bd4",
+    "product": "68346797f08d0ead0def608f",
+    "rating": 4,
+    "title": "nice",
+    "comment": "nice one",
+    "isVerifiedPurchase": true,
+    "createdAt": "2025-06-09T02:46:19.593Z",
+    "__v": 0
+  },
+  {
+    "_id": "68771e194bfe84ee8d08a016",
+    "user": "6826a6ace2250e6613f42bd4",
+    "product": "6826a6ade2250e6613f42be2",
+    "rating": 5,
+    "title": "Rất tuyệt vời",
+    "comment": "Chuột công nghệ cao, phù hợp với nhu cầu game thủ",
+    "isVerifiedPurchase": true,
+    "createdAt": "2025-07-16T03:35:53.987Z",
+    "__v": 0
+  },
+  {
+    "_id": "687b6364444c8a7c4b2663c2",
+    "user": "682b0841b65d0802bc64dcbb",
+    "product": "68346797f08d0ead0def609b",
+    "rating": 5,
+    "title": "Trải nghiệm rất tốt",
+    "comment": "Màn hình với chất lượng và giá tiền xứng đáng mua",
+    "isVerifiedPurchase": false,
+    "createdAt": "2025-07-19T09:20:36.395Z",
+    "__v": 0
+  },
+  {
+    "_id": "688c2a9e9320fc05e7547757",
+    "user": "6826a6ace2250e6613f42bd5",
+    "product": "68346797f08d0ead0def609b",
+    "rating": 3,
+    "title": "Màn hình này khá tốt nhưng giá cao",
+    "comment": "Màn hình này đáp ứng nhu cầu nhưng giá khá đắt",
+    "isVerifiedPurchase": false,
+    "createdAt": "2025-08-01T02:46:54.021Z",
+    "__v": 0
+  }
+]

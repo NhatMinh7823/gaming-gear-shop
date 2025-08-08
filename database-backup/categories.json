@@ -1,0 +1,80 @@
+[
+  {
+    "_id": "6826a6ade2250e6613f42bd8",
+    "name": "Bàn phím cơ",
+    "slug": "b-n-ph-m-c-",
+    "description": "Bàn phím gaming với các công tắc cơ cho phản hồi cực nhanh khi chơi game",
+    "image": {
+      "public_id": "image-1747364080772.jpeg",
+      "url": "/uploads/images/categories/image-1747364080772.jpeg"
+    },
+    "featured": true,
+    "createdAt": "2025-05-16T02:45:01.004Z",
+    "__v": 0
+  },
+  {
+    "_id": "6826a6ade2250e6613f42bd9",
+    "name": "Chuột",
+    "slug": "chu-t",
+    "description": "Chuột gaming với thông số DPI cao và cảm biến cao cấp cho độ chính xác cao",
+    "image": {
+      "public_id": "image-1747802374218.png",
+      "url": "/uploads/images/categories/image-1747802374218.png"
+    },
+    "featured": true,
+    "createdAt": "2025-05-16T02:45:01.004Z",
+    "__v": 0
+  },
+  {
+    "_id": "6826a6ade2250e6613f42bda",
+    "name": "Tai nghe",
+    "slug": "tai-nghe",
+    "description": "Tai nghe chơi game với âm thanh vòm cho trải nghiệm chơi game nhập vai",
+    "image": {
+      "public_id": "image-1747364074519.jpeg",
+      "url": "/uploads/images/categories/image-1747364074519.jpeg"
+    },
+    "featured": true,
+    "createdAt": "2025-05-16T02:45:01.004Z",
+    "__v": 0
+  },
+  {
+    "_id": "6826a6ade2250e6613f42bdb",
+    "name": "Màn hình",
+    "slug": "m-n-h-nh",
+    "description": "Màn hình gaming với tần số quét sao, mang lại trải nghiệm mượt mà khi chơi game",
+    "image": {
+      "public_id": "image-1747364105662.jpeg",
+      "url": "/uploads/images/categories/image-1747364105662.jpeg"
+    },
+    "featured": true,
+    "createdAt": "2025-05-16T02:45:01.004Z",
+    "__v": 0
+  },
+  {
+    "_id": "6826a6ade2250e6613f42bdc",
+    "name": "Gaming Laptops",
+    "slug": "gaming-laptops",
+    "description": "Máy tính xách tay hiệu suất cao được thiết kế để chơi game",
+    "image": {
+      "public_id": "image-1747364059834.jpeg",
+      "url": "/uploads/images/categories/image-1747364059834.jpeg"
+    },
+    "createdAt": "2025-05-16T02:45:01.004Z",
+    "__v": 0,
+    "featured": true
+  },
+  {
+    "_id": "6826a6ade2250e6613f42bdd",
+    "name": "Gaming PCs",
+    "slug": "gaming-pcs",
+    "description": "Bộ máy tính gaming được lắp đặt sẵn dành cho trải nghiệm chơi game cao cấp",
+    "image": {
+      "public_id": "image-1747364046002.jpeg",
+      "url": "/uploads/images/categories/image-1747364046002.jpeg"
+    },
+    "featured": true,
+    "createdAt": "2025-05-16T02:45:01.005Z",
+    "__v": 0
+  }
+]

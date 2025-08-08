@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "68314826b15c6cccfa628978",
+    "user": "683147b2b15c6cccfa6286ba",
+    "items": [
+      {
+        "product": "6826a6ade2250e6613f42bdf",
+        "name": "Logitech G Pro X Mechanical Gaming Keyboard",
+        "image": "/uploads/images/products/images-1747366119996.jpeg",
+        "price": 3184755,
+        "quantity": 1,
+        "_id": "68314826b15c6cccfa628979"
+      }
+    ],
+    "totalPrice": 3184755,
+    "updatedAt": "2025-05-24T04:16:38.672Z",
+    "__v": 0
+  }
+]

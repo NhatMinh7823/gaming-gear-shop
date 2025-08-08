@@ -1,0 +1,17 @@
+{
+  "database": "gaming-gear-shop",
+  "backup_date": "2025-08-08T11:32:52.479Z",
+  "collections": [
+    "users",
+    "products",
+    "categories",
+    "orders",
+    "reviews",
+    "carts"
+  ],
+  "backup_type": "JSON Export + Full Dump",
+  "instructions": {
+    "import_json": "Sử dụng mongoimport để import từng file JSON",
+    "import_full": "Sử dụng mongorestore để import toàn bộ từ thư mục full-backup"
+  }
+}
